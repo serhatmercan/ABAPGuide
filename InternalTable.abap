@@ -97,4 +97,4 @@ SORT lt_data BY name.
 DELETE ADJACENT DUPLICATES FROM lt_data COMPARING name.
 
 " Table Records Count
-DATA(lv_records_count) = lines( gt_table ). 
+DATA(lv_records_count) = lines( gt_table ).

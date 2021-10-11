@@ -1,14 +1,17 @@
-" Definition
-APPEND INITIAL LINE TO lt_data ASSIGNING FIELD-SYMBOL(<ls_data>).
-<ls_data> = VALUE #( id = 'X' value = '1' ).
-
 " Assign
-DATA: lr_data TYPE REF TO data,
-      lv_data TYPE string.
+TYPES: tt_mara TYPE STANDARD TABLE OF mara.
 
-FIELD-SYMBOLS: <lt_node> TYPE STANDARD TABLE,
+DATA: lt_data TYPE REF TO data,
+      lr_data TYPE REF TO data,
+      lv_data TYPE string,
+      lt_mara TYPE tt_mara.
+
+FIELD-SYMBOLS: <lt_data> TYPE STANDARD TABLE,
+               <lt_node> TYPE STANDARD TABLE,
                <lv_id> TYPE any,  
-               <ls_data> TYPE any.
+               <ls_data> TYPE any,
+               <lfs_any_tab> TYPE ANY TABLE,
+               <fs_mara> LIKE LINE OF lt_mara.            
 
 ASSIGN cr_data->* TO <ls_data>.
 ASSIGN COMPONENT lv_data OF STRUCTURE <ls_data> TO <lt_node>.
@@ -19,6 +22,29 @@ LOOP AT <lt_node> ASSIGNING FIELD-SYMBOL(<ls_node>).
     DATA(lv_alpha_id) = |{ <lv_id> ALPHA = IN }|.
   ENDIF.
 ENDLOOP.
+
+" Append
+APPEND INITIAL LINE TO lt_mara ASSIGNING FIELD-SYMBOL(<fs_mara>).
+<fs_mara>-matnr = '123456'.
+UNASSIGN <fs_mara>.
+
+" Check & Remove
+IF <ls_node> IS ASSIGNED.
+  UNASSIGN <ls_node>.
+ENDIF.
+
+" Create
+ASSIGN lt_data->* TO <lt_data>.
+CREATE DATA lr_data LIKE LINE OF <lt_data>. 
+
+" Definition
+APPEND INITIAL LINE TO lt_data ASSIGNING FIELD-SYMBOL(<ls_data>).
+<ls_data> = VALUE #( id = 'X' value = '1' ).
+
+" Insert
+INSERT INITIAL LINE INTO lt_mara ASSIGNING <fs_mara> INDEX 2.
+<fs_mara>-matnr = 'ABCDEF'.
+UNASSIGN <fs_mara>.
 
 " Loop 
 LOOP AT lt_data ASSIGNING FIELD-SYMBOL(<ls_data>).

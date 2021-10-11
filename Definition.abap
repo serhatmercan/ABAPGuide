@@ -33,3 +33,6 @@ ENDLOOP.
 
 " Standard Table
 DATA lt_lines TYPE STANDARD TABLE OF tline.
+
+" Structure
+DATA lv_str(30) VALUE 'ZSM_S_STRUCTURE'.
