@@ -14,6 +14,15 @@ SELECT MAX( posnr )
     FROM lips
     WHERE vbeln EQ @ip_vbeln.
 
+" SELECT SINGLE MAX | AS | GROUP BY
+SELECT SINGLE MAX( a~vbeln ) a~posnr 
+    FROM vbap AS a
+    INNER JOIN vbak AS b ON a~vbeln EQ b~vbeln 
+    INTO (lv_vbeln, lv_posnr)
+    WHERE a~abgru EQ space
+      AND b~auart EQ 'ZKLF' 
+    GROUP BY a~posnr.
+
 " SELECT ALL FIELDS
 SELECT MARA~*,
        marc~prctr
@@ -54,6 +63,26 @@ SELECT name1
     WHERE loevm EQ @abap_false
 INTO TABLE @DATA(lt_names).
 
+" SELECT SUM & GROUP & ORDER
+SELECT mch1~vfdat AS vfdat,
+       mch1~charg AS charg,
+       SUM( mchb~clabs + mchb~cinsm ) AS clabs
+    INTO CORRESPONDING FIELDS OF TABLE @lt_data
+    FROM mcha
+    INNER JOIN mchb
+        ON mcha~charg EQ mchb~charg
+    INNER JOIN marc
+        ON marc~matnr EQ mcha~matnr
+    INNER JOIN mch1
+        ON mch1~charg EQ mcha~charg
+        AND mch1~matnr EQ mcha~matnr
+    WHERE mcha~matnr EQ @im_mt61d-matnr
+        AND mcha~werks EQ @im_mt61d-werks
+        AND mcha~lvorm EQ abap_false
+        AND mchb~clabs NE abap_false
+    GROUP BY mch1~vfdat, mch1~charg
+    ORDER BY mch1~vfdat, mch1~charg.
+
 " INNER JOIN
 SELECT *
     INTO CORRESPONDING FIELDS OF TABLE itab
@@ -86,3 +115,31 @@ SELECT 'I'  AS sign,
 
 " ADD WHERE CUSTOM RANGE
 WHERE vbfa~vbtyp_v IN ('C','L','K','I','H').
+
+" ADD WHERE CUSTOM LIKE
+WHERE ( matnr LIKE 'J%' OR matnr LIKE 'T%' ).
+
+" LIMIT
+SELECT * 
+    UP TO 10 ROWS
+    FROM mara
+    INTO TABLE @DATA(lt_mara).
+
+" APPEND
+DATA: BEGIN OF lt_lgort OCCURS 0,
+        lgort TYPE lgort_d,
+      END OF lt_lgort.
+
+SELECT lgort 
+  FROM mchb
+  INTO CORRESPONDING FIELDS OF TABLE lt_lgort
+    WHERE matnr EQ lv_matnr
+      AND werks EQ '1000'
+      AND ( ( clabs GT 0 ) OR ( cinsm GT 0 ) OR ( cspem GT 0 ) ).
+
+SELECT lgort 
+  FROM mspr
+  APPENDING CORRESPONDING FIELDS OF TABLE lt_lgort
+    WHERE matnr EQ lv_matnr
+      AND werks EQ '1000'
+      AND ( ( prlab GT 0 ) OR ( prins GT 0 ) OR ( prspe GT 0 ) ).

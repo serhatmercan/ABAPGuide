@@ -1,4 +1,4 @@
-" Definition: Types & Table Type & Internal Table
+" Definition-1: Types & Table Type & Internal Table
 TYPES: BEGIN OF ty_auart,
          vbeln TYPE vbak-vbeln,
          posnr TYPE vbrp-posnr,
@@ -7,7 +7,38 @@ TYPES: BEGIN OF ty_auart,
 
 tt_auart TYPE TABLE OF ty_auart WITH KEY vbeln.
 
-DATA gt_auart TYPE tt_auart.
+DATA: gs_auart TYPE ty_auart,
+      gt_auart TYPE tt_auart.
+
+" Definition-2: Types & Internal Table
+TYPES: BEGIN OF ty_mdps.
+          INCLUDE TYPE mdps.
+          TYPES: check TYPE xfeld,
+        END OF ty_mdps.
+ 
+DATA: lt_mdps TYPE TABLE OF ty_mdps,
+      ls_mdps TYPE ty_mdps.
+
+" Definition-3: Types & Internal Table
+DATA: BEGIN OF ty_data OCCURS 0.
+        INCLUDE TYPE zqmui_s_insplot.
+        DATA: objnr TYPE qals-objnr,
+      END OF ty_data.
+ 
+DATA lt_data TYPE TABLE OF ty_data.
+
+" Definition-3: Types & Internal Table w/ Performance
+TYPES: BEGIN OF ty_charg,
+         matnr LIKE marc-matnr,
+         lgort TYPE mseg-lgort,
+         charg TYPE mspr-charg,
+         pspnr TYPE mspr-pspnr,
+         post1 TYPE prps-post1,
+       END OF ty_charg.
+
+TYPES: tt_charg TYPE STANDARD TABLE OF ty_charg
+                WITH KEY matnr lgort
+                WITH NON-UNIQUE SORTED KEY matnr_lgort COMPONENTS matnr lgort.
 
 " Append
 APPEND INITIAL LINE TO lt_sales_items.
@@ -86,6 +117,11 @@ WRITE lr_ref->matnr.
 READ TABLE it_key INTO ls_key WITH KEY name = 'X' INDEX 1 TRANSPORTING name.
 IF sy-subrc EQ 0.
   DATA(lv_value) = ls_key-value.
+ENDIF.
+
+READ TABLE it_key ASSIGNING FIELD-SYMBOL(<fs_key>) WITH KEY name = 'X' INDEX 1 TRANSPORTING name.
+IF sy-subrc EQ 0.
+  <fs_key>-value = abap_true.
 ENDIF.
 
 IF line_exists( gt_auart[ vbeln = itab-vbeln ] ).

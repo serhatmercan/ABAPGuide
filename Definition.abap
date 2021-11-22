@@ -13,6 +13,7 @@ CLEAR lv_top.
 
 " Definition
 DATA: lv_mimetype TYPE nte_mimetype VALUE 'application/pdf'.
+DATA: lv_value    TYPE c LENGTH 120.
 
 " Field Symbol
 LOOP AT lt_data ASSIGNING FIELD-SYMBOL(<ls_data>).
@@ -20,6 +21,19 @@ ENDLOOP.
 
 " Optional
 DATA(lv_key) = VALUE #( lt_data[ name = 'Key' ]-value OPTIONAL ) .
+
+" Perform
+DATA: lt_header    LIKE TABLE OF bapi_order_header1    WITH HEADER LINE,
+      lt_operation LIKE TABLE OF bapi_order_operation1 WITH HEADER LINE,
+      lt_component LIKE TABLE OF bapi_order_component  WITH HEADER LINE. 
+
+PERFORM get_component TABLES lt_header lt_operation lt_component. 
+
+FORM get_component TABLES lt_header    STRUCTURE bapi_order_header1
+                          lt_operation STRUCTURE bapi_order_operation1
+                          lt_component STRUCTURE bapi_order_component.
+
+ENDFORM.
 
 " Pointer
 DATA(lv_value) = '12345'.
@@ -36,3 +50,6 @@ DATA lt_lines TYPE STANDARD TABLE OF tline.
 
 " Structure
 DATA lv_str(30) VALUE 'ZSM_S_STRUCTURE'.
+
+" Tables
+TABLES: vbak .
