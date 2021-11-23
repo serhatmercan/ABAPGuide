@@ -4,6 +4,7 @@ DATA lt_return TYPE TABLE OF bapiret2.
 
 " Boolean
 DATA(rv_result) = xsdbool( sy-subrc = 0 ). 
+DATA(lv_flag) = VALUE boolean( ).
 
 " Constant
 CONSTANTS lc_number LIKE bapi2080_nothdre-notif_no VALUE '%00000000001'.
@@ -12,8 +13,17 @@ CONSTANTS lc_number LIKE bapi2080_nothdre-notif_no VALUE '%00000000001'.
 CLEAR lv_top.
 
 " Definition
-DATA: lv_mimetype TYPE nte_mimetype VALUE 'application/pdf'.
-DATA: lv_value    TYPE c LENGTH 120.
+DATA lv_mimetype TYPE nte_mimetype VALUE 'application/pdf'.
+DATA lv_value    TYPE c LENGTH 120.
+DATA(lt_returns) = VALUE bapiret2_tab( ).
+
+" Function
+CALL METHOD cl_cam_address_bcs=>create_internet_addres
+  EXPORTING
+    i_address_string = CONV #( gv_sender_email )
+    i_address_name   = CONV #( gv_sender_name )
+   RECEIVING
+     result          = DATA(gr_sender).
 
 " Field Symbol
 LOOP AT lt_data ASSIGNING FIELD-SYMBOL(<ls_data>).
@@ -53,3 +63,9 @@ DATA lv_str(30) VALUE 'ZSM_S_STRUCTURE'.
 
 " Tables
 TABLES: vbak .
+
+" Xfeld
+DATA(lv_error) = VALUE xfeld( ).
+
+" Variable
+DATA(lv_user) = 'SMERCAN'.

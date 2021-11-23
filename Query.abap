@@ -43,6 +43,17 @@ SELECT brgew, ntgew, gewei, ABS( brgew - ntgew ) AS diff
     FROM mara
     INTO TABLE @DATA(lt_mara).
 
+" SELECT COUNT
+SELECT COUNT(*) FROM t001w WHERE werks EQ @lv_werks.
+IF sy-subrc NE 0.
+ENDIF.
+
+" SELECT DISTINCT
+SELECT DISTINCT charg
+      FROM zsm_t_charg 
+      INTO TABLE @DATA(lt_charg)
+      WHERE matnr EQ @lv_matnr.
+
 " SELECT UNION ALL
 SELECT name1
     FROM kna1
@@ -83,6 +94,9 @@ SELECT mch1~vfdat AS vfdat,
     GROUP BY mch1~vfdat, mch1~charg
     ORDER BY mch1~vfdat, mch1~charg.
 
+" ORDER BY
+ORDER BY PRIMARY KEY.
+
 " INNER JOIN
 SELECT *
     INTO CORRESPONDING FIELDS OF TABLE itab
@@ -111,7 +125,7 @@ SELECT 'I'  AS sign,
        'EQ' AS option,
         t001w~werks AS low
   FROM t001w
-  INTO CORRESPONDING FIELDS OF TABLE @lt_werks_range. 
+  INTO CORRESPONDING FIELDS OF TABLE @lt_werks_range.
 
 " ADD WHERE CUSTOM RANGE
 WHERE vbfa~vbtyp_v IN ('C','L','K','I','H').

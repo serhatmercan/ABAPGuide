@@ -12,3 +12,6 @@ SELECTION-SCREEN END OF SCREEN 601.
 CALL FUNCTION 'POPUP_TO_DISPLAY_TEXT'
 	EXPORTING
         textline1 = 'Hello'. 
+
+" Show Internal Table
+cl_demo_output=>display( lt_data ).

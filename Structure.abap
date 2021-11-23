@@ -8,3 +8,6 @@ ls_sales_header = VALUE #( doc_type = likp-lfart
 
 " Convert                           
 ls_table = CORRESPONDING #( ls_data ).
+
+" Definition
+DATA(ls_header) = VALUE ZSM_S_HEADER( ).
