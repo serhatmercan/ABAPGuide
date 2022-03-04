@@ -16,6 +16,7 @@ CLEAR lv_top.
 DATA lv_mimetype TYPE nte_mimetype VALUE 'application/pdf'.
 DATA lv_value    TYPE c LENGTH 120.
 DATA(lt_returns) = VALUE bapiret2_tab( ).
+DATA(lt_data) = VALUE zsm_tt_value( ( ls_data ) ).
 
 " Function
 CALL METHOD cl_cam_address_bcs=>create_internet_addres

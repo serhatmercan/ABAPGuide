@@ -72,7 +72,10 @@ ASSIGN lt_itab[ 3 ] TO FIELD-SYMBOL(<fs_itab>).
 
 " Assign w/ Key
 ASSIGN lt_itab[ ernam = 'SERHAT'
-                ersda = '20801212' ] TO FIELD-SYMBOL(<fs_itab>). 
+                ersda = '20801212' ] TO FIELD-SYMBOL(<fs_itab>).
+                
+" Calculation
+DATA(lv_amount) = REDUCE i( INIT i TYPE labst FOR ls_mard IN lt_mard WHERE ( labst NE '' ) NEXT i = i + ls_mard-labst ).
 
 " Corresponding w/ Mapping
 lt_data = CORRESPONDING #( lo_data-values MAPPING matnr = material_no ).
@@ -144,20 +147,25 @@ DATA(lr_ref) = REF #( lt_itab[ ernam = 'SERHAT'
                                ersda = '20801212' ] ). 
 WRITE lr_ref->matnr. 
 
-" Read Table
+" Read Table - I
 READ TABLE it_key INTO ls_key WITH KEY name = 'X' INDEX 1 TRANSPORTING name.
 IF sy-subrc EQ 0.
   DATA(lv_value) = ls_key-value.
 ENDIF.
 
+" Read Table - II
 READ TABLE it_key ASSIGNING FIELD-SYMBOL(<fs_key>) WITH KEY name = 'X' INDEX 1 TRANSPORTING name.
 IF sy-subrc EQ 0.
   <fs_key>-value = abap_true.
 ENDIF.
 
+" " Read Table - III
 IF line_exists( gt_auart[ vbeln = itab-vbeln ] ).
   DATA(lv_auart)= gt_auart[ vbeln = itab-vbeln ]-auart.
 ENDIF.
+
+" Read Table - IV
+ls_data = CORRESPONDING #( lt_data[ name = 'X' ] ).
 
 " SORT & DELETE DUPLICATE DATA
 SORT lt_data BY name.

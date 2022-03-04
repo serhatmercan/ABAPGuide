@@ -58,6 +58,13 @@ CALL METHOD cl_cam_address_bcs=>create_internet_addres
    RECEIVING
      result          = DATA(gr_sender).
 
+" Convert Internal Characteristic To Characteristic Name => Atinn -> Atnam
+CALL FUNCTION 'CONVERSION_EXIT_ATINN_OUTPUT'
+  EXPORTING
+    input  = <measurement_document>-internal_characteristic
+  IMPORTING
+    output = <measurement_document>-internal_characteristic_text
+
 " Convert Material Number
 CALL FUNCTION 'CONVERSION_EXIT_MATN1_INPUT'
   EXPORTING
