@@ -54,6 +54,15 @@ SELECT DISTINCT charg
       INTO TABLE @DATA(lt_charg)
       WHERE matnr EQ @lv_matnr.
 
+" SELECT EXIST
+SELECT COUNT( * ) 
+    FROM zsm_t_data 
+    WHERE werks EQ iv_werks 
+      AND EXISTS ( SELECT * 
+                    FROM mara 
+                    WHERE matnr EQ iv_matnr 
+                      AND mtart EQ zsm_t_data~mtart ).
+
 " SELECT UNION ALL
 SELECT name1
     FROM kna1

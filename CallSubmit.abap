@@ -2,11 +2,9 @@
 ASSIGN ('(SAPMV50A)XLIPS[]') TO FIELD-SYMBOL(<fs_xlips>).
 
 IF <fs_xlips> IS NOT INITIAL.
-
   DATA lt_xlips TYPE TABLE OF lips.
 
   lt_xlips = <fs_xlips>.
-
 ENDIF.
 
 " Call Program

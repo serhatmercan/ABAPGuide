@@ -1,4 +1,5 @@
 " CUSTOM TABLE
+DATA lt_data TYPE TABLE OF zsm_t_data .
 
 " Append Data From Internal Table To Custom Table
 APPEND LINES OF lt_data TO zsm_t_data.
@@ -25,6 +26,7 @@ MODIFY zsm_t_data FROM ls_data.
 COMMIT WORK AND WAIT.
 
 " Modify Data From Internal Table To Custom Table
+CHECK lt_data[] IS NOT INITIAL.
 MODIFY zsm_t_data FROM TABLE lt_data.
 COMMIT WORK AND WAIT.
 

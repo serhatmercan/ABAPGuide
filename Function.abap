@@ -108,6 +108,21 @@ CALL FUNCTION 'CONVERSION_EXIT_ALPHA_INPUT'
   IMPORTING
     output = ls_data-data.
 
+" Get Personel Number From User ID
+DATA lv_personel_no TYPE persno.
+
+CALL FUNCTION 'RP_GET_PERNR_FROM_USERID'
+  EXPORTING
+    begda = sy-datum
+    endda = sy-datum
+    usrid = sy-uname
+    usrty = '0001'
+  IMPORTING
+    usr_pernr = lv_personel_no
+  EXCEPTIONS
+    retcd  = 1
+    OTHERS = 2.
+
 " Indicator
 CALL FUNCTION 'SAPGUI_PROGRESS_INDICATOR'
   EXPORTING

@@ -55,10 +55,10 @@ LOOP AT lt_vbfa INTO DATA(ls_vbfa).
     lt_sum-totalreel = 1.
   ENDIF.
 
-   lt_sum-zzplaka   = ls_vbfa-zzplaka.
-   lt_sum-matnr     = ls_vbfa-matnr.
-   lt_sum-ntgew     = ls_vbfa-ntgew.
-   lt_sum-brgew     = ls_vbfa-brgew.
+   lt_sum-zzplaka = ls_vbfa-zzplaka.
+   lt_sum-matnr   = ls_vbfa-matnr.
+   lt_sum-ntgew   = ls_vbfa-ntgew.
+   lt_sum-brgew   = ls_vbfa-brgew.
    
    COLLECT lt_sum.
 ENDLOOP.

@@ -14,16 +14,11 @@ METHOD if_ex_me_process_po_cust~process_item.
                                 EXCEPTIONS no_data = 1 OTHERS = 2 ).
      
     IF ls_header-bsart EQ 'NB'.
- 
       IF ls_previous IS INITIAL.
- 
         ls_item-uebto = 8.
         ls_item-webre = 'X'.
- 
         im_item->set_data( EXPORTING im_data = ls_item ).
- 
       ENDIF.
- 
     ENDIF.
     
 ENDMETHOD.

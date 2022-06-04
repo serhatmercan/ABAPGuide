@@ -7,6 +7,9 @@ lt_data-waers(1) EQ 'A' OR lt_data-waers(1) EQ 'T'.
 " Concatenate
 DATA(lv_full_name) = | My name is { lv_name }| && | , and surname is { 'Mercan' } | .
 
+" Condense
+CONDENSE lv_full_name NO-GAPS.
+
 " Contains
 IF lv_data CP 'P*'.
 ELSE.

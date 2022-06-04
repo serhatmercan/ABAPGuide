@@ -76,6 +76,10 @@ ASSIGN lt_itab[ ernam = 'SERHAT'
                 
 " Calculation
 DATA(lv_amount) = REDUCE i( INIT i TYPE labst FOR ls_mard IN lt_mard WHERE ( labst NE '' ) NEXT i = i + ls_mard-labst ).
+DATA(lv_total) = REDUCE bstmg( INIT total TYPE bstmg
+                               FOR ls_data IN lt_data
+			                         WHERE ( mtart EQ 'A' AND werks EQ 'X' )
+                               NEXT total = total + ls_data-total ).
 
 " Corresponding w/ Mapping
 lt_data = CORRESPONDING #( lo_data-values MAPPING matnr = material_no ).

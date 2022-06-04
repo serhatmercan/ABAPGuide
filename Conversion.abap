@@ -18,6 +18,7 @@ e_viqmel = CORRESPONDING #( BASE ( e_viqmel ) ls_data ).
 
 " Conversion w/ Data Type
 DATA(lv_data) = CONV int4( ls_data-value ).
+DATA(ls_data) = CORRESPONDING zsm_t_data( ls_xdata ).
 
 " Conversion Float => IMRC_READG -> ESECOMPAVG
 CALL FUNCTION 'C14W_NUMBER_CHAR_CONVERSION'
