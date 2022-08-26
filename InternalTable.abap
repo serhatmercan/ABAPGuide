@@ -45,6 +45,9 @@ APPEND INITIAL LINE TO lt_sales_items.
 lt_sales_items[ sy-tabix ]-itm_number = lv_posnr + 10.
 lt_sales_items[ sy-tabix ]-material   = zsd_iade_giris-matnr.
 
+lt_data = VALUE #( ( lgort = '1000' mtart = 'AAAA' )
+                   ( lgort = '1000' mtart = 'BBBB' ) ).
+
 " Append Structure To Table
 APPEND ls_data TO lt_data.
 
