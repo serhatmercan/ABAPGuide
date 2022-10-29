@@ -1,107 +1,110 @@
 " SELECT SINGLE
 SELECT SINGLE *
-    INTO @DATA(ls_data)
-    FROM mara.
+  INTO @DATA(ls_data)
+  FROM mara.
 
 " SELECT ALL   
 SELECT *
-    INTO TABLE @DATA(lt_data)
-    FROM vbrk.
+  INTO TABLE @DATA(lt_data)
+  FROM vbrk.
 
 " SELECT MAX
 SELECT MAX( posnr )
-    INTO @DATA(lv_posnr)
-    FROM lips
-    WHERE vbeln EQ @ip_vbeln.
+  INTO @DATA(lv_posnr)
+  FROM lips
+  WHERE vbeln EQ @ip_vbeln.
 
 " SELECT SINGLE MAX | AS | GROUP BY
 SELECT SINGLE MAX( a~vbeln ) a~posnr 
-    FROM vbap AS a
-    INNER JOIN vbak AS b ON a~vbeln EQ b~vbeln 
-    INTO (lv_vbeln, lv_posnr)
-    WHERE a~abgru EQ space
-      AND b~auart EQ 'ZKLF' 
-    GROUP BY a~posnr.
+  FROM vbap AS a
+  INNER JOIN vbak AS b ON a~vbeln EQ b~vbeln 
+  INTO (lv_vbeln, lv_posnr)
+  WHERE a~abgru EQ space
+    AND b~auart EQ 'ZKLF' 
+  GROUP BY a~posnr.
 
 " SELECT ALL FIELDS
 SELECT MARA~*,
        marc~prctr
-    FROM marc
-    INNER JOIN mara ON mara~matnr EQ marc~matnr
-    WHERE is_default EQ @abap_true
-    INTO TABLE @DATA(lt_data). 
+  FROM marc
+  INNER JOIN mara 
+    ON mara~matnr EQ marc~matnr
+  WHERE is_default EQ @abap_true
+  INTO TABLE @DATA(lt_data). 
 
 " SELECT CASE
 SELECT CASE WHEN strkorr NE @space THEN strkorr
             ELSE 'A'
        END AS request_no
-    FROM e070
-    INTO TABLE @DATA(lt_request).
+  FROM e070
+  INTO TABLE @DATA(lt_request).
 
 " SELECT CALCULATION
 SELECT brgew, ntgew, gewei, ABS( brgew - ntgew ) AS diff
-    FROM mara
-    INTO TABLE @DATA(lt_mara).
+  FROM mara
+  INTO TABLE @DATA(lt_mara).
 
 " SELECT COUNT
-SELECT COUNT(*) FROM t001w WHERE werks EQ @lv_werks.
+SELECT COUNT(*) 
+  FROM t001w 
+  WHERE werks EQ @lv_werks.
 IF sy-subrc NE 0.
 ENDIF.
 
 " SELECT DISTINCT
 SELECT DISTINCT charg
-      FROM zsm_t_charg 
-      INTO TABLE @DATA(lt_charg)
-      WHERE matnr EQ @lv_matnr.
+  FROM zsm_t_charg 
+  INTO TABLE @DATA(lt_charg)
+  WHERE matnr EQ @lv_matnr.
 
 " SELECT EXIST
 SELECT COUNT( * ) 
-    FROM zsm_t_data 
-    WHERE werks EQ iv_werks 
-      AND EXISTS ( SELECT * 
-                    FROM mara 
-                    WHERE matnr EQ iv_matnr 
-                      AND mtart EQ zsm_t_data~mtart ).
+  FROM zsm_t_data 
+  WHERE werks EQ iv_werks 
+    AND EXISTS ( SELECT * 
+                  FROM mara 
+                  WHERE matnr EQ iv_matnr 
+                    AND mtart EQ zsm_t_data~mtart ).
 
 " SELECT UNION ALL
 SELECT name1
-    FROM kna1
-    WHERE loevm EQ @abap_false
-  UNION ALL
+  FROM kna1
+  WHERE loevm EQ @abap_false
+UNION ALL
 SELECT name1
-    FROM lfa1
-    WHERE loevm EQ @abap_false
+  FROM lfa1
+  WHERE loevm EQ @abap_false
 INTO TABLE @DATA(lt_names). 
 
 " SELECT UNION ALL & DISTINCT
 SELECT name1
-    FROM kna1
-    WHERE loevm EQ @abap_false
-  UNION DISTINCT
+  FROM kna1
+  WHERE loevm EQ @abap_false
+UNION DISTINCT
 SELECT name1
-    FROM lfa1
-    WHERE loevm EQ @abap_false
+  FROM lfa1
+  WHERE loevm EQ @abap_false
 INTO TABLE @DATA(lt_names).
 
 " SELECT SUM & GROUP & ORDER
 SELECT mch1~vfdat AS vfdat,
        mch1~charg AS charg,
        SUM( mchb~clabs + mchb~cinsm ) AS clabs
-    INTO CORRESPONDING FIELDS OF TABLE @lt_data
-    FROM mcha
-    INNER JOIN mchb
-        ON mcha~charg EQ mchb~charg
-    INNER JOIN marc
-        ON marc~matnr EQ mcha~matnr
-    INNER JOIN mch1
-        ON mch1~charg EQ mcha~charg
-        AND mch1~matnr EQ mcha~matnr
-    WHERE mcha~matnr EQ @im_mt61d-matnr
-        AND mcha~werks EQ @im_mt61d-werks
-        AND mcha~lvorm EQ abap_false
-        AND mchb~clabs NE abap_false
-    GROUP BY mch1~vfdat, mch1~charg
-    ORDER BY mch1~vfdat, mch1~charg.
+  INTO CORRESPONDING FIELDS OF TABLE @lt_data
+  FROM mcha
+  INNER JOIN mchb
+    ON mcha~charg EQ mchb~charg
+  INNER JOIN marc
+    ON marc~matnr EQ mcha~matnr
+  INNER JOIN mch1
+    ON mch1~charg EQ mcha~charg
+    AND mch1~matnr EQ mcha~matnr
+  WHERE mcha~matnr EQ @im_mt61d-matnr
+    AND mcha~werks EQ @im_mt61d-werks
+    AND mcha~lvorm EQ abap_false
+    AND mchb~clabs NE abap_false
+  GROUP BY mch1~vfdat, mch1~charg
+  ORDER BY mch1~vfdat, mch1~charg.
 
 " ORDER BY
 ORDER BY PRIMARY KEY.

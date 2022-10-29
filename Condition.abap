@@ -1,3 +1,10 @@
+" Case
+CASE sy-uname.
+	WHEN 'X'.
+	WHEN 'Y'.
+	WHEN OTHERS.
+ENDCASE.
+
 " Check Data
 CHECK NOT line_exists( et_return[ type = 'E' ] ).
 
@@ -16,3 +23,12 @@ DATA(lv_status) = SWITCH char10( sy-msgty WHEN 'S' THEN 'SUCCESS'
 
 DATA(lv_status) = SWITCH #( sy-msgty WHEN 'S' THEN 'SUCCESS'
                                      ELSE 'ERROR' ).
+
+" IF / Else
+IF 'A' GT 'B'.
+
+ELSEIF 'A' EQ 'B'.
+    
+ELSE.
+    
+ENDIF.
