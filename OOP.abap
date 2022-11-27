@@ -1,11 +1,15 @@
-REPORT zsm_test.
+*&---------------------------------------------------------------------*
+*& Report ZSM_TST
+*&---------------------------------------------------------------------*
+REPORT zsm_tst.
 
 CLASS lcl_alv DEFINITION.
-
   PUBLIC SECTION.
     METHODS:
       get_data,
       set_column,
+      set_display,
+      set_header,
       set_toolbar,
       show_data.
 
@@ -14,18 +18,15 @@ CLASS lcl_alv DEFINITION.
   PRIVATE SECTION.
     DATA: lt_data TYPE TABLE OF mara,
           lo_alv  TYPE REF TO cl_salv_table.
-
 ENDCLASS.
 
 CLASS lcl_alv IMPLEMENTATION.
 
   METHOD get_data.
-
     SELECT *
       INTO TABLE lt_data
       UP TO 100 ROWS
       FROM mara.
-
   ENDMETHOD.
 
   METHOD set_column.
@@ -35,6 +36,26 @@ CLASS lcl_alv IMPLEMENTATION.
     lo_columns->get_column( 'MATKL' )->set_short_text( 'AMG' ).
     lo_columns->get_column( 'MATKL' )->set_medium_text( 'Ana MG' ).
     lo_columns->get_column( 'MATKL' )->set_long_text( 'Ana Mal Grubu' ).
+
+    lo_columns->set_optimize( value = abap_true ).
+  ENDMETHOD.
+
+  METHOD set_display.
+    DATA(lo_display) = lo_alv->get_display_settings( ).
+
+    lo_display->set_list_header( value = 'SALV Report' ).
+    lo_display->set_striped_pattern( value = abap_true ).
+  ENDMETHOD.
+
+  METHOD set_header.
+    DATA lo_header TYPE REF TO cl_salv_form_layout_grid.
+
+    CREATE OBJECT lo_header.
+
+    lo_header->create_label( row = 1 column = 1 )->set_text( value = 'Header' ).
+    lo_header->create_flow( row = 2 column = 1 )->create_text( EXPORTING text = 'Subheader' ).
+
+    lo_alv->set_top_of_list( value = lo_header ).
   ENDMETHOD.
 
   METHOD set_toolbar.
@@ -58,7 +79,11 @@ CLASS lcl_alv IMPLEMENTATION.
     ENDTRY.
 
     set_column( ).
+    set_display( ).
+    set_header( ).
     set_toolbar( ).
+
+    lo_alv->set_screen_popup( EXPORTING start_column = 10 end_column = 75 start_line = 5 end_line = 25 ).
 
     lo_alv->display( ).
   ENDMETHOD.
