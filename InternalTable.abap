@@ -174,6 +174,9 @@ ENDIF.
 " Read Table - IV
 ls_data = CORRESPONDING #( lt_data[ name = 'X' ] ).
 
+" Read Table - V
+ls_data = VALUE #( lt_data[ 1 ] OPTIONAL ).
+
 " SORT & DELETE DUPLICATE DATA
 SORT lt_data BY name.
 DELETE ADJACENT DUPLICATES FROM lt_data COMPARING name.

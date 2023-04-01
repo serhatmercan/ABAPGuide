@@ -12,7 +12,12 @@ CLASS lcl_main DEFINITION DEFERRED.
 DATA go_main        TYPE REF TO lcl_main.
 DATA gt_out         TYPE TABLE OF zsm_t_table.
 DATA go_grid        TYPE REF TO cl_gui_alv_grid,
-DATA go_container   TYPE REF TO cl_gui_custom_container. 
+DATA go_container   TYPE REF TO cl_gui_custom_container.
+
+DATA: go_document      TYPE REF TO cl_dd_document,
+      go_splitter      TYPE REF TO cl_gui_splitter_container,
+      go_subcontainer1 TYPE REF TO cl_gui_container,
+      go_subcontainer2 TYPE REF TO cl_gui_container.
 
 INITIALIZATION.
   CREATE OBJECT go_main.
@@ -38,7 +43,7 @@ CLASS lcl_main DEFINITION.
 *       Context Menu Request
         handle_context_menu_request     FOR EVENT context_menu_request  OF cl_gui_alv_grid IMPORTING e_object,      
 *       Controlling Data Changes When ALV Grid Is Editable
-        handle_data_changed             FOR EVENT data_changed          OF cl_gui_alv_grid IMPORTING sender er_data_changed,
+        handle_data_changed             FOR EVENT data_changed          OF cl_gui_alv_grid IMPORTING er_data_changed e_onf4 e_onf4_before e_onf4_after e_ucomm,
 *       To Be Triggered After Data Changing Is Finished
         handle_data_changed_finished    FOR EVENT data_changed_finished OF cl_gui_alv_grid IMPORTING sender e_modified,
 *       Double Click
@@ -50,9 +55,13 @@ CLASS lcl_main DEFINITION.
 *       Control Menu Buttons        
         handle_menu_button              FOR EVENT menu_button           OF cl_gui_alv_grid IMPORTING e_object e_ucomm,
 *       Control Button Clicks
-        handle_on_f1                    FOR EVENT onf1                  OF cl_gui_alv_grid IMPORTING e_fieldname  es_row_no  er_event_data,        
+        handle_on_f1                    FOR EVENT onf1                  OF cl_gui_alv_grid IMPORTING e_fieldname es_row_no  er_event_data,
+*       Control Button Clicks
+        handle_on_f4                    FOR EVENT onf4                  OF cl_gui_alv_grid IMPORTING e_fieldname e_fieldvalue es_row_no er_event_data et_bad_cells e_display,        
 *       To Add New Functional Buttons To The ALV Toolbar
         handle_toolbar                  FOR EVENT toolbar               OF cl_gui_alv_grid IMPORTING sender e_object e_interactive,
+*       To Add Content Top Of Page
+        handle_top_of_page              FOR EVENT top_of_page           OF cl_gui_alv_grid IMPORTING e_dyndoc_id table_index,        
 *       To Implement User Commands
         handle_user_command             FOR EVENT user_command          OF cl_gui_alv_grid IMPORTING e_ucomm.
   
@@ -104,24 +113,34 @@ CLASS lcl_main IMPLEMENTATION.
                 container_name = iv_container_name.
       
             IF co_grid IS INITIAL.
+              " Screen w/ Container
               CREATE OBJECT co_grid
                 EXPORTING
                   i_parent = co_container.
-      
+              
+              " Screen w/out Container => Full Screen                  
+              CREATE OBJECT co_grid
+                  EXPORTING
+                    i_parent = cl_gui_container=>screen0.
+              
+              " Optional
+              " PERFORM set_f4.
+              " PERFORM set_splitter.
+
               set_toolbar_ex(
                 CHANGING
                   ct_toolbar_ex = lt_toolbar_ex ).
       
               CALL METHOD co_grid->set_drop_down_table
                   EXPORTING
-                    it_drop_down = gt_dropdown.
-                  
+                    it_drop_down = lt_dropdown.
+
               CALL METHOD co_grid->set_table_for_first_display
                 EXPORTING
                   i_buffer_active               = space
                   is_layout                     = ls_layout
                   it_toolbar_excluding          = lt_toolbar_ex
-                  i_save                        = 'U'               " U -> User Spesific |  A-> All | Space -> No Save Variant
+                  i_save                        = 'U'               " A -> All | U -> User Spesific | X -> Standard | Space -> No Save Variant
                   is_variant                    = ls_variant
                   i_default                     = abap_true
                 CHANGING
@@ -136,15 +155,21 @@ CLASS lcl_main IMPLEMENTATION.
                   OTHERS                        = 4.
       
               IF sy-subrc NE 0.
-                MESSAGE ID sy-msgid TYPE sy-msgty NUMBER sy-msgno
-                WITH sy-msgv1 sy-msgv2 sy-msgv3 sy-msgv4.
+                MESSAGE ID sy-msgid TYPE sy-msgty NUMBER sy-msgno WITH sy-msgv1 sy-msgv2 sy-msgv3 sy-msgv4.
               ENDIF.
-      
-              SET HANDLER go_main->handle_hotspot_click         FOR co_grid.
-              SET HANDLER go_main->handle_toolbar               FOR co_grid.
-              SET HANDLER go_main->handle_user_command          FOR co_grid.
+
+              co_grid->register_edit_event( EXPORTING i_event_id = cl_gui_alv_grid=>mc_evt_enter ).
+              co_grid->register_edit_event( EXPORTING i_event_id = cl_gui_alv_grid=>mc_evt_modified ).
+              
+              SET HANDLER go_main->handle_button_click          FOR co_grid.
               SET HANDLER go_main->handle_data_changed          FOR co_grid.
               SET HANDLER go_main->handle_data_changed_finished FOR co_grid.
+              SET HANDLER go_main->handle_double_click          FOR co_grid.
+              SET HANDLER go_main->handle_hotspot_click         FOR co_grid.
+              SET HANDLER go_main->handle_on_f4                 FOR co_grid.
+              SET HANDLER go_main->handle_toolbar               FOR co_grid.
+              SET HANDLER go_main->handle_top_of_page           FOR co_grid.
+              SET HANDLER go_main->handle_user_command          FOR co_grid.              
 
               CALL METHOD co_grid->set_ready_for_input
                 EXPORTING
@@ -175,21 +200,26 @@ CLASS lcl_main IMPLEMENTATION.
     ENDMETHOD.
 
     METHOD handle_button_click.
+      READ TABLE gt_out INTO DATA(ls_out) INDEX es_row_no-row_id.
+      IF sy-subrc EQ 0.
+        CASE es_col_id-fieldname.
+          WHEN 'BUTTON'.
+            MESSAGE es_col_id-fieldname TYPE 'I'.  
+        ENDCASE.   
+      ENDIF.  
     ENDMETHOD.
 
     METHOD handle_context_menu_request.
     ENDMETHOD.
 
     METHOD handle_data_changed.
-        CASE sender.
-          WHEN go_grid.
-            LOOP AT er_data_changed->mt_good_cells REFERENCE INTO DATA(ls_cells).
-              CASE ls_cells->fieldname.
-                WHEN 'CHBOX'.
-                  MESSAGE s001(zit_2020_07) WITH ls_cells->row_id.
-              ENDCASE.
-            ENDLOOP.
+      LOOP AT er_data_changed->mt_good_cells REFERENCE INTO DATA(ls_cell).
+        CASE ls_cell->fieldname.
+          WHEN 'CHBOX'.
+            MESSAGE s001(zit_2020_07) WITH ls_cell->row_id.
+            MESSAGE s001(zit_2020_07) WITH ls_cell->value.
         ENDCASE.
+      ENDLOOP.
     ENDMETHOD.
 
     METHOD handle_data_changed_finished.
@@ -215,7 +245,11 @@ CLASS lcl_main IMPLEMENTATION.
         ENDCASE.
     ENDMETHOD.
 
-    METHOD handle_double_click.    
+    METHOD handle_double_click.
+      READ TABLE gt_out INTO DATA(ls_out) INDEX e_row-index.
+      IF sy-subrc EQ 0 
+        WRITE e_column-fieldname.
+      ENDIF.
     ENDMETHOD.
 
     METHOD handle_hotspot_click.
@@ -235,40 +269,89 @@ CLASS lcl_main IMPLEMENTATION.
     METHOD handle_on_f1.
     ENDMETHOD.
 
+    METHOD handle_on_f4.
+      TYPES: BEGIN OF lty_value_tab,
+           pstyv TYPE pstyv,
+         END OF lty_value_tab.
+
+      DATA: lt_return_tab TYPE TABLE OF ddshretval,
+            lt_value_tab  TYPE TABLE OF lty_value_tab.
+
+      lt_value_tab = VALUE #( ( pstyv = 'X' ) ( pstyv = 'Y' ) ( pstyv = 'Z' ) ).
+
+      CALL FUNCTION 'F4IF_INT_TABLE_VALUE_REQUEST'
+        EXPORTING
+          retfield     = 'PSTYV'
+          window_title = 'PSTYV F4'
+        TABLES
+          value_tab    = lt_value_tab
+          return_tab   = lt_return_tab.
+
+      IF line_exists( lt_return_tab[ fieldname = 'F0001' ] ).
+        IF line_exists( gt_out[ es_row_no-row_id ] ).
+          gt_out[ es_row_no-row_id ]-pstyv = lt_return_tab[ fieldname = 'F0001' ]-fieldval.
+          go_grid->refresh_table_display( ). 
+        ENDIF.
+      ENDIF.
+    ENDMETHOD.
+
     METHOD handle_user_command.
         CASE e_ucomm.
-        WHEN '100_SLA'.
+          WHEN '100_SLA'.
             LOOP AT gt_out_0100 REFERENCE INTO DATA(ls_0100).
               ls_0100->chbox = abap_true.
             ENDLOOP.
-        WHEN 'ADD_LINE'.
-          DATA ls_cellstyle TYPE lvc_s_styl.
-          DATA lv_out LIKE LINE OF gt_out_0100.  
-          DATA(lv_records_count) = lines( gt_out_0100 ).          
-          
-          ls_cellstyle = VALUE #( fieldname = 'NAME'
-                                  style     = cl_gui_alv_grid=>mc_style_enabled ).
-                                   
-          lv_out-id = lv_records_count + 1.     
-          lv_out-fieldstyle = ls_cellstyle.    
+          WHEN 'ADD_LINE'.
+            DATA ls_cellstyle TYPE lvc_s_styl.
+            DATA lv_out LIKE LINE OF gt_out_0100.  
+            DATA(lv_records_count) = lines( gt_out_0100 ).          
+            
+            ls_cellstyle = VALUE #( fieldname = 'NAME'
+                                    style     = cl_gui_alv_grid=>mc_style_enabled ).
+                                    
+            lv_out-id = lv_records_count + 1.     
+            lv_out-fieldstyle = ls_cellstyle.    
 
-          MODIFY gt_out_0100 FROM gs_data INDEX lv_records_count + 1.                          
+            MODIFY gt_out_0100 FROM gs_data INDEX lv_records_count + 1.                          
         ENDCASE.
+
         go_grid->refresh_table_display( EXPORTING is_stable = VALUE lvc_s_stbl( row = abap_true col = abap_true ) ).
     ENDMETHOD.
 
     METHOD handle_toolbar.
         CASE sender.
-        WHEN go_grid.
-            APPEND VALUE #( function  = '100_SLA'
-                            quickinfo = text-101
-                            text      = text-101
-                            icon      = icon_select_all ) TO e_object->mt_toolbar.
-            APPEND VALUE #( function  = 'ADD_LINE'
-                            quickinfo = text-102
-                            text      = text-102
-                            icon      = icon_insert_row ) TO e_object->mt_toolbar.
+          WHEN go_grid.
+              APPEND VALUE #( function  = '100_SLA'
+                              quickinfo = text-101
+                              text      = text-101
+                              icon      = icon_select_all ) TO e_object->mt_toolbar.
+              APPEND VALUE #( function  = 'ADD_LINE'
+                              quickinfo = text-102
+                              text      = text-102
+                              icon      = icon_insert_row ) TO e_object->mt_toolbar.
         ENDCASE.
+    ENDMETHOD.
+
+    METHOD handle_top_of_page.
+      go_document->add_text(
+        EXPORTING
+          text      = 'Header'
+          sap_style = cl_dd_document=>heading 
+      ).
+
+      go_document->new_line( ).
+
+      go_document->add_text(
+        EXPORTING
+          text         = 'Subheader'
+          sap_color    = cl_dd_document=>list_positive
+          sap_fontsize = cl_dd_document=>medium
+      ).
+
+      go_document->display_document(
+        EXPORTING
+          parent = go_subcontainer1 
+      ).
     ENDMETHOD.
 
     METHOD get_data.
@@ -277,7 +360,9 @@ CLASS lcl_main IMPLEMENTATION.
         UP TO 20 ROWS.
 
         LOOP AT gt_out REFERENCE INTO DATA(ls_out) WHERE pstyv EQ 'NLC'.             
-            ls_out->color = 'C710'. " Row Color: C610 -> Red | 'C310' -> Yellow | 'C510' -> Green
+            ls_out->button = 'C710'.
+            ls_out->color = 'C710'. " Row Color: C610 -> Red | 'C310' -> Yellow | 'C510' -> Green 
+            ls_out->statu = '@01@'.
             ls_out->tlght = '2'.    " Cell Color: 1-> Red 2-> Yellow 3-> Green
             APPEND VALUE #( fname = 'VBELN'
                             color-col = '5'
@@ -296,30 +381,36 @@ CLASS lcl_main IMPLEMENTATION.
         INTO TABLE @DATA(lt_table).
 
         LOOP AT lt_table INTO DATA(ls_data).
-          APPEND INITIAL LINE TO rt_dropdown.
-          rt_dropdown[ sy-tabix ]-handle = '1'.
-          rt_dropdown[ sy-tabix ]-value   = ls_data-zzprint.          
+          APPEND INITIAL LINE TO rt_dropdown ASSIGNING FIELD-SYMBOL(<fs_dropdown>).
+          <fs_dropdown>-handle = '1'.
+          <fs_dropdown>-value  = ls_data-zzprint.          
         ENDLOOP.
     ENDMETHOD.
 
     METHOD set_fieldcatalog.
         CALL FUNCTION 'LVC_FIELDCATALOG_MERGE'
           EXPORTING
-            i_bypassing_buffer  = abap_true          
-            i_structure_name    = iv_structure_name
+            i_bypassing_buffer = abap_true          
+            i_structure_name   = iv_structure_name
           CHANGING
-            ct_fieldcat         = rt_fielcat[].
+            ct_fieldcat        = rt_fielcat[].
     
         LOOP AT rt_fielcat REFERENCE INTO DATA(ls_fieldcat).
           CASE ls_fieldcat->fieldname.
-            WHEN 'COLOR'.
+            WHEN 'BUTTON'. 
+              ls_fieldcat->icon       = abap_true.  
+              ls_fieldcat->scrtext_s  = 'Button'.
+              ls_fieldcat->scrtext_m  = 'Button'.
+              ls_fieldcat->scrtext_l  = 'Button'.
+              ls_fieldcat->style      = cl_gui_alv_grid=>mc_style_button.  
+            WHEN 'COLOR'. " CHAR4          
               ls_fieldcat->no_out     = abap_true.
             WHEN 'CHBOX'.
               ls_fieldcat->checkbox   = abap_true. 
               ls_fieldcat->edit       = abap_true.
             WHEN 'DROPDOWN'.
               ls_fieldcat->drdn_hndl  = 1.
-              ls_fieldcat->edit       = abap_true.  
+              ls_fieldcat->edit       = abap_true.
             WHEN 'LFIMG'.
               ls_fieldcat->do_sum     = abap_true.
               ls_fieldcat->edit       = abap_true.
@@ -327,14 +418,26 @@ CLASS lcl_main IMPLEMENTATION.
             WHEN 'POSNR'.
               ls_fieldcat->emphasize  = 'C110'.  " 'C110' | 'C510' | 'C610'
             WHEN 'PSTYV'.
-              ls_fieldcat->f4availabl = abap_true.                   
+              ls_fieldcat->edit       = abap_true.  
+              ls_fieldcat->f4availabl = abap_true.
+            WHEN 'STATU'. " CHAR10
+              ls_fieldcat->icon       = abap_true.
+              ls_fieldcat->scrtext_s  = 'Statu'.
+              ls_fieldcat->scrtext_m  = 'Statu'.
+              ls_fieldcat->scrtext_l  = 'Statu'.                 
             WHEN 'TLGHT'.
               ls_fieldcat->scrtext_s  =
               ls_fieldcat->scrtext_m  =
               ls_fieldcat->scrtext_l  =
+              ls_fieldcat->col_opt    = abap_true.
+              ls_fieldcat->col_pos    = 99.            
               ls_fieldcat->coltext    = 'Statu'.            
+              ls_fieldcat->outputlen  = 100.            
             WHEN 'VBELN'.
-              ls_fieldcat->hotspot    = abap_true.            
+              ls_fieldcat->hotspot    = abap_true.
+              ls_fieldcat->key        = abap_true.
+              ls_fieldcat->ref_table = 'VBAK'.
+              ls_fieldcat->ref_field = 'VBELN'.            
           ENDCASE.
         ENDLOOP.
     ENDMETHOD.
@@ -361,13 +464,13 @@ CLASS lcl_main IMPLEMENTATION.
         rs_layout_alv-info_fname = 'COLOR'.       " ALV Row Color                         
         rs_layout_alv-sel_mode   = 'A'.           " Selection Model & no_rowmark-> abap_false                        
         rs_layout_alv-smalltitle = abap_true.     " ALV Header Small Font
-        rs_layout_alv-stylefname = 'FIELD_STYLE'. " Set Layout Style For Custom Row 
+        rs_layout_alv-stylefname = 'FIELD_STYLE'. " Set Layout Style For Custom Row => TYPE LVC_T_STYL 
         rs_layout_alv-zebra      = abap_true.     " Different Color For Each Row            
     ENDMETHOD.
 
     METHOD set_sort.
-        APPEND VALUE #( fieldname = 'VBELN'
-                        down      = abap_true ) TO rt_sort.
+        APPEND VALUE #( ( fieldname = 'VBELN' down = abap_true )
+                        ( fieldname = 'POSNR' up = abap_true ) ) TO rt_sort.
     ENDMETHOD.
 
     METHOD set_toolbar_ex.
@@ -400,8 +503,6 @@ ENDCLASS.
 *&-----------------------------*
 *& Module  STATUS_0100  OUTPUT
 *&-----------------------------*
-*&           Text
-*&-----------------------------*
 MODULE status_0100 OUTPUT.
   SET PF-STATUS sy-dynnr.
   SET TITLEBAR sy-dynnr.
@@ -418,8 +519,6 @@ ENDMODULE.
 *&--------------------------------------------*
 *&      Module  USER_COMMAND_0100  INPUT
 *&--------------------------------------------*
-*&                  Text
-*&--------------------------------------------*
 MODULE user_command_0100 INPUT.
 
   CASE sy-ucomm.
@@ -427,4 +526,60 @@ MODULE user_command_0100 INPUT.
       LEAVE TO SCREEN 0.
   ENDCASE.
 
-ENDMODULE. 
+ENDMODULE.
+*&--------------------------------------------*
+*&      SET F4
+*&--------------------------------------------*
+FORM set_f4.
+  DATA(lt_f4) = VALUE lvc_t_f4( ( fieldname = 'PSTYV' register = abap_true ) ).
+
+  go_grid->register_f4_for_fields( it_f4 = lt_f4 ).
+ENDFORM.
+*&--------------------------------------------*
+*&      SET SPLITTER
+*&--------------------------------------------*
+FORM set_splitter
+
+  CREATE OBJECT go_grid
+    EXPORTING
+      i_parent = co_container.
+
+  CREATE OBJECT go_splitter
+    EXPORTING
+      parent  = co_container
+      rows    = 2
+      columns = 1.
+
+  go_splitter->get_container(
+    EXPORTING
+      row       = 1
+      column    = 1
+    RECEIVING
+      container = go_subcontainer1 ).
+
+  go_splitter->get_container(
+    EXPORTING
+      row       = 2
+      column    = 1
+    RECEIVING
+      container = go_subcontainer2 ).
+
+  go_splitter->set_row_height(
+    EXPORTING
+      id     = 1
+      height = 15 ).
+
+  CREATE OBJECT go_document
+    EXPORTING
+      style = 'ALV_GRID'.
+
+  CREATE OBJECT go_grid
+    EXPORTING
+      i_parent = go_subcontainer2.
+
+  go_grid->list_processing_events(
+    EXPORTING
+      i_event_name = 'TOP_OF_PAGE'
+      i_dyndoc_id  = go_document ).
+
+ENDFORM.
