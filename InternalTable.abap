@@ -87,6 +87,9 @@ DATA(lv_total) = REDUCE bstmg( INIT total TYPE bstmg
 " Corresponding w/ Mapping
 lt_data = CORRESPONDING #( lo_data-values MAPPING matnr = material_no ).
 
+" Delete All Data
+DELETE FROM zsm_t_accounts.
+
 " Delete w/ Condition
 DELETE it_itab WHERE id EQ 'X' AND attribute EQ 'ABC'.
 

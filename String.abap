@@ -6,6 +6,7 @@ lt_data-waers(1) EQ 'A' OR lt_data-waers(1) EQ 'T'.
 
 " Concatenate
 DATA(lv_full_name) = | My name is { lv_name }| && | , and surname is { 'Mercan' } | .
+DATA(lv_link) = |{ lv_link }main/{ iv_company_code },{ iv_business_area } |.
 
 " Condense
 CONDENSE lv_full_name NO-GAPS.
@@ -46,3 +47,6 @@ CONCATENATE 'You''' 'll be there.' INTO line.
 " Split
 SPLIT lv_data AT '.' INTO TABLE DATA(lt_data).
 SPLIT iv_slug AT '&&' INTO DATA(lv_material) DATA(lv_formkey) DATA(lv_filename) DATA(lv_maincolor) DATA(lv_subcolor).
+
+" Translate
+TRANSLATE <fs_MGTXT>-high  USING 'iİüÜöÖçÇşŞ'.
