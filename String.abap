@@ -7,6 +7,7 @@ lt_data-waers(1) EQ 'A' OR lt_data-waers(1) EQ 'T'.
 " Concatenate
 DATA(lv_full_name) = | My name is { lv_name }| && | , and surname is { 'Mercan' } | .
 DATA(lv_link) = |{ lv_link }main/{ iv_company_code },{ iv_business_area } |.
+DATA(lv_full_name) = 'Serhat' && cl_abap_char_utilities=>newline && 'Mercan'.
 
 " Condense
 CONDENSE lv_full_name NO-GAPS.

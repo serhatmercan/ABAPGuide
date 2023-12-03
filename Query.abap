@@ -14,6 +14,14 @@ SELECT MAX( posnr )
   FROM lips
   WHERE vbeln EQ @ip_vbeln.
 
+" SELECT LEFT OUTER JOIN
+SELECT SINGLE mara~matnr, makt~maktx
+  INTO DATA(ls_material)
+  FROM mara
+  LEFT OUTER JOIN makt
+    ON makt~matnr EQ makt~matnr
+  WHERE matnr EQ @iv_matnr. 
+
 " SELECT SINGLE MAX | AS | GROUP BY
 SELECT SINGLE MAX( a~vbeln ) a~posnr 
   FROM vbap AS a
@@ -144,6 +152,16 @@ WHERE vbfa~vbtyp_v IN ('C','L','K','I','H').
 
 " ADD WHERE CUSTOM LIKE
 WHERE ( matnr LIKE 'J%' OR matnr LIKE 'T%' ).
+
+" CLIENT
+DATA lv_client TYPE sy-mandt.
+
+lv_client = '100'.
+
+SELECT *
+  FROM zsm_t_data 
+  USING CLIENT @lv_client
+  INTO TABLE @DATA(lt_data).
 
 " LIMIT
 SELECT * 

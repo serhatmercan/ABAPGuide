@@ -123,6 +123,14 @@ CALL FUNCTION 'RP_GET_PERNR_FROM_USERID'
     retcd  = 1
     OTHERS = 2.
 
+" Get Personel Number From Personel Number
+SELECT SINGLE ename
+  FROM pa0001
+  INTO DATA(lv_full_name)
+  WHERE pernr EQ gs_head-ernam
+    AND begda LE sy-datum
+    AND endda GE sy-datum.    
+
 " Indicator
 CALL FUNCTION 'SAPGUI_PROGRESS_INDICATOR'
   EXPORTING

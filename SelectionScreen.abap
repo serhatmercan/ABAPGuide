@@ -40,7 +40,7 @@ INITIALIZATION.
 AT SELECTION-SCREEN OUTPUT.
   PERFORM at_selection_screen_output.
 
-AT SELECTION-SCREEN ON VALUE-REQUEST FOR p_count.
+AT SELECTION-SCREEN ON VALUE-REQUEST FOR p_module.
   PERFORM at_selection_screen_on_value_request.
 
 AT SELECTION-SCREEN.
@@ -118,16 +118,19 @@ FORM at_selection_screen_output .
 ENDFORM. 
 
 FORM at_selection_screen_on_value_request.
-  SELECT zzprint
-    FROM zsm_t_data
-    INTO TABLE @DATA(lt_data).
+  SELECT modul, modul_txt
+    FROM zhr_001_t_module
+    INTO TABLE @DATA(lt_modules).
 
   CALL FUNCTION 'F4IF_INT_TABLE_VALUE_REQUEST'
     EXPORTING
-      retfield        = 'ZZPRINT'
+      dynpprog        = sy-repid
+      dynpnr          = sy-dynnr
+      dynprofield     = 'P_MODULE'
+      retfield        = 'MODUL'
       value_org       = 'S'
     TABLES
-      value_tab       = lt_data
+      value_tab       = lt_modules
     EXCEPTIONS
       parameter_error = 1
       no_values_found = 2
