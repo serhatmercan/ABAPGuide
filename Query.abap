@@ -3,6 +3,11 @@ SELECT SINGLE *
   INTO @DATA(ls_data)
   FROM mara.
 
+" SELECT SINGLE TO DATA
+SELECT SINGLE canpos~modul, canpos~modul_txt
+  INTO (@<ls_candis>-modul, @<ls_candis>-modul_txt)
+  FROM zhr_t_canpos AS canpos.
+
 " SELECT ALL   
 SELECT *
   INTO TABLE @DATA(lt_data)
@@ -32,7 +37,7 @@ SELECT SINGLE MAX( a~vbeln ) a~posnr
   GROUP BY a~posnr.
 
 " SELECT ALL FIELDS
-SELECT MARA~*,
+SELECT mara~*,
        marc~prctr
   FROM marc
   INNER JOIN mara 
@@ -58,6 +63,12 @@ SELECT COUNT(*)
   WHERE werks EQ @lv_werks.
 IF sy-subrc NE 0.
 ENDIF.
+
+" SELECT w/ CONCATENATE TWO FIELDS w/ SPACE
+SELECT SINGLE concat_with_space( first_name, last_name, 1 )
+  FROM oigd
+  WHERE perscode EQ @et_liste-stcno
+  INTO @et_liste-drname.
 
 " SELECT DISTINCT
 SELECT DISTINCT charg
@@ -114,6 +125,33 @@ SELECT mch1~vfdat AS vfdat,
   GROUP BY mch1~vfdat, mch1~charg
   ORDER BY mch1~vfdat, mch1~charg.
 
+" SELECT w/ LIKE
+DATA: lv_upper_vehicle_text_en(50),
+      lv_upper_vehicle_text_tr(50),
+      lv_vehicle TYPE oig_vhlnmr.
+
+CONCATENATE '%' lv_vehicle '%' INTO lv_vehicle.
+CONDENSE lv_vehicle.
+
+REPLACE ALL OCCURRENCES OF '*' IN:
+  lv_upper_vehicle_text_tr WITH '%',
+  lv_upper_vehicle_text_en WITH '%',
+  lv_vehicle WITH '%'.
+
+SELECT oigv~vehicle,
+       oigv~veh_type, 
+       oigvt~veh_text,
+       toigvt~veh_text AS veh_type_text
+  FROM oigv
+  LEFT OUTER JOIN oigvt ON oigvt~vehicle EQ oigv~vehicle
+  LEFT OUTER JOIN toigvt ON toigvt~veh_type EQ oigv~veh_type
+  WHERE oigv~vehicle LIKE @lv_vehicle
+    AND oigvt~language EQ @sy-langu
+    AND ( oigvt~veh_text LIKE @lv_upper_vehicle_text_tr OR
+          oigvt~veh_text LIKE @lv_upper_vehicle_text_en )
+    AND toigvt~language EQ @sy-langu
+    INTO TABLE @DATA(lt_vehicles).
+
 " ORDER BY
 ORDER BY PRIMARY KEY.
 
@@ -125,6 +163,16 @@ SELECT *
     INNER JOIN mara ON mara~matnr EQ vbrp~matnr
     WHERE vbrk~mandt EQ @sy-mandt  
       AND vbrk~vbeln IN @ir_vbeln.
+
+" INNER JOIN w/ Internal Table
+SELECT rbukrs, gjahr, belnr
+    FROM acdoca AS a
+    INNER JOIN @lt_skb1 AS b ON b~saknr EQ a~racct
+    WHERE rbukrs EQ @iv_bukrs
+	  AND rldnr EQ '0L'
+	  AND gjahr EQ @iv_gjahr
+	  AND rbusa IN @ir_gsber
+    INTO TABLE @DATA(lt_acdoca).
 
 " FOR ALL ENTRIES IN
 IF lt_itab[] IS NOT INITIAL.
@@ -147,11 +195,33 @@ SELECT 'I'  AS sign,
   FROM t001w
   INTO CORRESPONDING FIELDS OF TABLE @lt_werks_range.
 
-" ADD WHERE CUSTOM RANGE
+" ADD WHERE: BETWEEN
+WHERE mara~mtart BETWEEN 'Z004' AND 'Z006'
+
+" ADD WHERE: CUSTOM RANGE
 WHERE vbfa~vbtyp_v IN ('C','L','K','I','H').
 
-" ADD WHERE CUSTOM LIKE
+" ADD WHERE: CUSTOM LIKE
 WHERE ( matnr LIKE 'J%' OR matnr LIKE 'T%' ).
+
+" ADD WHERE: DYNAMICALLY
+TYPES: BEGIN OF lty_select,
+          where TYPE c LENGTH 50,
+       END OF lty_select.
+
+DATA lt_select TYPE TABLE OF lty_select.
+
+APPEND INITIAL LINE TO lt_select INTO DATA(ls_select).
+ls_select-where = 'matnr EQ ls_data-matnr'.
+
+APPEND INITIAL LINE TO lt_select INTO ls_select.
+ls_select-where = 'prdha EQ ls_data-prdha'.
+
+SELECT SINGLE *
+  INTO ls_001
+  FROM zsm_t_001
+  WHERE kunnr EQ @lv_kunnr
+    AND (lt_select).
 
 " CLIENT
 DATA lv_client TYPE sy-mandt.

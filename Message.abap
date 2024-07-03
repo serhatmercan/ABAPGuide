@@ -11,6 +11,14 @@ MESSAGE i001(zsm).
 MESSAGE ID 'ZSM' TYPE 'E' NUMBER '001' RAISING error.
 MESSAGE ID 'ZSM' TYPE 'S' NUMBER '000' WITH lv_value ' Has Been Created !' RAISING error.
 
+" Form
+FORM append_return TABLES lt_messages STRUCTURE bapiret2
+                   USING VALUE($lv_message) VALUE($lv_type). 
+  APPEND INITIAL LINE TO lt_messages ASSIGNING FIELD-SYMBOL(<fs_message>).     
+  <fs_message>-message = lv_message.
+  <fs_message>-type = lv_type.
+ENDFORM. 
+
 " Message Class
 T-Code: SE91
 Class: ZSM

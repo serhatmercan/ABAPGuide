@@ -7,14 +7,29 @@ lv_out = '00000000000000000000000012345'.
 DATA(lrd_in)  = NEW /scdl/dl_docno_int( CONV #( |{ lv_in ALPHA = IN }| ) ).
 DATA(lrd_out) = NEW /scdl/dl_docno_int( CONV #( |{ lv_out ALPHA = OUT }| ) ). 
 
-" ALPHA IN
+" ALPHA IN: Add Zero To Initial
+DATA lv_vbeln TYPE char10.
+
 lv_vbeln = |{ is_data-vbeln ALPHA = IN }|.
+
+" ALPHA OUT: Remove Zero From Initial
+lv_vbeln = |{ is_data-vbeln ALPHA = OUT }|.
 
 " Append & Corresponding
 lt_data[ sy-tabix ] = CORRESPONDING #( ls_sayim ).
 
 " Base
 e_viqmel = CORRESPONDING #( BASE ( e_viqmel ) ls_data ).
+
+" Conversiton Date Time / Time Stamp to Datum
+" Convert Time Stamp (20240524131025.8750000 -> 20240524) 
+" UI: new Date() 
+" GW: YYYYMMDD
+
+DATA: lv_timestamp TYPE timestampl, 
+      lv_datum     TYPE datum.
+
+CONVERT TIME STAMP lv_timestamp TIME ZONE sy-zonlo INTO DATE lv_datum.
 
 " Conversion w/ Data Type
 DATA(lv_data) = CONV int4( ls_data-value ).
@@ -35,7 +50,7 @@ DATA(lt_mara) = CORRESPONDING tt_mara( lt_data MAPPING matnr = matnr ersda = ers
 
 " Function
 CALL FUNCTION 'ZSM_F_FUNCTION'
-    EXPORTING
-        iv_matnr = CONV lv_vbeln( parameters[ name = 'VBELN' ]-value )
-    IMPORTING
-        ev_flag  = DATA(lv_flag).
+  EXPORTING
+    iv_matnr = CONV lv_vbeln( parameters[ name = 'VBELN' ]-value )
+  IMPORTING
+    ev_flag  = DATA(lv_flag).

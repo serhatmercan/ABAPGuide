@@ -8,14 +8,6 @@ CALL FUNCTION 'NUMERIC_CHECK'
   IMPORTING
     htype     = g_type.
 
-" Conversion Unit
-CALL FUNCTION 'CONVERSION_EXIT_CUNIT_OUTPUT'
-  EXPORTING
-    input                = ls_data-meins
-    language             = sy-langu
-  IMPORTING
-    output               = ls_data-meins.
-
 " Convert Batch Input Message To Bapiret Message
 CALL FUNCTION 'CONVERT_BDCMSGCOLL_TO_BAPIRET2'
    TABLES
@@ -75,7 +67,77 @@ CALL FUNCTION 'CONVERSION_EXIT_MATN1_INPUT'
     length_error = 1
     OTHERS       = 2. 
 
-" Convert Material Unit
+CALL FUNCTION 'CONVERSION_EXIT_MATN1_OUTPUT'
+  EXPORTING
+    input        = ls_data-material
+  IMPORTING
+    output       = ls_data-material
+  EXCEPTIONS
+    length_error = 1
+    OTHERS       = 2. 
+
+" Convert Material Unit - I
+DATA: lv_amount       TYPE kwmeng,
+      lv_gross_weight TYPE brgew_ap,
+      lv_material     TYPE matnr,   
+      lv_net_weight   TYPE ntgew_ap,   
+      lv_unit_m3      TYPE meins,
+      lv_unit_toa     TYPE meins.
+
+lv_unit_m3 = 'M3'.
+lv_unit_toa = 'TOA'.
+
+lv_gross_weight = lv_amount * 1000. "L
+
+CALL FUNCTION 'MATERIAL_UNIT_CONVERSION'
+  EXPORTING
+    input                = lv_gross_weight
+    kzmeinh              = abap_true
+    matnr                = lv_material
+    meinh                = lv_unit_m3
+    meins                = 'KG'
+  IMPORTING
+    output               = lv_net_weight
+  EXCEPTIONS
+    conversion_not_found = 1
+    input_invalid        = 2
+    material_not_found   = 3
+    meinh_not_found      = 4
+    meins_missing        = 5
+    no_meinh             = 6
+    output_invalid       = 7
+    overflow             = 8
+    OTHERS               = 9.
+
+lv_net_weight = lv_amount * 1000. "KG
+
+CALL FUNCTION 'MATERIAL_UNIT_CONVERSION'
+  EXPORTING
+    input                = lv_net_weight
+    matnr                = lv_material
+    meinh                = 'L'
+    meins                = lv_unit_toa
+  IMPORTING
+    output               = lv_gross_weight
+  EXCEPTIONS
+    conversion_not_found = 1
+    input_invalid        = 2
+    material_not_found   = 3
+    meinh_not_found      = 4
+    meins_missing        = 5
+    no_meinh             = 6
+    output_invalid       = 7
+    overflow             = 8
+    OTHERS               = 9.
+
+CHECK sy-subrc <> 0.
+
+MESSAGE ID sy-msgid
+        TYPE sy-msgty
+        NUMBER sy-msgno
+        WITH sy-msgv1 sy-msgv2 sy-msgv3 sy-msgv4.
+
+" Convert Material Unit - II
 CALL FUNCTION 'MD_CONVERT_MATERIAL_UNIT'
     EXPORTING
       i_matnr              = p_matnr
@@ -108,6 +170,56 @@ CALL FUNCTION 'CONVERSION_EXIT_ALPHA_INPUT'
   IMPORTING
     output = ls_data-data.
 
+" Convert Unit
+CALL FUNCTION 'CONVERSION_EXIT_CUNIT_OUTPUT'
+  EXPORTING
+    input    = ls_data-meins
+    language = sy-langu
+  IMPORTING
+    output   = ls_data-meins.
+
+" Convert WBS Element Number
+DATA lv_posid LIKE prps-posid.
+
+" P4.24CV.02.001.40.MUH -> 00001223
+CALL FUNCTION 'CONVERSION_EXIT_ABPSP_INPUT'
+  EXPORTING
+    input     = lv_posid
+  IMPORTING
+    output    = lv_posid
+  EXCEPTIONS
+    not_found = 1
+    OTHERS    = 2.
+
+" 00001223 -> P4.24CV.02.001.40.MUH
+CALL FUNCTION 'CONVERSION_EXIT_ABPSP_OUTPUT'
+  EXPORTING
+    input     = lv_posid
+  IMPORTING
+    output    = lv_posid.
+
+" Destination
+CONSTANTS lc_rfc_name TYPE tfdir-funcname VALUE 'ZSM_F_TEST'.
+DATA lv_destination TYPE rfcdest
+
+CALL FUNCTION lc_rfc_name
+  DESTINATION
+    lv_destination
+  EXPORTING
+    iv_uname    = lv_uname
+  IMPORTING
+    ev_is_admin = lv_admin.
+
+" Get Last Date of Month
+DATA: lv_last_date_of_month TYPE sy-datum,        " DD.MM.YYYY  => 31.03.2024
+      lv_year_month         TYPE jva_prod_month.  " YYYYMM      => 202403
+
+CALL FUNCTION 'JVA_LAST_DATE_OF_MONTH'
+  EXPORTING
+    year_month       = lv_year_month
+  IMPORTING
+  last_date_of_month = lv_last.
+
 " Get Personel Number From User ID
 DATA lv_personel_no TYPE persno.
 
@@ -129,7 +241,29 @@ SELECT SINGLE ename
   INTO DATA(lv_full_name)
   WHERE pernr EQ gs_head-ernam
     AND begda LE sy-datum
-    AND endda GE sy-datum.    
+    AND endda GE sy-datum.
+
+" Get User Detail
+DATA: ls_address    TYPE bapiaddr3,
+      ls_is_locked  TYPE bapislockd,
+      lt_return     TYPE TABLE OF bapiret2,
+      lv_locked     TYPE xfeld, 
+      lv_username   TYPE bapibname-bapibname.
+
+CALL FUNCTION 'BAPI_USER_GET_DETAIL'
+  EXPORTING
+    username = lv_username
+  IMPORTING
+    address  = ls_address
+    islocked = ls_is_locked
+  TABLES
+    return   = lt_return.
+
+IF NOT line_exists( lt_return[ type = 'E' ] ).    
+  IF ls_is_locked-glob_lock EQ 'L' OR ls_is_locked-local_lock EQ 'L' OR ls_is_locked-no_user_pw EQ 'L' OR ls_is_locked-wrng_logon EQ 'L'.
+    lv_locked = abap_true.
+  ENDIF.
+ENDIF.
 
 " Indicator
 CALL FUNCTION 'SAPGUI_PROGRESS_INDICATOR'
@@ -142,6 +276,37 @@ CALL FUNCTION 'VIEW_MAINTENANCE_CALL'
   EXPORTING
     action     = 'U'
     view_name  = 'ZSM_TEST'. 
+
+" Next Working Day For a Day
+DATA: lv_date      LIKE sy-datum,
+      lv_txnam_sdb LIKE tvko-txnam_sdb,
+      lv_vbeln     LIKE vbak-vbeln,
+      lv_vkokl     LIKE tvko-vkokl,
+      lv_vkorg     LIKE vbak-vkorg.
+
+SELECT SINGLE vkorg   
+  FROM vbak
+  WHERE vbeln EQ @lv_vbeln
+  INTO @lv_vkorg.
+
+SELECT SINGLE txnam_sdb 
+  FROM tvko
+  WHERE vkorg EQ @lv_vkorg
+  INTO @lv_txnam_sdb.
+
+MOVE lv_txnam_sdb TO lv_vkokl.
+
+CALL FUNCTION 'BKK_GET_NEXT_WORKDAY'
+  EXPORTING
+    i_date         = lv_date
+    i_calendar1    = lv_vkokl
+  IMPORTING
+    e_workday      = lv_date
+  EXCEPTIONS
+    calendar_error = 1
+    OTHERS         = 2.
+IF sy-subrc <> 0.
+ENDIF.
 
 " Smartform
 CALL FUNCTION 'SSF_FUNCTION_MODULE_NAME'
