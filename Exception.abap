@@ -10,17 +10,17 @@ TRY.
   lv_production_amount = ceil( lv_amount ). " cx_sy_zerodivide
   zcl_util=>set_media( EXPORTING iv_entity_name = 'Document' ).  " /iwbep/cx_mgw_med_exception
   CATCH /iwbep/cx_mgw_med_exception. 
-  CATCH cx_sy_arithmetic_error INTO DATA(lv_arith_error). 
-    MESSAGE 'Arithmetic error occurred while processing' TYPE 'E'.
+  CATCH cx_sy_arithmetic_error INTO DATA(lv_arith_error).     
   CATCH cx_sy_conversion_error INTO DATA(lv_conv_error).
-    MESSAGE 'Conversion error occurred while processing' TYPE 'E'.  
-  CATCH cx_sy_no_authority INTO DATA(lv_no_auth_error).
-    MESSAGE 'No authority error occurred while processing' TYPE 'E'.
+  CATCH cx_sy_conversion_no_number INTO DATA(lv_no_conversion_no_number).
+  CATCH cx_sy_conversion_overflow INTO DATA(lv_no_conversion_overflow).
+  CATCH cx_sy_no_authority INTO DATA(lv_no_auth_error).    
   CATCH cx_sy_itab_line_not_found INTO DATA(lv_line_not_found_error).
-    MESSAGE 'Internal table line not found error occurred while processing' TYPE 'E'.
   CATCH /iwbep/cx_mgw_med_exception. 
   CATCH cx_root INTO DATA(lv_root_error).
+    MESSAGE 'Arithmetic error occurred while processing' TYPE 'E'.
     MESSAGE 'An unexpected error occurred while processing' TYPE 'E'.
+    MESSAGE 'Internal table line not found error occurred while processing' TYPE 'E'.
 ENDTRY.
 
 " System Exception - II

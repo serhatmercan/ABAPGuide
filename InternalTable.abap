@@ -112,6 +112,18 @@ DATA(lt_mara) = VALUE tt_mara( FOR GROUPS grp OF ls_itab IN it_itab WHERE ( erna
                                                                     GROUP BY ls_itab-ersda
                                                                     ( ersda = grp ) ) .
 
+" For w/ Types
+TYPES: BEGIN OF ty_licence,
+         licin TYPE oihl-licin,
+         lictp TYPE oihl-lictp,
+         lctxt TYPE oihl-lctxt,
+       END OF ty_licence.
+
+DATA: lt_licence_md  TYPE TABLE OF ty_licence,
+      lt_licence_mdx TYPE TABLE OF ty_licence.
+
+lt_licence_mdx = VALUE #( FOR ls_licence_md IN lt_licence_md WHERE ( licin IN ir_adk_lic_numbers ) ( CORRESPONDING #( ls_licence_md ) ) ).
+
 " Insert
 INSERT VALUE #( id = '1' value= 'X' ) INTO TABLE lt_data.
 

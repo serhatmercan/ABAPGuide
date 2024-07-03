@@ -27,9 +27,11 @@ e_viqmel = CORRESPONDING #( BASE ( e_viqmel ) ls_data ).
 " GW: YYYYMMDD
 
 DATA: lv_timestamp TYPE timestampl, 
-      lv_datum     TYPE datum.
+      lv_datum     TYPE datum,
+      lv_time      TYPE tims.
 
-CONVERT TIME STAMP lv_timestamp TIME ZONE sy-zonlo INTO DATE lv_datum.
+CONVERT DATE sy-datum TIME sy-uzeit INTO TIME STAMP lv_timestamp TIME ZONE sy-zonlo.      
+CONVERT TIME STAMP lv_timestamp TIME ZONE sy-zonlo INTO DATE lv_datum TIME lv_time.
 
 " Conversion w/ Data Type
 DATA(lv_data) = CONV int4( ls_data-value ).
@@ -41,6 +43,14 @@ CALL FUNCTION 'C14W_NUMBER_CHAR_CONVERSION'
         i_float = lv_float
     IMPORTING
         e_dec   = lv_data.
+
+" Conversion: Class
+check_appointment(
+  EXPORTING         
+    iv_tc_no       = CONV #( ls_vbak-driver_tc )
+    iv_vkorg       = ls_appointment-vkorg     
+  IMPORTING
+    ev_return_code = lv_return_code ).
 
 " Corresponding
 lt_data = CORRESPONDING #( ls_deep-operations ).

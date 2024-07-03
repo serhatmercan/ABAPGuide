@@ -76,6 +76,19 @@ SELECT DISTINCT charg
   INTO TABLE @DATA(lt_charg)
   WHERE matnr EQ @lv_matnr.
 
+" SELECT w/ DYNAMICALLY
+DATA: lv_condition   TYPE string,
+      lv_fieldname   TYPE fieldname,        
+      lv_table       TYPE tabname,
+      lv_field_range TYPE RANGE OF char30.
+
+lv_condition = |{ lv_fieldname } IN @<ls_dyn_prm>-field_range |.
+
+SELECT DISTINCT (lv_fieldname)
+  FROM (lv_table)
+  WHERE (lv_condition)
+  INTO TABLE @lt_dynamic_table.
+
 " SELECT EXIST
 SELECT COUNT( * ) 
   FROM zsm_t_data 
@@ -84,6 +97,24 @@ SELECT COUNT( * )
                   FROM mara 
                   WHERE matnr EQ iv_matnr 
                     AND mtart EQ zsm_t_data~mtart ).
+
+" SELECT NOT EXISTS
+SELECT DISTINCT vk~vbeln, vk~kunnr, oigd~drname
+  FROM vbak AS vk
+  INNER JOIN vbap AS vp
+    ON vp~vbeln EQ vk~vbeln 
+  LEFT OUTER JOIN oigd
+    ON oigd~zdtckno EQ vk~zz1_drivertcno_sdh
+  WHERE vk~vbeln IN @lr_vbeln
+    AND vp~matnr IN @lr_matnr
+    AND NOT EXISTS ( SELECT mandt
+                       FROM zsd_t_007
+                       WHERE vkorg EQ @lv_vkorg
+                         AND kunnr EQ vk~kunnr )
+    AND NOT EXISTS ( SELECT mandt
+                       FROM lips
+                       WHERE vgbel EQ vk~vbeln )
+  INTO TABLE @DATA(lt_data).
 
 " SELECT UNION ALL
 SELECT name1
@@ -216,6 +247,9 @@ ls_select-where = 'matnr EQ ls_data-matnr'.
 
 APPEND INITIAL LINE TO lt_select INTO ls_select.
 ls_select-where = 'prdha EQ ls_data-prdha'.
+
+APPEND INITIAL LINE TO lt_select INTO ls_select.
+ls_select-where = 'AND prmt EQ ''INTERNAL'''.
 
 SELECT SINGLE *
   INTO ls_001

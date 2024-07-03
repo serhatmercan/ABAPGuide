@@ -8,7 +8,7 @@ CONSTANTS: gc_program_name LIKE sy-repid VALUE 'ZSMERCAN'.
 TYPE-POOLS: slis, stms.
 
 DATA: gs_layout          TYPE lvc_s_layo,
-      gs_variant         TYPE DISVARIANT,
+      gs_variant         TYPE disvariant,
       gs_print           TYPE slis_print_alv,
       gt_bseg            TYPE TABLE OF bseg,
       gt_events          TYPE slis_t_event,

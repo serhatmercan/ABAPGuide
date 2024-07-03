@@ -11,6 +11,12 @@ MESSAGE i001(zsm).
 MESSAGE ID 'ZSM' TYPE 'E' NUMBER '001' RAISING error.
 MESSAGE ID 'ZSM' TYPE 'S' NUMBER '000' WITH lv_value ' Has Been Created !' RAISING error.
 
+" Message
+DATA lv_message TYPE bapi_msg.
+
+MESSAGE e018 INTO lv_message.
+MESSAGE e019 WITH ls_request-kunnr INTO lv_message.
+
 " Form
 FORM append_return TABLES lt_messages STRUCTURE bapiret2
                    USING VALUE($lv_message) VALUE($lv_type). 
