@@ -1,5 +1,6 @@
 " Definition
 DATA: lo_data        TYPE ole2_object,
+      lo_value       TYPE ole2_object,
       lo_model		 TYPE REF TO /IWBEP/IF_MGW_ODATA_MODEL
       lo_property    TYPE REF TO /iwbep/if_mgw_odata_property,
       lo_entity_type TYPE REF TO /iwbep/if_mgw_odata_entity_typ.

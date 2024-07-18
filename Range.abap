@@ -17,5 +17,5 @@ SELECT 'I' AS sing,
   INTO TABLE @lr_aufnr.
 
 " Standard
-DATA lr_material TYPE /ACCGO/CAS_TT_MATERIAL.
-DATA lr_werks TYPE /ACCGO/CAK_TT_PLANT_RANGE.
+DATA lr_material TYPE /accgo/cas_tt_material.
+DATA lr_werks TYPE /accgo/cak_tt_plant_range.

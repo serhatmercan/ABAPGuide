@@ -57,4 +57,4 @@ MODIFY lt_data FROM VALUE #( order_no = '1' document_type = 'X' ) TRANSPORTING o
 MODIFY lt_data FROM VALUE #( finish_date = sy-datum ) TRANSPORTING finish_date WHERE finish_date IS INITIAL.
 
 " Move Corresponding From Custom Table To Internal Table
-MOVE-CORRESPONDING zsm_t_data TO lt_data. 
+lt_data = CORRESPONDING #( zsm_t_data ).

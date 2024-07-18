@@ -24,16 +24,16 @@ TRY.
 ENDTRY.
 
 " System Exception - II
-DATA lv_exception_message TYPE /iwbep/mgw_bop_rfc_excep_text.
+DATA(lv_exception_message) = VALUE /iwbep/mgw_bop_rfc_excep_text( ).
 
-CALL FUNCTION 'ZSM_F_TEST' 
+CALL FUNCTION 'ZSM_F_TEST'
   EXPORTING
     iv_organization_id    = iv_organization_id
   IMPORTING
     et_person             = et_table[]
   EXCEPTIONS
-    system_failure        = 1000 message lv_exception_message
-    communication_failure = 1001 message lv_exception_message
+    system_failure        = 1000 MESSAGE lv_exception_message
+    communication_failure = 1001 MESSAGE lv_exception_message
     others                = 1002.
 
 " System Exception - III (Function)

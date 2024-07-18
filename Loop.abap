@@ -1,29 +1,29 @@
 " Do
 DO 10 TIMES.
-    SELECT SINGLE * 
+  SELECT SINGLE * 
     FROM aufk
-     INTO DATA(ls_aufk)
-     WHERE aufnr EQ gt_data-aufnr.
+    INTO DATA(ls_aufk)
+    WHERE aufnr EQ gt_data-aufnr.
   
-    IF sy-subrc EQ 0.
-       UPDATE aufk FROM ls_aufk.
-       EXIT.
-    ENDIF.
-ENDDO. 
+  IF sy-subrc EQ 0.
+    UPDATE aufk FROM ls_aufk.
+    EXIT.
+  ENDIF.
+ENDDO.
 
 " Loop
-LOOP AT lt_data WHERE value IS NOT INITIAL.
-    AT NEW row.        
-    ENDAT.
-    
-    CASE lt_data-value.
-      WHEN '03'.
-        CLEAR ls_data.
-    ENDCASE.
+LOOP AT lt_data ASSIGNING FIELD-SYMBOL(<fs_data>) WHERE value IS NOT INITIAL.
+  AT NEW row.        
+  ENDAT.
+  
+  CASE <fs_data>-value.
+    WHEN '03'.
+      CLEAR <fs_data>.
+  ENDCASE.
 ENDLOOP.
 
 " Loop w/ Group By
-DATA lt_group_data TYPE TABLE OF spfli.
+DATA(lt_group_data) = VALUE spfli_tab( ).
 
 SELECT *
   FROM spfli
@@ -40,7 +40,6 @@ LOOP AT lt_data INTO DATA(ls_data)
   ENDLOOP.
 
   cl_demo_output=>write( lt_group_data ).
-
 ENDLOOP.
 
 cl_demo_output=>display( ).
@@ -48,4 +47,4 @@ cl_demo_output=>display( ).
 " While
 WHILE sy-index LT 3.
     WRITE sy-index.
-ENDWHILE. 
+ENDWHILE.

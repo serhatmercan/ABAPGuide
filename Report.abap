@@ -1,23 +1,21 @@
-*&--------------------------------------*
-*&            Report 
-*&--------------------------------------*
-*& Created By    : Serhat MERCAN / Modül
-*& Creation Date : 23.11.2021 
-*& Definition    : … (…)
-*& Company       : …
-*&--------------------------------------*
-
+*----------------------------------*
+*            Report                *
+*----------------------------------*
+* Created By    : XSMERCAN / Modül *
+* Creation Date : 23.11.2021       *
+* Definition    : … (…)            *
+* Company       : …                *
+*----------------------------------*
 CLASS lcl_main DEFINITION DEFERRED.
 
-DATA go_main        TYPE REF TO lcl_main.
-DATA gt_out         TYPE TABLE OF zsm_t_table.
-DATA go_grid        TYPE REF TO cl_gui_alv_grid,
-DATA go_container   TYPE REF TO cl_gui_custom_container.
-
-DATA: go_document      TYPE REF TO cl_dd_document,
-      go_splitter      TYPE REF TO cl_gui_splitter_container,
-      go_subcontainer1 TYPE REF TO cl_gui_container,
-      go_subcontainer2 TYPE REF TO cl_gui_container.
+  DATA: go_container     TYPE REF TO cl_gui_custom_container,
+        go_document      TYPE REF TO cl_dd_document,
+        go_main          TYPE REF TO lcl_main,
+        go_grid          TYPE REF TO cl_gui_alv_grid,
+        go_splitter      TYPE REF TO cl_gui_splitter_container,
+        go_subcontainer1 TYPE REF TO cl_gui_container,
+        go_subcontainer2 TYPE REF TO cl_gui_container,
+        gt_out           TYPE TABLE OF zsm_t_table.
 
 INITIALIZATION.
   CREATE OBJECT go_main.
@@ -29,11 +27,11 @@ CLASS lcl_main DEFINITION.
     PUBLIC SECTION.
     CLASS-METHODS:
         start_of_selection,
-        show_alv IMPORTING iv_container_name    TYPE char50
-                           iv_structure_name    TYPE dd02l-tabname
-                 CHANGING  co_container         TYPE REF TO cl_gui_custom_container
-                           co_grid              TYPE REF TO cl_gui_alv_grid
-                           ct_data              TYPE STANDARD TABLE,
+        show_alv IMPORTING iv_container_name TYPE char50
+                           iv_structure_name TYPE dd02l-tabname
+                 CHANGING  co_container      TYPE REF TO cl_gui_custom_container
+                           co_grid           TYPE REF TO cl_gui_alv_grid
+                           ct_data           TYPE STANDARD TABLE,
 *       After User Command
         handle_after_user_command       FOR EVENT after_user_command    OF cl_gui_alv_grid IMPORTING e_ucomm e_saved e_not_processed,                           
 *       Before User Command
@@ -84,7 +82,7 @@ CLASS lcl_main IMPLEMENTATION.
         get_data( ).
         
         IF gt_out[] IS INITIAL.
-          MESSAGE 'Kayıt Bulunamadı.' TYPE 'S' DISPLAY LIKE 'E'.
+          MESSAGE 'No Record.' TYPE 'S' DISPLAY LIKE 'E'.
           LEAVE LIST-PROCESSING.
         ENDIF.
 
@@ -92,20 +90,20 @@ CLASS lcl_main IMPLEMENTATION.
     ENDMETHOD.
 
     METHOD show_alv.
-        DATA lt_dropdown    TYPE lvc_t_drop.
-        DATA lt_fieldcat    TYPE lvc_t_fcat.
-        DATA lt_filter      TYPE lvc_t_filt.
-        DATA lt_sort        TYPE lvc_t_sort.
-        DATA lt_toolbar_ex  TYPE ui_functions. 
-        DATA ls_layout      TYPE lvc_s_layo.        
-        DATA ls_variant     TYPE disvariant.         
+        DATA lt_dropdown   TYPE lvc_t_drop.
+        DATA lt_fieldcat   TYPE lvc_t_fcat.
+        DATA lt_filter     TYPE lvc_t_filt.
+        DATA lt_sort       TYPE lvc_t_sort.
+        DATA lt_toolbar_ex TYPE ui_functions. 
+        DATA ls_layout     TYPE lvc_s_layo.        
+        DATA ls_variant    TYPE disvariant.         
 
         lt_dropdown = set_dropdown(  ).
-        lt_fieldcat[] = set_fieldcatalog( iv_structure_name = iv_structure_name ).
-        lt_filter[] = set_filter( ).
-        lt_sort[] = set_sort( ).
-        ls_layout = set_layout( ).        
-        ls_variant = set_variant( ).
+        lt_fieldcat = set_fieldcatalog( iv_structure_name = iv_structure_name ).
+        lt_filter   = set_filter( ).
+        lt_sort     = set_sort( ).
+        ls_layout   = set_layout( ).        
+        ls_variant  = set_variant( ).
 
         IF co_container IS INITIAL .
             CREATE OBJECT co_container
@@ -114,26 +112,18 @@ CLASS lcl_main IMPLEMENTATION.
       
             IF co_grid IS INITIAL.
               " Screen w/ Container
-              CREATE OBJECT co_grid
-                EXPORTING
-                  i_parent = co_container.
+              CREATE OBJECT co_grid EXPORTING i_parent = co_container.
               
               " Screen w/out Container => Full Screen                  
-              CREATE OBJECT co_grid
-                  EXPORTING
-                    i_parent = cl_gui_container=>screen0.
+              CREATE OBJECT co_grid EXPORTING i_parent = cl_gui_container=>screen0.
               
               " Optional
               " PERFORM set_f4.
               " PERFORM set_splitter.
 
-              set_toolbar_ex(
-                CHANGING
-                  ct_toolbar_ex = lt_toolbar_ex ).
+              set_toolbar_ex( CHANGING ct_toolbar_ex = lt_toolbar_ex ).
       
-              CALL METHOD co_grid->set_drop_down_table
-                  EXPORTING
-                    it_drop_down = lt_dropdown.
+              CALL METHOD co_grid->set_drop_down_table EXPORTING it_drop_down = lt_dropdown.
 
               CALL METHOD co_grid->set_table_for_first_display
                 EXPORTING
@@ -171,32 +161,65 @@ CLASS lcl_main IMPLEMENTATION.
               SET HANDLER go_main->handle_top_of_page           FOR co_grid.
               SET HANDLER go_main->handle_user_command          FOR co_grid.              
 
-              CALL METHOD co_grid->set_ready_for_input
-                EXPORTING
-                  i_ready_for_input = 1.
-      
+              CALL METHOD co_grid->set_ready_for_input EXPORTING i_ready_for_input = 1.
               CALL METHOD co_grid->set_toolbar_interactive.
-      
-              CALL METHOD co_grid->register_edit_event
-                EXPORTING
-                  i_event_id = cl_gui_alv_grid=>mc_evt_modified.
-      
+              CALL METHOD co_grid->register_edit_event EXPORTING i_event_id = cl_gui_alv_grid=>mc_evt_modified.
             ELSE.
-              CALL METHOD co_grid->refresh_table_display(
-                  is_stable      = VALUE lvc_s_stbl( col = abap_true row = abap_true )
-                  i_soft_refresh = abap_true ).
+              CALL METHOD co_grid->refresh_table_display( is_stable      = VALUE lvc_s_stbl( col = abap_true row = abap_true )
+                                                          i_soft_refresh = abap_true ).
             ENDIF.
           ELSE.
-            CALL METHOD co_grid->refresh_table_display(
-                is_stable      = VALUE lvc_s_stbl( col = abap_true row = abap_true )
-                i_soft_refresh = abap_true ).
+            CALL METHOD co_grid->refresh_table_display( is_stable      = VALUE lvc_s_stbl( col = abap_true row = abap_true )
+                                                        i_soft_refresh = abap_true ).
           ENDIF.      
     ENDMETHOD.
 
     METHOD handle_after_user_command.
-    ENDMETHOD.  
+      CALL METHOD go_grid->get_selected_rows IMPORTING et_index_rows = DATA(lt_selected).
+    
+      IF lt_selected IS INITIAL.
+        MESSAGE 'No rows selected.' TYPE 'I'.
+        RETURN.
+      ENDIF.
+    
+      LOOP AT lt_selected INTO DATA(ls_selected).
+        READ TABLE gt_out INTO DATA(ls_data) INDEX ls_selected-row_id.
+        IF sy-subrc EQ 0.
+          CASE e_ucomm.
+            WHEN 'DELETE'.
+              DELETE gt_out INDEX ls_selected-row_id.
+            WHEN 'EDIT'.
+              ls_data-fieldname = 'New Value'.
+              MODIFY gt_out FROM ls_data INDEX ls_selected-row_id.
+            WHEN 'DISPLAY'.
+              WRITE: / 'Selected Row:', ls_data.
+            WHEN OTHERS.
+              MESSAGE 'Unknown command' TYPE 'E'.
+          ENDCASE.
+        ENDIF.
+      ENDLOOP.
+    
+      go_grid->refresh_table_display( ).
+    ENDMETHOD.
 
     METHOD handle_before_user_command.
+      CALL METHOD go_grid->get_selected_rows IMPORTING  et_index_rows = DATA(lt_selected).
+    
+      IF lt_selected IS INITIAL.
+        MESSAGE 'No rows selected. Please select at least one row.' TYPE 'I'.
+        RETURN.
+      ENDIF.
+    
+      CASE e_ucomm.
+        WHEN 'DELETE'.
+          AUTHORITY-CHECK OBJECT 'Z_DELETE_AUTH' ID 'ACTVT' FIELD '06'.
+          IF sy-subrc NE 0.
+            MESSAGE 'You do not have authorization to delete.' TYPE 'E'.
+            RETURN.
+          ENDIF.
+        WHEN 'EDIT'.
+        WHEN OTHERS.
+      ENDCASE.
     ENDMETHOD.
 
     METHOD handle_button_click.
@@ -210,6 +233,13 @@ CLASS lcl_main IMPLEMENTATION.
     ENDMETHOD.
 
     METHOD handle_context_menu_request.
+      DATA lt_menu TYPE TABLE OF cl_ctmenu=>ty_s_node.
+
+      APPEND VALUE #( text = 'Delete Row'      item_id = 'DELETE' )  TO lt_menu.
+      APPEND VALUE #( text = 'Edit Row'        item_id = 'EDIT' )    TO lt_menu.
+      APPEND VALUE #( text = 'Display Details' item_id = 'DISPLAY' ) TO lt_menu.
+
+      CALL METHOD e_object->add_items EXPORTING it_items = lt_menu.
     ENDMETHOD.
 
     METHOD handle_data_changed.
@@ -239,9 +269,8 @@ CLASS lcl_main IMPLEMENTATION.
                 ENDIF.
             ENDCASE.
     
-            CALL METHOD go_grid->refresh_table_display(
-                is_stable      = VALUE lvc_s_stbl( col = abap_true row = abap_true )
-                i_soft_refresh = abap_true ).
+            CALL METHOD go_grid->refresh_table_display( is_stable      = VALUE lvc_s_stbl( col = abap_true row = abap_true )
+                                                        i_soft_refresh = abap_true ).
         ENDCASE.
     ENDMETHOD.
 
@@ -527,17 +556,17 @@ MODULE user_command_0100 INPUT.
   ENDCASE.
 
 ENDMODULE.
-*&--------------------------------------------*
-*&      SET F4
-*&--------------------------------------------*
+*----------------*
+*     SET F4     *
+*----------------*
 FORM set_f4.
   DATA(lt_f4) = VALUE lvc_t_f4( ( fieldname = 'PSTYV' register = abap_true ) ).
 
   go_grid->register_f4_for_fields( it_f4 = lt_f4 ).
 ENDFORM.
-*&--------------------------------------------*
-*&      SET SPLITTER
-*&--------------------------------------------*
+*----------------------*
+*     SET SPLITTER     *
+*----------------------*
 FORM set_splitter
 
   CREATE OBJECT go_grid

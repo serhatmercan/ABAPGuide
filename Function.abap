@@ -1,38 +1,3 @@
-" Check Data Type
-DATA: g_type        TYPE dd01v-datatype,
-      g_string(10)  TYPE c VALUE 'Hello'.
-
-CALL FUNCTION 'NUMERIC_CHECK'
-  EXPORTING
-    string_in = g_string
-  IMPORTING
-    htype     = g_type.
-
-" Convert Batch Input Message To Bapiret Message
-CALL FUNCTION 'CONVERT_BDCMSGCOLL_TO_BAPIRET2'
-   TABLES
-     imt_bdcmsgcoll = gt_messtab
-     ext_return     = pt_return.
-
-" Convert Currency Unit
-DATA ls_exch_rate TYPE bapi1093_0.
-
-CALL FUNCTION 'BAPI_EXCHANGERATE_GETDETAIL'
-  EXPORTING
-    rate_type  = 'M'
-    from_curr  = ls_data-value
-    to_currncy = 'TRY'
-    date       = sy-datum 
-  IMPORTING
-    return     = ls_exch_rate.
-
-" Convert Date
-CALL FUNCTION 'CONVERT_DATE_TO_INTERNAL'
-  EXPORTING
-    date_external = ls_data-value
-  IMPORTING
-    date_internal = ls_data-value.
-
 " Convert Date To String
 DATA: lv_tarih  TYPE datum, 
       lv_string TYPE string. 
@@ -44,11 +9,7 @@ CALL FUNCTION 'CONVERSION_EXIT_PDATE_OUTPUT'
       output = lv_string. 
 
 " Convert Import Parameters
-CALL METHOD cl_cam_address_bcs=>create_internet_addres
-  EXPORTING
-    i_address_string = CONV #( gv_sender_email )
-   RECEIVING
-     result          = DATA(gr_sender).
+DATA(gr_sender) = cl_cam_address_bcs=>create_internet_address( CONV #( gv_sender_email ) ).
 
 " Convert Internal Characteristic To Characteristic Name => Atinn -> Atnam
 CALL FUNCTION 'CONVERSION_EXIT_ATINN_OUTPUT'
@@ -81,11 +42,8 @@ DATA: lv_amount       TYPE kwmeng,
       lv_gross_weight TYPE brgew_ap,
       lv_material     TYPE matnr,   
       lv_net_weight   TYPE ntgew_ap,   
-      lv_unit_m3      TYPE meins,
-      lv_unit_toa     TYPE meins.
-
-lv_unit_m3 = 'M3'.
-lv_unit_toa = 'TOA'.
+      lv_unit_m3      TYPE meins VALUE 'M3',
+      lv_unit_toa     TYPE meins VALUE 'TOA'.
 
 lv_gross_weight = lv_amount * 1000. "L
 
@@ -269,7 +227,7 @@ ENDIF.
 CALL FUNCTION 'SAPGUI_PROGRESS_INDICATOR'
   EXPORTING
     percentage = 10
-    text       = '1 / 10 Ekipman ana verileri alınıyor.'. 
+    text       = '1 / 10 Equipment master data is reading.'. 
 
 " Maintenance Table
 CALL FUNCTION 'VIEW_MAINTENANCE_CALL'
@@ -310,6 +268,10 @@ ENDIF.
 
 " Smartform
 CALL FUNCTION 'SSF_FUNCTION_MODULE_NAME'
+  EXPORTING
+    formname = 'ZSM_SF_001'
+  IMPORTING
+    fm_name  = lv_fm_name.
 
 " SNRO
 DATA lv_number_range(10) TYPE n.
@@ -319,4 +281,4 @@ CALL FUNCTION 'NUMBER_GET_NEXT'
    nr_range_nr = '1'
    object      = 'ZSM_NR_P25'
  IMPORTING
-   number      = lv_number_range. 
+   number      = lv_number_range.

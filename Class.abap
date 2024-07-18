@@ -1,19 +1,27 @@
 " GLOBAL CLASS "
 " Definition
-DATA lo_class TYPE REF TO zsm_cl_test.
-DATA lv_result TYPE int4.
-DATA lv_sum TYPE int4.
-
 START-OF-SELECTION.
-    CREATE OBJECT lo_class.
+  DATA(lo_class) = NEW zsm_cl_test( ).
+  DATA(lv_sum) TYPE int4.
+  DATA(lv_result) TYPE int4.
 
-" Instance Method        
-lo_class->sum_two_numbers( EXPORTING iv_first_number = '10' iv_second_number = '20' 
-                           IMPORTING ev_sum = lv_sum ).
+  " Instance Method        
+  lo_class->sum_two_numbers(
+    EXPORTING
+      iv_first_number = 10
+      iv_second_number = 20
+    IMPORTING
+      ev_sum = lv_sum
+  ).
 
-" Static Method
-lo_class=>multipy_two_numbers( EXPORTING iv_first_number = '10' iv_second_number = '20' 
-                               IMPORTING ev_result = lv_result ). 
+  " Static Method
+  zsm_cl_test=>multipy_two_numbers(
+    EXPORTING
+      iv_first_number = 10
+      iv_second_number = 20
+    IMPORTING
+      ev_result = lv_result
+  ).
 
 " LOCAL CLASS "                               
 CLASS lcl_class DEFINITION.
@@ -30,34 +38,31 @@ CLASS lcl_class DEFINITION.
 ENDCLASS.
 
 CLASS lcl_class IMPLEMENTATION.
-
   METHOD data_declaration.
     lv_public = 1.
     lv_protected = 2.
     lv_private = 3.
   ENDMETHOD.
-
 ENDCLASS.
 
-CLASS lcl_sub DEFINITION INHERITING FROM lcl_alv.
-    PUBLIC SECTION.
-      METHODS data_redeclaration.
+CLASS lcl_sub DEFINITION INHERITING FROM lcl_class.
+  PUBLIC SECTION.
+    METHODS data_redeclaration.
 
-    PROTECTED SECTION.
+  PROTECTED SECTION.
   
-    PRIVATE SECTION.
+  PRIVATE SECTION.
 ENDCLASS.
   
-CLASS lcl_sub IMPLEMENTATION .
-    METHOD data_redeclaration.
-        lv_public = 10.
-        lv_protected = 20.
-    ENDMETHOD.
+CLASS lcl_sub IMPLEMENTATION.
+  METHOD data_redeclaration.
+    lv_public = 10.
+    lv_protected = 20.
+  ENDMETHOD.
 ENDCLASS.
 
 START-OF-SELECTION.
+  DATA(lo_local_class) = NEW lcl_class( ).  
 
-  DATA(lo_class) = NEW lcl_class( ).
-
-  lo_class->lv_public.  
-  lo_class->data_declaration( ).
+  lo_local_class->data_declaration( ).
+  lo_local_class->lv_public.

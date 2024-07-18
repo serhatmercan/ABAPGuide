@@ -27,7 +27,7 @@ CALL FUNCTION 'REUSE_ALV_FIELDCATALOG_MERGE'
     i_internal_tabname = gv_tabname
     i_inclname         = sy-repid
   CHANGING
-    ct_fieldcat        = gt_field_catalog[]. 
+    ct_fieldcat        = gt_field_catalog.
 
 " Generate Fieldcat From Structure I
 CALL FUNCTION 'REUSE_ALV_FIELDCATALOG_MERGE'

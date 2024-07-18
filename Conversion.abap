@@ -19,7 +19,19 @@ lv_vbeln = |{ is_data-vbeln ALPHA = OUT }|.
 lt_data[ sy-tabix ] = CORRESPONDING #( ls_sayim ).
 
 " Base
-e_viqmel = CORRESPONDING #( BASE ( e_viqmel ) ls_data ).
+TYPES: BEGIN OF ty_viqmel,
+         notif_no    TYPE char10,
+         notif_type  TYPE char2,
+         description TYPE char40,
+       END OF ty_viqmel.
+
+DATA: ls_viqmel TYPE ty_viqmel,
+      ls_data   TYPE ty_viqmel.
+
+ls_viqmel = VALUE ty_viqmel( notif_no = '0000001234' notif_type  = 'M1' description = 'Initial Notification' ).
+ls_data   = VALUE ty_viqmel( notif_type  = 'M2' description = 'Updated Notification' ).
+
+ls_viqmel = CORRESPONDING #( BASE ( ls_viqmel ) ls_data ).
 
 " Conversiton Date Time / Time Stamp to Datum
 " Convert Time Stamp (20240524131025.8750000 -> 20240524) 
@@ -50,7 +62,8 @@ check_appointment(
     iv_tc_no       = CONV #( ls_vbak-driver_tc )
     iv_vkorg       = ls_appointment-vkorg     
   IMPORTING
-    ev_return_code = lv_return_code ).
+    ev_return_code = DATA(lv_return_code) 
+).
 
 " Corresponding
 lt_data = CORRESPONDING #( ls_deep-operations ).

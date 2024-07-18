@@ -4,35 +4,23 @@ DATA: BEGIN OF ty_collect,
         num1(2) TYPE n,
         num2    TYPE i,
       END OF ty_collect.
+DATA lt_table TYPE TABLE OF ty_collect.
 
-DATA: lt_table LIKE STANDARD TABLE OF ty_collect,
-      ls_table LIKE LINE OF lt_table.
-
-ls_table-key = 'First'.
-ls_table-num1 = '20'.
-ls_table-num2 = '30'.
-
+DATA(ls_table) = VALUE ty_collect( key = 'First' num1 = '20' num2 = 30 ).
 COLLECT ls_table INTO lt_table.
 
-ls_table-key = 'First'.
-ls_table-num1 = '20'.
-ls_table-num2 = '15'.
+ls_table = VALUE #( key = 'First' num1 = '20' num2 = 15 ).
+COLLECT ls_table INTO lt_table.
 
-COLLECT d_collect INTO lt_table.
-
-ls_table-key = 'Second'.
-ls_table-num1 = '20'.
-ls_table-num2 = '15'.
-
+ls_table = VALUE #( key = 'Second' num1 = '20' num2 = 15 ).
 COLLECT ls_table INTO lt_table.
 
 " Collect - 2
-TABLES lt_data STRUCTURE ZSM_S_TEST OPTIONAL. 
+DATA lt_data TYPE TABLE OF zsm_s_test.
 
 LOOP AT it_lips INTO DATA(ls_lips).
-   lt_data-matnr = ls_lips-matnr.
-   lt_data-item = 1.
-   COLLECT lt_data.
+  DATA(lt_data_line) = VALUE zsm_s_test( matnr = ls_lips-matnr item = 1 ).
+  COLLECT lt_data_line INTO lt_data.
 ENDLOOP.
 
 " Collect - 3
@@ -44,21 +32,17 @@ DATA: BEGIN OF lt_sum OCCURS 0,
         brgew     TYPE vbfa-brgew,
         totalreel TYPE int4,
       END OF lt_sum. 
+DATA lt_sum TYPE TABLE OF ty_sum.
 
 LOOP AT lt_vbfa INTO DATA(ls_vbfa).
-  CLEAR lt_sum.
+  DATA(lt_sum_line) = VALUE ty_sum(
+    zzplaka   = ls_vbfa-zzplaka
+    matnr     = ls_vbfa-matnr
+    posnr     = COND #( WHEN ls_vbfa-uecha IS INITIAL THEN ls_vbfa-posnr ELSE ls_vbfa-uecha )
+    ntgew     = ls_vbfa-ntgew
+    brgew     = ls_vbfa-brgew
+    totalreel = COND #( WHEN ls_vbfa-uecha IS INITIAL THEN 0 ELSE 1 )
+  ).
 
-  IF ls_vbfa-uecha IS INITIAL.
-    lt_sum-posnr = ls_vbfa-posnr.
-  ELSE.
-    lt_sum-posnr     = ls_vbfa-uecha.
-    lt_sum-totalreel = 1.
-  ENDIF.
-
-   lt_sum-zzplaka = ls_vbfa-zzplaka.
-   lt_sum-matnr   = ls_vbfa-matnr.
-   lt_sum-ntgew   = ls_vbfa-ntgew.
-   lt_sum-brgew   = ls_vbfa-brgew.
-   
-   COLLECT lt_sum.
+  COLLECT lt_sum_line INTO lt_sum.
 ENDLOOP.

@@ -1,18 +1,17 @@
 " Convert String To Date Format
-DATA(lv_format_date) = ls_data-ersda+0(4) && ls_data-ersda+5(2) && ls_data-ersda+8(2).
-DATA(lv_format_date) = | { lv_date+6(2) }| && | . { lv_date+4(2) } | && | . { lv_date+0(4) } |.
+DATA(lv_format_date) = |{ ls_data-ersda+0(4) }{ ls_data-ersda+5(2) }{ ls_data-ersda+8(2) }|.
+DATA(lv_format_date) = |{ lv_date+6(2) }.{ lv_date+4(2) }.{ lv_date+0(4) }|.
 
 " Date Definition
 DATA: lv_date TYPE d VALUE '20180715',
       lv_date LIKE sy-datum.
  
-" Declaration Date
+" Date Declaration
 DATA lv_valid TYPE datuv_bi.
 WRITE sy-datum TO lv_valid USING EDIT MASK '__.__.____'.
 
-" Declaration Time
-DATA lv_uzeit TYPE char8.
-WRITE ls_data-value TO lv_uzeit USING EDIT MASK '__:__:__'.
+" Time Declaration
+DATA(lv_uzeit) = |{ ls_data-value USING EDIT MASK '__:__:__' }|.
 
 " Time Definition
 DATA: lv_time TYPE t VALUE '145330',
@@ -44,9 +43,6 @@ ENDMETHOD.
 
 " Subtract n Years From a Date
 DATA lv_date TYPE datum.
-
-lv_date = sy-datum.
-lv_date(4) = lv_date(4) - 5.
 
 CALL FUNCTION 'RP_CALC_DATE_IN_INTERVAL'
   EXPORTING

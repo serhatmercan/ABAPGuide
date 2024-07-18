@@ -6,9 +6,9 @@ LOGTIME	    ERZET
 
 " Get Data
 SELECT SINGLE *
-    INTO CORRESPONDING FIELDS OF es_data
-    FROM zsm_t_log
-    WHERE username EQ sy-uname.
+  INTO CORRESPONDING FIELDS OF @DATA(ls_data)
+  FROM zsm_t_log
+  WHERE username EQ @sy-uname.
 
 " Save Data
 DATA lt_data TYPE TABLE OF zsm_t_log.

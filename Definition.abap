@@ -1,6 +1,5 @@
 " BAPI Return Message
-DATA lt_return TYPE bapiret2_t.
-DATA lt_return TYPE TABLE OF bapiret2.
+DATA(lt_return) = VALUE bapiret2_t( ).
 
 " Boolean
 DATA(rv_result) = xsdbool( sy-subrc = 0 ). 
@@ -41,11 +40,9 @@ PERFORM use_data USING lv_data.
 FORM get_component TABLES lt_header    STRUCTURE bapi_order_header1
                           lt_operation STRUCTURE bapi_order_operation1
                           lt_component STRUCTURE bapi_order_component.
-
 ENDFORM.
 
 FORM use_data USING pv_data.
-
 ENDFORM.
 
 " Function

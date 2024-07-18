@@ -1,15 +1,15 @@
 " Bapiret
-DATA et_return TYPE TABLE OF bapiret2.
+DATA et_return TYPE bapiret2_t.
 MESSAGE ID sy-msgid TYPE sy-msgty NUMBER sy-msgno WITH sy-msgv1 sy-msgv2 sy-msgv3 sy-msgv4 INTO DATA(es_message).
 et_return = VALUE #( ( type = 'E' id = 'ZPP_000_MC' number = '001' message = es_message ) ).
 
 " Custom
 MESSAGE 'Error Occured !' TYPE 'E'.
-MESSAGE 'The Process Has Been Completed Successfully' TYPE 'I' DISPLAY LIKE 'S'.
+MESSAGE 'The process has been completed successfully' TYPE 'I' DISPLAY LIKE 'S'.
 MESSAGE text-001 TYPE 'W'.
 MESSAGE i001(zsm).
 MESSAGE ID 'ZSM' TYPE 'E' NUMBER '001' RAISING error.
-MESSAGE ID 'ZSM' TYPE 'S' NUMBER '000' WITH lv_value ' Has Been Created !' RAISING error.
+MESSAGE ID 'ZSM' TYPE 'S' NUMBER '000' WITH lv_value ' has been created !' RAISING error.
 
 " Message
 DATA lv_message TYPE bapi_msg.
@@ -20,10 +20,8 @@ MESSAGE e019 WITH ls_request-kunnr INTO lv_message.
 " Form
 FORM append_return TABLES lt_messages STRUCTURE bapiret2
                    USING VALUE($lv_message) VALUE($lv_type). 
-  APPEND INITIAL LINE TO lt_messages ASSIGNING FIELD-SYMBOL(<fs_message>).     
-  <fs_message>-message = lv_message.
-  <fs_message>-type = lv_type.
-ENDFORM. 
+    APPEND VALUE #( message = $lv_message type = $lv_type ) TO lt_messages.
+ENDFORM.
 
 " Message Class
 T-Code: SE91
@@ -44,7 +42,7 @@ MESSAGE ID sy-msgid
 
 " Add System Messages To Bapiret2
 DATA: lv_message  TYPE string,
-      lt_messages TYPE BAPIRET2_T.
+      lt_messages TYPE bapiret2_t.
 
 MESSAGE e007(zsm_msg_001) INTO lv_message.
 PERFORM add_system_messages_to_bapiret2 TABLES lt_messages
@@ -66,5 +64,5 @@ FORM add_system_messages_to_bapiret2 TABLES ct_messages TYPE bapiret2_t
     ls_message-message = COND #( WHEN iv_message IS NOT INITIAL THEN iv_message 
                                                                 ELSE |{ is_syst-msgv1 }| && space && | { is_syst-msgv2  } | && space && | { is_syst-msgv3  } | && space && | { is_syst-msgv4  } | ).     
 
-    APPEND ls_message TO ct_messages[].
+    APPEND ls_message TO ct_messages.
 ENDFORM.

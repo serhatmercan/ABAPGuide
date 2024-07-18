@@ -1,5 +1,4 @@
-" Assign
-TYPES: tt_mara TYPE STANDARD TABLE OF mara.
+TYPES tt_mara TYPE STANDARD TABLE OF mara.
 
 DATA: lt_data TYPE REF TO data,
       lr_data TYPE REF TO data,
@@ -14,12 +13,13 @@ FIELD-SYMBOLS: <lt_data>      TYPE STANDARD TABLE,
                <lv_line>      TYPE REF TO data,
                <fs_mara>      LIKE LINE OF lt_mara.            
 
+" Assign
 ASSIGN cr_data->* TO <ls_data>.
 ASSIGN COMPONENT lv_data OF STRUCTURE <ls_data> TO <lt_node>.
 
 LOOP AT <lt_node> ASSIGNING FIELD-SYMBOL(<ls_node>).
   ASSIGN COMPONENT 'EXT_ID' OF STRUCTURE <ls_node> TO <lv_id>.
-  IF sy-subrc EQ 0.
+  IF sy-subrc = 0.
     DATA(lv_alpha_id) = |{ <lv_id> ALPHA = IN }|.
   ENDIF.
 ENDLOOP.
