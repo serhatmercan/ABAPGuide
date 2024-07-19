@@ -10,4 +10,4 @@ ls_sales_header = VALUE #( doc_type = likp-lfart
 ls_table = CORRESPONDING #( ls_data ).
 
 " Definition
-DATA(ls_header) = VALUE ZSM_S_HEADER( ).
+DATA(ls_header) = VALUE zsm_s_header( ).

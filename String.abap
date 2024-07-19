@@ -2,12 +2,13 @@
 DATA(lv_name) = 'Serhat' .
 
 " Check Letter
-lt_data-waers(1) EQ 'A' OR lt_data-waers(1) EQ 'T'.
+IF lt_data-waers+0(1) = 'A' OR lt_data-waers+0(1) = 'T'.
+ENDIF.
 
 " Concatenate
-DATA(lv_full_name) = | My name is { lv_name }| && | , and surname is { 'Mercan' } | .
-DATA(lv_link) = |{ lv_link }main/{ iv_company_code },{ iv_business_area } |.
-DATA(lv_full_name) = 'Serhat' && cl_abap_char_utilities=>newline && 'Mercan'.
+DATA(lv_full_name) = |My name is { lv_name }| && | , and surname is { lv_surname }| .
+DATA(lv_link) = |{ lv_link }main/{ iv_company_code },{ iv_business_area }|.
+DATA(lv_full_name) = |Serhat{ cl_abap_char_utilities=>newline }Mercan|.
 
 " Condense
 CONDENSE lv_full_name NO-GAPS.
@@ -17,8 +18,7 @@ IF lv_data CP 'P*'.
 ELSE.
 
 " Length
-DATA: length TYPE i. 
-length = strlen( lv_data ).
+DATA(lv_length) = strlen( lv_data ).
 
 " Lower & Upper Case
 DATA lv_line(10) VALUE 'serhat'.

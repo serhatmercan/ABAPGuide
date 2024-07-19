@@ -290,18 +290,41 @@ CLASS lcl_main IMPLEMENTATION.
     ENDMETHOD.
 
     METHOD handle_insert_icons.
-    ENDMETHOD.  
+      DATA lt_toolbar TYPE ui_functions.
+    
+      lt_toolbar = VALUE #( ( function = 'ADD_ROW'    icon = icon_add     text = 'Add Row'    quickinfo = 'Add a new row' ) 
+                            ( function = 'DELETE_ROW' icon = icon_delete  text = 'Delete Row' quickinfo = 'Delete the selected row' )
+                            ( function = 'REFRESH'    icon = icon_refresh text = 'Refresh'    quickinfo = 'Refresh the data' ) ).
+    
+      e_object->mt_toolbar = lt_toolbar.
+    ENDMETHOD.
 
     METHOD handle_menu_button.
+      CASE e_ucomm.
+        WHEN 'MENU_ITEM_1'.
+          MESSAGE 'Menu Item 1 selected' TYPE 'I'.
+        WHEN 'MENU_ITEM_2'.
+          MESSAGE 'Menu Item 2 selected' TYPE 'I'.
+        WHEN OTHERS.
+          MESSAGE 'Unknown menu item selected' TYPE 'E'.
+      ENDCASE.
     ENDMETHOD.
 
     METHOD handle_on_f1.
+      CASE e_fieldname.
+        WHEN 'VBELN'.
+          MESSAGE 'Sales Order Number: Unique identifier for a sales document.' TYPE 'I'.
+        WHEN 'MATNR'.
+          MESSAGE 'Material Number: Unique identifier for a material.' TYPE 'I'.
+        WHEN OTHERS.
+          MESSAGE 'No help available for this field.' TYPE 'I'.
+      ENDCASE.
     ENDMETHOD.
 
     METHOD handle_on_f4.
       TYPES: BEGIN OF lty_value_tab,
-           pstyv TYPE pstyv,
-         END OF lty_value_tab.
+              pstyv TYPE pstyv,
+             END OF lty_value_tab.
 
       DATA: lt_return_tab TYPE TABLE OF ddshretval,
             lt_value_tab  TYPE TABLE OF lty_value_tab.
@@ -331,17 +354,16 @@ CLASS lcl_main IMPLEMENTATION.
               ls_0100->chbox = abap_true.
             ENDLOOP.
           WHEN 'ADD_LINE'.
-            DATA ls_cellstyle TYPE lvc_s_styl.
-            DATA lv_out LIKE LINE OF gt_out_0100.  
-            DATA(lv_records_count) = lines( gt_out_0100 ).          
-            
-            ls_cellstyle = VALUE #( fieldname = 'NAME'
-                                    style     = cl_gui_alv_grid=>mc_style_enabled ).
-                                    
-            lv_out-id = lv_records_count + 1.     
-            lv_out-fieldstyle = ls_cellstyle.    
+            DATA: ls_cellstyle TYPE lvc_s_styl,
+                  lv_out       LIKE LINE OF gt_out,
+                  lv_records_count = lines( gt_out ).
 
-            MODIFY gt_out_0100 FROM gs_data INDEX lv_records_count + 1.                          
+            ls_cellstyle = VALUE #( fieldname = 'NAME' style = cl_gui_alv_grid=>mc_style_enabled ).
+
+            lv_out-id = lv_records_count + 1.
+            lv_out-fieldstyle = ls_cellstyle.
+
+            MODIFY gt_out FROM lv_out INDEX lv_records_count + 1.                         
         ENDCASE.
 
         go_grid->refresh_table_display( EXPORTING is_stable = VALUE lvc_s_stbl( row = abap_true col = abap_true ) ).
@@ -377,26 +399,21 @@ CLASS lcl_main IMPLEMENTATION.
           sap_fontsize = cl_dd_document=>medium
       ).
 
-      go_document->display_document(
-        EXPORTING
-          parent = go_subcontainer1 
-      ).
+      go_document->display_document( EXPORTING parent = go_subcontainer1 ).
     ENDMETHOD.
 
     METHOD get_data.
-        SELECT * FROM lips
-        INTO CORRESPONDING FIELDS OF TABLE gt_out
-        UP TO 20 ROWS.
+        SELECT * 
+          FROM lips
+          INTO CORRESPONDING FIELDS OF TABLE gt_out
+          UP TO 20 ROWS.
 
         LOOP AT gt_out REFERENCE INTO DATA(ls_out) WHERE pstyv EQ 'NLC'.             
             ls_out->button = 'C710'.
             ls_out->color = 'C710'. " Row Color: C610 -> Red | 'C310' -> Yellow | 'C510' -> Green 
             ls_out->statu = '@01@'.
             ls_out->tlght = '2'.    " Cell Color: 1-> Red 2-> Yellow 3-> Green
-            APPEND VALUE #( fname = 'VBELN'
-                            color-col = '5'
-                            color-int = '1'
-                            color-inv = '1' ) TO ls_out->cellcolor.
+            APPEND VALUE #( fname = 'VBELN' color-col = '5' color-int = '1' color-inv = '1' ) TO ls_out->cellcolor.
         ENDLOOP.
     ENDMETHOD.
 
@@ -410,9 +427,7 @@ CLASS lcl_main IMPLEMENTATION.
         INTO TABLE @DATA(lt_table).
 
         LOOP AT lt_table INTO DATA(ls_data).
-          APPEND INITIAL LINE TO rt_dropdown ASSIGNING FIELD-SYMBOL(<fs_dropdown>).
-          <fs_dropdown>-handle = '1'.
-          <fs_dropdown>-value  = ls_data-zzprint.          
+          APPEND VALUE #( handle = '1' value = ls_data-zzprint ) TO rt_dropdown.
         ENDLOOP.
     ENDMETHOD.
 
@@ -472,10 +487,7 @@ CLASS lcl_main IMPLEMENTATION.
     ENDMETHOD.
     
     METHOD set_filter.
-        APPEND VALUE #( fieldname = 'PSTYV'
-                        sign      = 'E'
-                        option    = 'EQ'
-                        low       = 'ZT89' ) TO rt_filter.
+        APPEND VALUE #( fieldname = 'PSTYV' sign = 'E' option = 'EQ' low = 'ZT89' ) TO rt_filter.
     ENDMETHOD.
     
     METHOD set_layout.
@@ -525,13 +537,9 @@ CLASS lcl_main IMPLEMENTATION.
         rs_variant-report   = sy-repid.             
     ENDMETHOD.
 ENDCLASS. 
-
-*&-----------------------------*
-*&  Include ZSM_R_REPORT
-*&-----------------------------*
-*&-----------------------------*
-*& Module  STATUS_0100  OUTPUT
-*&-----------------------------*
+*----------------------------*
+*     STATUS_0100 OUTPUT     *
+*----------------------------*
 MODULE status_0100 OUTPUT.
   SET PF-STATUS sy-dynnr.
   SET TITLEBAR sy-dynnr.
@@ -545,16 +553,14 @@ MODULE status_0100 OUTPUT.
       co_grid      = go_grid
       ct_data      = gt_out[] ).
 ENDMODULE.
-*&--------------------------------------------*
-*&      Module  USER_COMMAND_0100  INPUT
-*&--------------------------------------------*
+*---------------------------------*
+*     USER_COMMAND_0100 INPUT     *
+*---------------------------------*
 MODULE user_command_0100 INPUT.
-
   CASE sy-ucomm.
     WHEN 'BACK' OR 'CANCEL' OR 'EXIT'.
       LEAVE TO SCREEN 0.
   ENDCASE.
-
 ENDMODULE.
 *----------------*
 *     SET F4     *
@@ -568,7 +574,6 @@ ENDFORM.
 *     SET SPLITTER     *
 *----------------------*
 FORM set_splitter
-
   CREATE OBJECT go_grid
     EXPORTING
       i_parent = co_container.
@@ -610,5 +615,4 @@ FORM set_splitter
     EXPORTING
       i_event_name = 'TOP_OF_PAGE'
       i_dyndoc_id  = go_document ).
-
 ENDFORM.
