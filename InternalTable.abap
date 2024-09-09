@@ -122,6 +122,9 @@ lt_licence_mdx = VALUE #( FOR ls_licence_md IN lt_licence_md WHERE ( licin IN ir
 " Insert
 INSERT VALUE #( id = '1' value= 'X' ) INTO TABLE lt_data.
 
+" Insert w/ Index
+INSERT VALUE #( kunnr = '' name1 = '' ) INTO et_altmusteriset INDEX 1.
+
 " Line Index
 DATA(lv_index) = line_index( gt_table[ vbeln = '0060000001'] ).
 

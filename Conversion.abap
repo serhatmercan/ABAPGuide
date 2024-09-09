@@ -44,6 +44,7 @@ DATA: lv_timestamp TYPE timestampl,
 
 CONVERT DATE sy-datum TIME sy-uzeit INTO TIME STAMP lv_timestamp TIME ZONE sy-zonlo.      
 CONVERT TIME STAMP lv_timestamp TIME ZONE sy-zonlo INTO DATE lv_datum TIME lv_time.
+CONVERT TIME STAMP lv_timestamp TIME ZONE sy-zonlo INTO DATE DATA(lv_datum) TIME DATA(lv_time).
 
 " Conversion w/ Data Type
 DATA(lv_data) = CONV int4( ls_data-value ).
