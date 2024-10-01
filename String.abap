@@ -45,6 +45,9 @@ WRITE: / 'Searching for "Serhat    "',
 DATA line(20) TYPE c.
 CONCATENATE 'You''' 'll be there.' INTO line.
 
+" Substring
+DATA(lv_ltc_posid) = substring( val = <fs_incetive>-posid len = 3 off = strlen( <fs_incetive>-posid ) - 3 ). " Get Last 3 Characters
+
 " Split
 SPLIT lv_data AT '.' INTO TABLE DATA(lt_data).
 SPLIT iv_slug AT '&&' INTO DATA(lv_material) DATA(lv_formkey) DATA(lv_filename) DATA(lv_maincolor) DATA(lv_subcolor).

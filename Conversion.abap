@@ -63,8 +63,7 @@ check_appointment(
     iv_tc_no       = CONV #( ls_vbak-driver_tc )
     iv_vkorg       = ls_appointment-vkorg     
   IMPORTING
-    ev_return_code = DATA(lv_return_code) 
-).
+    ev_return_code = DATA(lv_return_code)).
 
 " Corresponding
 lt_data = CORRESPONDING #( ls_deep-operations ).

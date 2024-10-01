@@ -115,6 +115,11 @@ SELECT DISTINCT vk~vbeln, vk~kunnr, oigd~drname
                       WHERE vgbel EQ vk~vbeln )
   INTO TABLE @DATA(lt_data).
 
+" SELECT RIGHT
+SELECT DISTINCT parent_key , right( dlv~base_btd_id, 10 ) AS vbeln, right( dlv~base_btditem_id, 6 ) AS posnr
+  FROM @lt_dlv_ref as dlv
+  INTO TABLE @gt_data.
+
 " SELECT UNION ALL
 SELECT name1
   FROM kna1
