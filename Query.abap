@@ -160,6 +160,23 @@ SELECT mch1~vfdat AS vfdat,
   ORDER BY mch1~vfdat, mch1~charg
   INTO TABLE @DATA(lt_data).
 
+" SELECT SUM & GROUP & ORDER II
+SELECT  a~partner,
+	      a~credit_sgmnt,
+	      a~credit_limit,
+	      SUM( CASE WHEN a~credit_sgmnt EQ @lc_credit_segment_domestic THEN b~amount ELSE 0 END ) AS sum_domestic_amount,
+	      SUM( CASE WHEN a~credit_sgmnt EQ @lc_credit_segment_overseas THEN b~amount ELSE 0 END ) AS sum_overseas_amount,
+	      b~currency
+  FROM ukmbp_cms_sgm AS a
+  LEFT OUTER JOIN ukm_item AS b
+    ON b~partner EQ a~partner
+   AND b~credit_sgmnt EQ a~credit_sgmnt
+  WHERE a~partner IN @lr_customers
+    AND a~credit_sgmnt IN (@lc_credit_segment_domestic, @lc_credit_segment_overseas)
+  GROUP BY a~partner, a~credit_sgmnt, a~credit_limit, b~currency
+	ORDER BY a~partner, a~credit_sgmnt
+  INTO TABLE @DATA(lt_credit).
+
 " SELECT w/ LIKE
 DATA: lv_upper_vehicle_text_en(50),
       lv_upper_vehicle_text_tr(50),
@@ -211,14 +228,23 @@ SELECT rbukrs, gjahr, belnr
 
 " FOR ALL ENTRIES IN
 IF lt_itab[] IS NOT INITIAL.
-  SELECT vbfa~vbeln,
-         vbfa~posnn,
-         vbak~auart
-    FROM vbfa
-    FOR ALL ENTRIES IN @lt_itab
-    WHERE vbfa~vbeln EQ @lt_itab-vbeln 
-      AND vbfa~posnn EQ @lt_itab-posnr
-    INTO TABLE @DATA(gt_vbfa).
+  DATA(lt_itabx) = lt_itab.
+
+  SORT lt_itabx BY vbeln posnr.
+  DELETE ADJACENT DUPLICATES FROM lt_itabx COMPARING vbeln posnr.
+  DELETE lt_itabx WHERE posnr IS INITIAL.
+
+  IF lt_itabx[] IS NOT INITIAL.
+    SELECT vbfa~vbeln,
+           vbfa~posnn,
+           vbak~auart
+      FROM vbfa
+      FOR ALL ENTRIES IN @lt_itabx
+      WHERE vbfa~vbeln EQ @lt_itabx-vbeln 
+        AND vbfa~posnn EQ @lt_itabx-posnr
+      ORDER BY PRIMARY KEY
+      INTO TABLE @DATA(lt_vbfa).
+  ENDIF.
 ENDIF.
 
 " INTO RANGE TABLE 
