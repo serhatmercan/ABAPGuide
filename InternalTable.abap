@@ -188,5 +188,5 @@ ls_data = VALUE #( lt_data[ 1 ] OPTIONAL ).
 SORT lt_data BY name.
 DELETE ADJACENT DUPLICATES FROM lt_data COMPARING name.
 
-" Table Records Count
+" Table Records Countf
 DATA(lv_records_count) = lines( gt_table ).

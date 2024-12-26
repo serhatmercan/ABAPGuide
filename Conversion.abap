@@ -64,7 +64,13 @@ check_appointment(
     iv_vkorg       = ls_appointment-vkorg     
   IMPORTING
     ev_return_code = DATA(lv_return_code)).
+  
+" Conversion: Data -> String
+DATA: lv_data   TYPE data,
+      lv_string TYPE string.
 
+lv_string = /ui2/cl_json=>serialize( data = lv_data compress = abap_true pretty_name = /ui2/cl_json=>pretty_mode-camel_case ).
+ 
 " Corresponding
 lt_data = CORRESPONDING #( ls_deep-operations ).
 

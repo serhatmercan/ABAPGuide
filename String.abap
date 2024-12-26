@@ -52,5 +52,8 @@ DATA(lv_ltc_posid) = substring( val = <fs_incetive>-posid len = 3 off = strlen( 
 SPLIT lv_data AT '.' INTO TABLE DATA(lt_data).
 SPLIT iv_slug AT '&&' INTO DATA(lv_material) DATA(lv_formkey) DATA(lv_filename) DATA(lv_maincolor) DATA(lv_subcolor).
 
-" Translate
-TRANSLATE <fs_MGTXT>-high  USING 'iİüÜöÖçÇşŞ'.
+" Translate Turkish Characters: => çŞiÜğRTzxt || <= cSiUgRTzxt 
+CONSTANTS lc_replace_map TYPE string VALUE 'ÇCçcĞGğgıiİIÖOöoŞSşsÜUüu'.
+DATA lv_text TYPE string. 
+
+TRANSLATE lv_text USING lc_replace_map.

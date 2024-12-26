@@ -8,6 +8,8 @@ MESSAGE 'Error Occured !' TYPE 'E'.
 MESSAGE 'The process has been completed successfully' TYPE 'I' DISPLAY LIKE 'S'.
 MESSAGE text-001 TYPE 'W'.
 MESSAGE i001(zsm).
+MESSAGE e002(zmp) INTO DATA(lv_message).
+MESSAGE e003(zmp) WITH lv_value1 lv_value2 INTO DATA(lv_message). " &1 &2 Parameters
 MESSAGE ID 'ZSM' TYPE 'E' NUMBER '001' RAISING error.
 MESSAGE ID 'ZSM' TYPE 'S' NUMBER '000' WITH lv_value ' has been created !' RAISING error.
 

@@ -70,6 +70,7 @@ DATA(lv_key) = VALUE #( lt_data[ name = 'Key' ]-value OPTIONAL ) .
 WRITE 'Serhat'.
 WRITE / 'Serhat'.
 WRITE: 'Serhat', 'Mercan'.
+WRITE: lv_kwmeng TO lv_kwemengx UNIT lv_vrkme.
 
 " Pointer
 DATA(lv_value) = '12345'.
@@ -91,6 +92,9 @@ DATA lv_str(30) VALUE 'ZSM_S_STRUCTURE'.
 TABLES: vbak .
 DATA: ls_vbak TYPE vbak,
       lt_vbak TYPE TABLE OF vbak.
+
+" UUID: Type UUID (RAW 16)
+DATA(lv_uuid) = cl_uuid_factory=>create_system_uuid( )->create_uuid_x16( ).
 
 " Xfeld
 DATA(lv_error) = VALUE xfeld( ).

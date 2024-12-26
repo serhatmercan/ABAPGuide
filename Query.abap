@@ -228,7 +228,7 @@ SELECT rbukrs, gjahr, belnr
 
 " FOR ALL ENTRIES IN
 IF lt_itab[] IS NOT INITIAL.
-  DATA(lt_itabx) = lt_itab.
+  DATA(lt_itabx) = lt_itab. " lt_itab[]
 
   SORT lt_itabx BY vbeln posnr.
   DELETE ADJACENT DUPLICATES FROM lt_itabx COMPARING vbeln posnr.
