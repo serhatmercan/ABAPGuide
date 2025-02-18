@@ -18,6 +18,12 @@ DATA: lv_value  TYPE p DECIMALS 4 VALUE '7896.6579',
 lv_result = lv_value * 100.
 lv_result = floor( lv_result ) / 100.               " => 7896.65
 
+" Mod
+DATA lv_minutes TYPE int4.                          " => 3600
+
+IF lv_minutes MOD 60 EQ 0.                          " => 3600 % 60 = 0
+ENDIF.
+
 " Random
 DATA(lv_seed) = sy-timlo.
 DATA(lo_random) = cl_abap_random_int=>create( EXPORTING seed = lv_seed min = 1 max = 9999 ).

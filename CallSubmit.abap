@@ -1,3 +1,10 @@
+" Call BAPI Messages From Function
+ASSIGN ('(SAPMV54A)XVBUV[]') TO FIELD-SYMBOL(<fs_xvbuv>).
+
+IF <fs_xvbuv> IS ASSIGNED.
+  DATA(lt_xvbuv) = <fs_xvbuv>.
+ENDIF.
+
 " Call Previous Screen's Data  
 ASSIGN ('(SAPMV50A)XLIPS[]') TO FIELD-SYMBOL(<fs_xlips>).
 

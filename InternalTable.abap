@@ -64,7 +64,10 @@ lt_data = VALUE #(  refnumber = '1'
 
 " Append Value & Default Parameters w/ Table Type
 DATA(lt_data) = VALUE tt_auart(  ( vbeln  = '1' posnr = '10' auart = 'X' )
-                                 ( vbeln  = '2' posnr = '20' auart = 'Y' ) ).                        
+                                 ( vbeln  = '2' posnr = '20' auart = 'Y' ) ).       
+                                 
+" Append Value w/ Base  
+lt_data[] = VALUE #( BASE lt_data[] ( vbeln = '3' posnr = '10' auart = 'Z' ) ).
 
 " Append w/ Return Message
 DATA et_return TYPE bapiret2_t. 
@@ -77,11 +80,25 @@ ASSIGN lt_itab[ 3 ] TO FIELD-SYMBOL(<fs_itab>).
 ASSIGN lt_itab[ ernam = 'SERHAT' ersda = '20801212' ] TO FIELD-SYMBOL(<fs_itab>).
                 
 " Calculation
-DATA(lv_amount) = REDUCE i( INIT i TYPE labst FOR ls_mard IN lt_mard WHERE ( labst NE '' ) NEXT i = i + ls_mard-labst ).
-DATA(lv_total) = REDUCE bstmg( INIT total TYPE bstmg
-                               FOR ls_data IN lt_data
-			                         WHERE ( mtart EQ 'A' AND werks EQ 'X' )
-                               NEXT total = total + ls_data-total ).
+DATA(lv_amount) = REDUCE i( INIT i      TYPE labst 
+                            FOR ls_mard IN lt_mard 
+                            WHERE ( labst NE '' ) 
+                            NEXT i = i + ls_mard-labst ).
+
+DATA(lv_amount) = REDUCE bstmg( INIT lv_total TYPE bstmg
+                                FOR  ls_data   IN lt_data
+			                          WHERE ( mtart EQ 'A' AND werks EQ 'X' )
+                                NEXT lv_total = lv_total + ls_data-total ).
+
+DATA(lv_day) = REDUCE #( INIT lv_days = 0
+                         FOR ls_days IN is_tcurr-days
+                         WHERE ( periodat BETWEEN gv_first_date AND gv_last_date )
+                         NEXT lv_days = lv_days + 1 ).
+
+DATA(gv_value) = REDUCE char100( INIT lv_value TYPE char100
+                                 FOR  ls_data  IN lt_data
+                                 NEXT lv_value = COND char100( WHEN lv_value IS INITIAL THEN condense( |{ ls_data-value ALPHA = OUT }| )
+                                                                                        ELSE condense( |{ lv_value } / { ls_data-value ALPHA = OUT }| ) ) ).                    
 
 " Corresponding w/ Mapping
 lt_data = CORRESPONDING #( lo_data-values MAPPING matnr = material_no ).
@@ -101,8 +118,37 @@ DATA(lt_filter_data) = FILTER #( it_itab IN tt_itab WHERE ( ernam = 'X' ) ).
 " For
 DATA(lt_mara) = VALUE tt_mara( FOR ls_itab IN it_itab WHERE ( ernam EQ 'SERHAT' ) ( matnr = ls_itab-matnr ernam = ls_itab-ernam ) ).
 
+" For w/ Assignment
+lt_data[] = VALUE #( FOR ls_list IN lt_list ( matnr = ls_list-matnr
+                                              vhart = ls_list-vhart
+                                              ergew = COND #( WHEN ls_list-vhart = '1003' THEN CONV ergew( ls_list-veh_maxwgt - ls_list-veh_unlwgt )
+                                                                                            ELSE ls_list-ergew ) ) ).
+
+" For w/ Base
+lt_data = VALUE #( BASE lt_data 
+                    FOR ls_itab IN it_itab 
+                    LET ls_licence = _read_licence( iv_lictp = ls_itab-lictp iv_licin =  ls_itab-oih_licin_vf )
+                    IN ( VALUE #( BASE CORRESPONDING #( ls_itab ) 
+                                  vbeln_vf = ls_licence-vbeln_vf
+                                  zadklno  = ls_licence-zadklno ) ) ).
+
+" For w/ Calculation
+DATA(lt_sales_items_in) = VALUE cmp_t_sditm( FOR ls_out IN lt_out ( itm_number  = COND #( WHEN gv_process EQ 'P' THEN line_index( lt_out[ bonus_group = ls_out-bonus_group
+                                                                                                                                          spmon       = ls_out-spmon
+                                                                                                                                          vkorg       = ls_out-vkorg 
+                                                                                                                                          kunnr       = ls_out-kunnr ] ) * 10
+                                                                                                                 ELSE line_index( lt_out[ bonus_group = ls_out-bonus_group
+                                                                                                                                          spmon       = ls_out-spmon
+                                                                                                                                          vkorg       = ls_out-vkorg ] ) * 10 )
+                                                                    material    = COND #( WHEN gv_process EQ 'C' OR gv_process EQ 'P' THEN ls_ct0009-matnr
+                                                                                                                                      ELSE ls_out-matnr )
+                                                                    short_text  = COND #( WHEN gv_process EQ 'C' OR gv_process EQ 'P' THEN |{ lv_bezei } - { lv_maktx }|
+                                                                                                                                      ELSE |{ lv_bezei } - { VALUE #( lt_makt[ matnr = ls_out-matnr ]-maktx OPTIONAL ) }| )
+                                                                    plant       = ls_out-vkorg
+                                                                    target_qty  = '1'  ) ).
+
 " For w/ Corresponding
-DATA(lt_data) = VALUE #( FOR row IN lt_products ( matnr = row-matnr ) ).
+DATA(lt_data) = VALUE #( FOR ls_product IN lt_products ( matnr = ls_product-matnr ) ).
 
 " For w/ Groups                                                                                     
 DATA(lt_mara) = VALUE tt_mara( FOR GROUPS grp OF ls_itab IN it_itab WHERE ( ernam EQ 'SERHAT' ) GROUP BY ls_itab-ersda ( ersda = grp ) ) .

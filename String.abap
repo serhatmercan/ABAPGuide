@@ -7,8 +7,12 @@ ENDIF.
 
 " Concatenate
 DATA(lv_full_name) = |My name is { lv_name }| && | , and surname is { lv_surname }| .
-DATA(lv_link) = |{ lv_link }main/{ iv_company_code },{ iv_business_area }|.
+DATA(lv_link)      = |{ lv_link }main/{ iv_company_code },{ iv_business_area }|.
 DATA(lv_full_name) = |Serhat{ cl_abap_char_utilities=>newline }Mercan|.
+DATA(lv_value)     = COND #( WHEN ls_value-value IS INITIAL THEN lx_value-value 
+                                                            ELSE |{ ls_value-value } / { lx_value-value }| ).
+
+lv_ship_point = |{ ls_storage_location-werks+0(2) }01|.
 
 " Condense
 CONDENSE lv_full_name NO-GAPS.

@@ -44,6 +44,21 @@ ENDLOOP.
 
 cl_demo_output=>display( ).
 
+" Loop w/ Group By & Parameters
+TYPES: BEGIN OF ty_s_invoive,
+        vbeln_vf TYPE vbeln_vf,
+       END OF ty_s_invoive.
+
+DATA: ls_invoice TYPE ty_s_invoive,
+      lt_invoice TYPE TABLE OF ty_s_invoive.
+
+LOOP AT gt_alv INTO DATA(ls_alv) GROUP BY ( vbeln_vf = ls_alv-vbeln_vf size = GROUP SIZE index = GROUP INDEX )
+                                  ASCENDING WITHOUT MEMBERS
+                                  REFERENCE INTO DATA(ls_group).                      
+  ls_invoice-vbeln_vf = ls_group->vbeln_vf.
+  APPEND ls_invoice TO lt_invoice.
+ENDLOOP.
+
 " While
 WHILE sy-index LT 3.
     WRITE sy-index.

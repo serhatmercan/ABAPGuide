@@ -10,8 +10,16 @@ DATA: lv_date TYPE d VALUE '20180715',
 DATA lv_valid TYPE datuv_bi.
 WRITE sy-datum TO lv_valid USING EDIT MASK '__.__.____'.
 
+" Date Declaration - II
+DATA  lv_date TYPE char10.
+WRITE ls_data-date TO lv_date DD/MM/YYYY.
+
 " Time Declaration
 DATA(lv_uzeit) = |{ ls_data-value USING EDIT MASK '__:__:__' }|.
+
+" Time Declaration - II
+DATA  lv_mask_time TYPE char10.
+WRITE ls_data-time USING EDIT MASK '__:__' TO lv_mask_time.
 
 " Time Definition
 DATA: lv_time TYPE t VALUE '145330',
