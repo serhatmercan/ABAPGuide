@@ -19,6 +19,8 @@ DATA lv_message TYPE bapi_msg.
 MESSAGE e018 INTO lv_message.
 MESSAGE e019 WITH ls_request-kunnr INTO lv_message.
 
+APPEND LINES OF lt_return TO et_return.
+
 " Form
 FORM append_return TABLES lt_messages STRUCTURE bapiret2
                    USING VALUE($lv_message) VALUE($lv_type). 

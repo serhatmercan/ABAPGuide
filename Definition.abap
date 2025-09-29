@@ -85,6 +85,9 @@ ENDLOOP.
 " Standard Table
 DATA lt_lines TYPE STANDARD TABLE OF tline.
 
+" String
+DATA(lv_vehicle) = VALUE string( ).
+
 " Structure
 DATA lv_str(30) VALUE 'ZSM_S_STRUCTURE'.
 

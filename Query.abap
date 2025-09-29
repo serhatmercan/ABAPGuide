@@ -62,6 +62,26 @@ SELECT COUNT(*)
 IF lv_count EQ 0.
 ENDIF.
 
+" SELECT COUNT w/ GROUP BY
+TYPES: BEGIN OF lty_order_appointment,
+          begin_time    TYPE ztprsd0036-begin_time,
+          finisih_time  TYPE ztprsd0036-finisih_time,
+          order_count   TYPE i,
+        END OF lty_order_appointment.
+DATA lt_order_appointments TYPE STANDARD TABLE OF lty_order_appointment WITH EMPTY KEY.
+
+SELECT t1~begin_time,
+       t1~finisih_time,
+       COUNT( DISTINCT t1~order ) AS order_count
+  FROM ztprsd0036 AS t1
+  INNER JOIN vbak AS t2
+    ON t2~vbeln EQ t1~order
+   AND t2~kunnr EQ @iv_customer
+  WHERE t1~date EQ @lv_date
+    AND t1~xkapali EQ @abap_false
+  GROUP BY t1~begin_time, t1~finisih_time
+  INTO TABLE @lt_order_appointments.
+
 " SELECT w/ CONCATENATE TWO FIELDS w/ SPACE
 SELECT SINGLE concat_with_space( first_name, last_name, 1 )
   FROM oigd
@@ -177,6 +197,13 @@ SELECT  a~partner,
 	ORDER BY a~partner, a~credit_sgmnt
   INTO TABLE @DATA(lt_credit).
 
+" SELECT SUM w/ Internal Table
+SELECT t1~file_no,
+       SUM( t1~fkimg ) AS total_fkimg
+  FROM @lt_invoice_sum AS t1
+  GROUP BY t1~file_no
+  INTO TABLE @DATA(lt_invoice_sum_amount).
+
 " SELECT w/ LIKE
 DATA: lv_upper_vehicle_text_en(50),
       lv_upper_vehicle_text_tr(50),
@@ -264,6 +291,9 @@ WHERE vbfa~vbtyp_v IN ('C','L','K','I','H').
 
 " ADD WHERE: CUSTOM LIKE
 WHERE ( matnr LIKE 'J%' OR matnr LIKE 'T%' ).
+
+" ADD WHERE: DATE & TIME
+WHERE ( begin_date GT @sy-datum OR ( begin_date EQ @sy-datum AND begin_time GE @sy-uzeit ) )
 
 " ADD WHERE: DYNAMICALLY
 TYPES: BEGIN OF lty_select,

@@ -1,6 +1,9 @@
 " Definition
 DATA lr_charg TYPE RANGE OF lqua-charg.
 
+" Definition & Declaration
+DATA(lr_material) = VALUE rseloption( sign = 'I' option = 'EQ' ( low = ls_data-material ) ).
+
 " Append
 APPEND VALUE #( sign = 'I' option = 'EQ' low = iv_data high = iv_data ) TO lr_charg.
 

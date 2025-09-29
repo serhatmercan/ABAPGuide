@@ -49,6 +49,23 @@ METHOD convert_value_to_date.
     ENDIF.
 ENDMETHOD.
 
+" Function: Check Time 
+DATA: lv_input  TYPE uareg, 
+      lv_output TYPE ualend.
+
+CALL FUNCTION 'CONVERT_TIME_INPUT'
+  EXPORTING
+    input                     = lv_input
+  IMPORTING
+    output                    = lv_output
+  EXCEPTIONS
+    plausibility_check_failed = 1
+    wrong_format_in_input     = 2
+    OTHERS                    = 3.
+IF sy-subrc <> 0.
+  lv_output = '000000'.
+ENDIF.
+
 " Subtract n Years From a Date
 DATA lv_date TYPE datum.
 

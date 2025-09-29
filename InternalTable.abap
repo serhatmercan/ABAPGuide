@@ -73,6 +73,11 @@ lt_data[] = VALUE #( BASE lt_data[] ( vbeln = '3' posnr = '10' auart = 'Z' ) ).
 DATA et_return TYPE bapiret2_t. 
 et_return = VALUE #( ( type = 'E' id = 'ZPP_000_MC' number = 001 ) ). 
 
+" Append w/ Value & Tables
+er_deep_entity = VALUE #( returned  = abap_true
+                          header    = CORRESPONDING #( ls_entity-header[] )
+                          items     = CORRESPONDING #( ls_entity-items[] ) ).
+
 " Assign w/ Index
 ASSIGN lt_itab[ 3 ] TO FIELD-SYMBOL(<fs_itab>). 
 
@@ -122,7 +127,7 @@ DATA(lt_mara) = VALUE tt_mara( FOR ls_itab IN it_itab WHERE ( ernam EQ 'SERHAT' 
 lt_data[] = VALUE #( FOR ls_list IN lt_list ( matnr = ls_list-matnr
                                               vhart = ls_list-vhart
                                               ergew = COND #( WHEN ls_list-vhart = '1003' THEN CONV ergew( ls_list-veh_maxwgt - ls_list-veh_unlwgt )
-                                                                                            ELSE ls_list-ergew ) ) ).
+                                                                                          ELSE ls_list-ergew ) ) ).
 
 " For w/ Base
 lt_data = VALUE #( BASE lt_data 
@@ -183,6 +188,23 @@ LOOP AT lt_order REFERENCE INTO DATA(lr_order).
 ENDLOOP.
 
 " Loop w/ Group
+TYPES: BEGIN OF lty_invoice_material,
+         file_no   TYPE zsm_e_file_no,
+         materials TYPE string,
+       END OF lty_invoice_material.
+
+DATA lt_invoice_materials TYPE TABLE OF lty_invoice_material.
+
+LOOP AT lt_invoice_sum INTO DATA(ls_invoice_sum) GROUP BY ( file_no = ls_invoice_sum-file_no ) ASCENDING INTO DATA(ls_invoice_sum_group).
+  APPEND VALUE #( file_no   = ls_invoice_sum_group-file_no
+                  materials = REDUCE string( INIT lv_string = ``
+                                              FOR ls_invoice_sum_group_row IN GROUP ls_invoice_sum_group
+                                             NEXT lv_string = COND #( WHEN lv_string IS INITIAL THEN ls_invoice_sum_group_row-material
+                                                                      ELSE lv_string && `, ` && ls_invoice_sum_group_row-material ) )
+                ) TO lt_invoice_materials.
+ENDLOOP.
+
+" Loop w/ Group II
 LOOP AT lt_data INTO DATA(ls_data) 
   GROUP BY ( order_no = ls_data-order_no order_type = ls_data-order_type size = GROUP SIZE index = GROUP INDEX ) 
   ASCENDING REFERENCE INTO DATA(ls_group).
@@ -195,7 +217,7 @@ ENDLOOP.
 MODIFY lt_data
   FROM VALUE #( notification_type = 'X' catalog_type = 'ABC' )
   TRANSPORTING notification_type catalog_type
-  WHERE material_no IS INITIAL. 
+  WHERE material_no IS INITIAL.
 
 " Update
 UPDATE ls_data FROM lt_data.
