@@ -50,6 +50,10 @@ APPEND INITIAL LINE TO lt_sales_items ASSIGNING FIELD-SYMBOL(<fs_sales_item>).
 lt_data = VALUE #( ( lgort = '1000' mtart = 'AAAA' )
                    ( lgort = '1000' mtart = 'BBBB' ) ).
 
+" Append Corresponding
+DATA lt_data TYPE zsm_tt_0001.
+APPEND LINES OF CORRESPONDING zsm_tt_0001( lt_itab ) TO lt_data.
+
 " Append Structure To Table
 APPEND ls_data TO lt_data.
 
@@ -179,6 +183,24 @@ INSERT VALUE #( kunnr = '' name1 = '' ) INTO et_altmusteriset INDEX 1.
 " Line Index
 DATA(lv_index) = line_index( gt_table[ vbeln = '0060000001'] ).
 
+" Line Index - Example
+IF et_entityset IS NOT INITIAL.
+  DATA(lv_index_bank) = line_index( et_entityset[ header = 'Bank' ] ).
+  DATA(lv_index_tax)  = line_index( et_entityset[ header = 'Tax' ] ).
+
+  IF lv_index_tax IS NOT INITIAL.
+    DATA(ls_tax) = VALUE #( et_entityset[ header = 'Tax' ] OPTIONAL ).
+
+    DELETE et_entityset INDEX lv_index_tax.
+
+    IF lv_index_bank IS NOT INITIAL.
+      INSERT ls_tax INTO et_entityset INDEX lv_index_bank + 1.
+    ELSE.
+      INSERT ls_tax INTO et_entityset INDEX 1.
+    ENDIF.
+  ENDIF.
+ENDIF.
+
 " Loop w/ Reference
 LOOP AT lt_order REFERENCE INTO DATA(lr_order).
   CASE lr_order->property.
@@ -241,15 +263,21 @@ IF sy-subrc EQ 0.
   <fs_key>-value = abap_true.
 ENDIF.
 
-" " Read Table - III
+" Read Table - III
+READ TABLE it_key TRANSPORTING NO FIELDS WITH KEY material = ls_data-material BINARY SEARCH.
+IF sy-subrc NE 0.
+  MESSAGE e001(zsm) WITH ls_data-material INTO DATA(lv_dummy).
+ENDIF.
+
+" Read Table - IV
 IF line_exists( gt_auart[ vbeln = itab-vbeln ] ).
   DATA(lv_auart)= gt_auart[ vbeln = itab-vbeln ]-auart.
 ENDIF.
 
-" Read Table - IV
+" Read Table - V
 ls_data = CORRESPONDING #( lt_data[ name = 'X' ] ).
 
-" Read Table - V
+" Read Table - VI
 ls_data = VALUE #( lt_data[ 1 ] OPTIONAL ).
 
 " SORT & DELETE DUPLICATE DATA

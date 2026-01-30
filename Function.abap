@@ -109,6 +109,16 @@ CALL FUNCTION 'MD_CONVERT_MATERIAL_UNIT'
       error                = 2
       OTHERS               = 3.
 
+" Convert File Extension From Mime Type (application/pdf -> pdf)      
+DATA: lv_extension TYPE c,
+      lv_mime_type TYPE w3conttype.
+
+CALL FUNCTION 'SDOK_FILE_NAME_EXTENSION_GET'
+  EXPORTING
+    mimetype  = lv_mime_type
+  IMPORTING
+    extension = lv_extension.    
+
 " Convert Time
 CALL FUNCTION 'CONVERT_TIME_INPUT'
   EXPORTING

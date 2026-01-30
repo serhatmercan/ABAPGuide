@@ -13,6 +13,10 @@ COMMIT WORK AND WAIT.
 DELETE FROM zsm_t_data WHERE name EQ 'Serhat'.
 COMMIT WORK AND WAIT.
 
+" Delete Data From Custom Tables w/ Condition
+DELETE FROM: zsm_t_data_01 WHERE name EQ 'Serhat',
+             zsm_t_data_02 WHERE name EQ 'Serhat'.
+
 " Insert Data From Internal Table To Custom Table
 INSERT zsm_t_data FROM TABLE lt_data.
 COMMIT WORK AND WAIT.  
@@ -38,6 +42,16 @@ COMMIT WORK AND WAIT.
 UPDATE zsm_t_data SET name EQ 'Serhat' WHERE vbeln EQ ls_data-vbeln AND posnr EQ ls_data-posnr.
 COMMIT WORK AND WAIT.
 
+" Update Custom Table w/ Multiple Custom Tables
+UPDATE zsm_t_log SET :  density       = is_ticket-density                          
+                        volume_uom    = is_ticket-volume_uom
+                        process       = '01'
+                WHERE   sns_number = is_ticket-sns_number.
+
+" Update Data From Values To Custom Table
+UPDATE zsm_t_data FROM @( VALUE #( customer = iv_customer request_count = iv_request_count izonay_id = lv_izonay_id ) ).
+COMMIT WORK AND WAIT.
+
 " INTERNAL TABLE
 
 " Append Data From Internal Structure To Internal Table
@@ -51,6 +65,10 @@ DELETE lt_data FROM 10.
 
 " Modify Internal Table Data w/ Internal Structure
 MODIFY lt_data FROM ls_data.
+
+" Modify Internal Table Data w/ Multiple Internal Tables
+MODIFY: zsm_t_data_01 FROM TABLE lt_data_01,
+        zsm_t_data_02 FROM TABLE lt_data_02.
 
 " Modify Internal Table Data w/ Values
 MODIFY lt_data FROM VALUE #( order_no = '1' document_type = 'X' ) TRANSPORTING order_no document_type WHERE order_no IS INITIAL.

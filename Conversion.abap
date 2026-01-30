@@ -11,6 +11,7 @@ DATA(lrd_out) = NEW /scdl/dl_docno_int( CONV #( |{ lv_out ALPHA = OUT }| ) ).
 DATA lv_vbeln TYPE char10.
 
 lv_vbeln = |{ is_data-vbeln ALPHA = IN }|.
+lv_matnr = |{ is_data-material ALPHA = IN WIDTH = 18 }|.
 
 " ALPHA OUT: Remove Zero From Initial
 lv_vbeln = |{ is_data-vbeln ALPHA = OUT }|.
@@ -47,8 +48,9 @@ CONVERT TIME STAMP lv_timestamp TIME ZONE sy-zonlo INTO DATE lv_datum TIME lv_ti
 CONVERT TIME STAMP lv_timestamp TIME ZONE sy-zonlo INTO DATE DATA(lv_datum) TIME DATA(lv_time).
 
 " Conversion w/ Data Type
-DATA(lv_data) = CONV int4( ls_data-value ).
-DATA(ls_data) = CORRESPONDING zsm_t_data( ls_xdata ).
+DATA(lv_data)  = CONV int4( ls_data-value ).
+DATA(lv_posnr) = CONV zsm_e_posnr('').
+DATA(ls_data)  = CORRESPONDING zsm_t_data( ls_xdata ).
 
 " Conversion Float => IMRC_READG -> ESECOMPAVG
 CALL FUNCTION 'C14W_NUMBER_CHAR_CONVERSION'

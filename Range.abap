@@ -34,6 +34,19 @@ SELECT 'I' AS sing,
   FROM zsm_t_aufnr 
   INTO TABLE @lr_aufnr.
 
+" Implementation w/ Query + Inner Join
+lr_orders = VALUE #( FOR ls_order IN lt_orders ( sign = 'I' option = 'EQ' low = ls_order-order_no ) ).
+SORT lr_orders BY low.
+DELETE ADJACENT DUPLICATES FROM lr_orders COMPARING low.
+
+IF lr_zpassn[] IS NOT INITIAL.
+  SELECT DISTINCT t1~order_no, t1~material_no, t1~reference_key
+    FROM zsm_t_order AS t1
+    INNER JOIN @lr_orders AS r1
+      ON r1~low EQ t1~order_no
+    INTO TABLE @DATA(lt_orders_x).
+ENDIF.
+
 " Standard
 DATA lr_material TYPE /accgo/cas_tt_material.
 DATA lr_werks    TYPE /accgo/cak_tt_plant_range.

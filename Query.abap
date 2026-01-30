@@ -17,7 +17,7 @@ SELECT *
 SELECT MAX(posnr) 
   FROM lips 
   INTO @DATA(lv_posnr) 
-  WHERE vbeln EQ @ip_vbeln.
+  WHERE vbeln EQ @p_vbeln.
 
 " SELECT LEFT OUTER JOIN
 SELECT SINGLE mara~matnr, makt~maktx 
@@ -106,6 +106,14 @@ SELECT DISTINCT (lv_fieldname)
   FROM (lv_table)
   WHERE (lv_condition)
   INTO TABLE @lt_dynamic_table.
+
+  " SELECT w/ PARAMETER
+SELECT SINGLE v1~qmnum,
+              @iv_task_no AS task_no,
+              v1~ernam
+  FROM qmel AS v1
+  WHERE v1~qmnum EQ @iv_qmnum
+  INTO @DATA(ls_qmel).
 
 " SELECT EXIST
 SELECT COUNT( * ) 
@@ -283,6 +291,19 @@ SELECT 'I'  AS sign,
   FROM t001w
   INTO CORRESPONDING FIELDS OF TABLE @lt_werks_range.
 
+" INTO RANGE TABLE II
+DATA lr_tags TYPE RANGE OF zsm_e_tag.
+
+SELECT FROM @ls_input-tag_names AS t1
+  FIELDS 'I' AS sign, 'EQ' AS option, t1~name AS low
+  INTO CORRESPONDING FIELDS OF TABLE @lr_tags.  
+
+SELECT FROM zsm_ct_tag
+  FIELDS tag_name, 'Units' AS property_name, unit AS property_value
+  WHERE werks    EQ @ls_input-plant
+    AND tag_name IN @lr_tags
+  INTO CORRESPONDING FIELDS OF TABLE @ls_proxy_response-get_tag_info_response-properties.
+
 " ADD WHERE: BETWEEN
 WHERE mara~mtart BETWEEN 'Z004' AND 'Z006'
 
@@ -292,10 +313,14 @@ WHERE vbfa~vbtyp_v IN ('C','L','K','I','H').
 " ADD WHERE: CUSTOM LIKE
 WHERE ( matnr LIKE 'J%' OR matnr LIKE 'T%' ).
 
+" ADD WHERE: DATE
+WHERE begda LE @sy-datum
+  AND endda GE @sy-datum
+
 " ADD WHERE: DATE & TIME
 WHERE ( begin_date GT @sy-datum OR ( begin_date EQ @sy-datum AND begin_time GE @sy-uzeit ) )
 
-" ADD WHERE: DYNAMICALLY
+" ADD WHERE: DYNAMICALLY - I
 TYPES: BEGIN OF lty_select,
           where TYPE c LENGTH 50,
        END OF lty_select.
@@ -306,11 +331,26 @@ APPEND VALUE #( where = 'matnr = ls_data-matnr' ) TO lt_select.
 APPEND VALUE #( where = 'prdha = ls_data-prdha' ) TO lt_select.
 APPEND VALUE #( where = 'AND prmt = ''INTERNAL''' ) TO lt_select.
 
+" ADD WHERE: DYNAMICALLY - II
+IF lv_end_date IS INITIAL.
+  APPEND VALUE #( where = '@lv_begin_date BETWEEN t1~begin_date' ) TO lt_select.
+  APPEND VALUE #( where = 'AND t1~end_date' ) TO lt_select.
+ELSE.
+  APPEND VALUE #( where = 't1~begin_date GE @lv_begin_date' ) TO lt_select.
+  APPEND VALUE #( where = 'AND t1~end_date LE @lv_end_date' ) TO lt_select.
+ENDIF.
+
 SELECT SINGLE *
   INTO ls_001
   FROM zsm_t_001
   WHERE kunnr EQ @lv_kunnr
     AND (lt_select).
+
+" ADD WHERE: UPPER
+WHERE upper( matnr ) IN @lr_materials.
+
+" ADD WHERE: OR
+WHERE ( t1~vehicle IN @lr_vehicle OR t2~veh_text IN @lr_vehicle_text )
 
 " CLIENT
 DATA lv_client TYPE sy-mandt.

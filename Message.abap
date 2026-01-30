@@ -13,6 +13,9 @@ MESSAGE e003(zmp) WITH lv_value1 lv_value2 INTO DATA(lv_message). " &1 &2 Parame
 MESSAGE ID 'ZSM' TYPE 'E' NUMBER '001' RAISING error.
 MESSAGE ID 'ZSM' TYPE 'S' NUMBER '000' WITH lv_value ' has been created !' RAISING error.
 
+" Default
+et_return = VALUE #( ( type = 'E' message = |Error occurred: { lv_text }| ) ).
+
 " Message
 DATA lv_message TYPE bapi_msg.
 
@@ -36,6 +39,13 @@ Dynamic: &
 REPORT zsm_report MESSAGE-ID zsm.
 
 MESSAGE i001.
+
+" Show
+DATA it_messages TYPE bapiret2_t.
+
+IF it_messages IS NOT INITIAL.
+    cl_rmsl_message=>display( it_messages ).
+ENDIF.
 
 " System
 MESSAGE ID sy-msgid 
@@ -70,3 +80,27 @@ FORM add_system_messages_to_bapiret2 TABLES ct_messages TYPE bapiret2_t
 
     APPEND ls_message TO ct_messages.
 ENDFORM.
+
+" Add System Messages To Bapiret2 II
+DATA lt_messages TYPE bapiret2_t.
+
+me->add_message_tab( CHANGING ct_messages = lt_messages ).
+
+" | [<-->] CT_MESSAGES TYPE BAPIRET2_T
+METHOD add_message_tab.
+    DATA ls_message TYPE bapiret2.
+
+    CALL FUNCTION 'FS_BAPI_BAPIRET2_FILL'
+      EXPORTING
+        type   = sy-msgty
+        cl     = sy-msgid
+        number = sy-msgno
+        par1   = sy-msgv1
+        par2   = sy-msgv2
+        par3   = sy-msgv3
+        par4   = sy-msgv4
+      IMPORTING
+        return = ls_message.
+
+    COLLECT ls_message INTO ct_messages.
+ENDMETHOD.

@@ -46,12 +46,13 @@ FORM use_data USING pv_data.
 ENDFORM.
 
 " Function
-CALL METHOD cl_cam_address_bcs=>create_internet_addres
+CALL FUNCTION cl_cam_address_bcs=>create_internet_addres
   EXPORTING
     i_address_string = CONV #( gv_sender_email )
-    i_address_name   = CONV #( gv_sender_name )
+    iv_statu         = ls_entity-util+8(2)
+    iv_task_code     = CONV mncod( ls_entity-util+10(4) )
    RECEIVING
-     result          = DATA(gr_sender).
+     result          = gr_sender.
 
 " Field Symbol
 LOOP AT lt_data ASSIGNING FIELD-SYMBOL(<ls_data>).

@@ -22,6 +22,12 @@ LOOP AT lt_data ASSIGNING FIELD-SYMBOL(<fs_data>) WHERE value IS NOT INITIAL.
   ENDCASE.
 ENDLOOP.
 
+" Loop w/ From-To 
+LOOP AT lt_data REFERENCE INTO DATA(ls_data) FROM 1 TO ls_attribute-size.
+  APPEND VALUE #( name = ls_data->name ) TO lt_tags.
+  CLEAR ls_data->name.
+ENDLOOP.
+
 " Loop w/ Group By
 DATA(lt_group_data) = VALUE spfli_tab( ).
 
