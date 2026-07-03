@@ -62,6 +62,23 @@ SELECT COUNT(*)
 IF lv_count EQ 0.
 ENDIF.
 
+" SELECT COUNT -> SELECT SINGLE 1
+DATA(lt_document_categories) = VALUE rseloption( ( sign = 'I' option = 'EQ' low = 'K' )
+                                                 ( sign = 'I' option = 'EQ' low = 'L' ) ).
+
+SELECT SINGLE 1
+  FROM ekko AS t1
+  INNER JOIN ekpo AS t2
+    ON t2~ebeln EQ t1~ebeln
+  WHERE t1~bstyp IN @lt_document_categories
+    AND t1~kdatb LE @sy-datum
+    AND t1~kdate GE @sy-datum
+    AND t2~matnr EQ @iv_material
+    AND t2~loekz EQ ''
+INTO @DATA(lv_pa_exist_count).
+
+DATA(lv_pa_exist) = xsdbool( sy-subrc = 0 ).
+
 " SELECT COUNT w/ GROUP BY
 TYPES: BEGIN OF lty_order_appointment,
           begin_time    TYPE ztprsd0036-begin_time,

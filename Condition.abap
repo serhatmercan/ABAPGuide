@@ -22,6 +22,10 @@ DATA(lv_data) = COND #( WHEN lv_lgnum EQ lc_lgnum THEN lc_e1
 DATA(lv_check)      = COND #( WHEN lv_confirmation_no BETWEEN 50 AND 100 THEN abap_true ELSE abap_false ).
 DATA(lv_confidence) = COND #( WHEN ( lv_confidence CS 'good' OR lv_confidence EQ 'uncertain' ) THEN abap_true ELSE abap_false ).
 
+DATA(lv_refinery) = CONV char3( COND #( WHEN is_defect->refinery EQ '1000' THEN 'ONE'
+                                        WHEN is_defect->refinery EQ '1100' THEN 'TWO'
+                                        WHEN is_defect->refinery EQ '1200' THEN 'THR' ) ).
+
 DATA(lv_status) = SWITCH char10( sy-msgty WHEN 'S' THEN 'SUCCESS'
                                           WHEN 'W' THEN 'OK'
                                           ELSE 'ERROR' ).
