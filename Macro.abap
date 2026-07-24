@@ -1,22 +1,22 @@
 " Macro - Definition
 DEFINE printer.
-  WRITE :/  'Hello', &1, &2.
+  WRITE :/ 'Hello', &1, &2.
 END-OF-DEFINITION.
 
-WRITE:/ 'Before Using Macro'.
-printer 'ABAP' 'Macros'. 
+WRITE / 'Before Using Macro'.
+printer 'ABAP' 'Macros'.
 
 " Macro - BAPI
-DATA: ls_header_in  LIKE bapisdhd1,  " SD Document Header
-      ls_header_inx LIKE bapisdhd1x. " SD Document Header Checkbox
+DATA ls_header_in  LIKE bapisdhd1.  " SD Document Header
+DATA ls_header_inx LIKE bapisdhd1x. " SD Document Header Checkbox
 
 DEFINE gx.
   &1-&2 = &3.
   &1x-&2 = abap_true.
 END-OF-DEFINITION.
 
-gx: ls_header_in doc_type  'ZI00',
-    ls_header_in sales_org '1200'.
+gx ls_header_in doc_type  'ZI00'.
+gx ls_header_in sales_org '1200'.
 
 WRITE: ls_header_in-doc_type, ls_header_inx-doc_type.
 
@@ -24,7 +24,7 @@ WRITE: ls_header_in-doc_type, ls_header_inx-doc_type.
 DEFINE conv_char.
   REPLACE ALL OCCURRENCES OF &1 IN &2 WITH &3.
   CONDENSE &2.
-END-OF-DEFINITION. 
+END-OF-DEFINITION.
 
 conv_char 'Ş' <fs_data>-value 'S'.
 

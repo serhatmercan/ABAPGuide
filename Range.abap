@@ -1,5 +1,12 @@
-" Definition
+" Definition - I
 DATA lr_charg TYPE RANGE OF lqua-charg.
+
+" Definition - II
+TYPES: ty_tt_mncod TYPE RANGE OF qmsm-mncod,
+       ty_tt_objnr TYPE RANGE OF qmsm-objnr.
+
+DATA(lr_mncod) = VALUE ty_tt_mncod( sign = 'I' option = 'EQ' ( low = '1000' ) ( low = '1001' ) ( low = '1002' ) ).
+DATA(lr_objnr) = VALUE ty_tt_objnr( FOR ls_jest IN lt_jest ( sign = 'I' option = 'EQ' low = ls_jest-objnr ) ).
 
 " Definition & Declaration
 DATA(lr_material) = VALUE rseloption( sign = 'I' option = 'EQ' ( low = ls_data-material ) ).

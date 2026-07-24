@@ -1,20 +1,19 @@
 " Definition
-DATA: lo_data        TYPE ole2_object,
-      lo_value       TYPE ole2_object,
-      lo_model		 TYPE REF TO /IWBEP/IF_MGW_ODATA_MODEL
-      lo_property    TYPE REF TO /iwbep/if_mgw_odata_property,
-      lo_entity_type TYPE REF TO /iwbep/if_mgw_odata_entity_typ.
+DATA lo_data        TYPE ole2_object.
+DATA lo_value       TYPE ole2_object.
+DATA lo_model       TYPE REF TO /iwbep/if_mgw_odata_model lo_property TYPE REF TO /iwbep/if_mgw_odata_property.
+DATA lo_entity_type TYPE REF TO /iwbep/if_mgw_odata_entity_typ.
 
 " Check Object
 IF lo_entity_type IS BOUND.
-    RETURN.
-ENDIF. 
+  RETURN.
+ENDIF.
 
 " Call Object
 CALL METHOD OF lo_data 'Add' = lo_data.
 IF sy-subrc <> 0.
-    MESSAGE TEXT-001 TYPE 'S' DISPLAY LIKE 'E'.
-    EXIT.
+  MESSAGE TEXT-001 TYPE 'S' DISPLAY LIKE 'E'.
+  EXIT.
 ENDIF.
 
 " Create Object

@@ -6,28 +6,20 @@ START-OF-SELECTION.
   DATA(lv_result) TYPE int4.
 
   " Instance Method        
-  lo_class->sum_two_numbers(
-    EXPORTING
-      iv_first_number = 10
-      iv_second_number = 20
-    IMPORTING
-      ev_sum = lv_sum
-  ).
+  lo_class->sum_two_numbers( EXPORTING iv_first_number  = 10
+                                       iv_second_number = 20
+                             IMPORTING ev_sum           = lv_sum ).
 
   " Static Method
-  zsm_cl_test=>multipy_two_numbers(
-    EXPORTING
-      iv_first_number = 10
-      iv_second_number = 20
-    IMPORTING
-      ev_result = lv_result
-  ).
+  zsm_cl_test=>multipy_two_numbers( EXPORTING iv_first_number  = 10
+                                              iv_second_number = 20
+                                    IMPORTING ev_result        = lv_result ).
 
-" LOCAL CLASS "                               
+  " LOCAL CLASS "                               
 CLASS lcl_class DEFINITION.
   PUBLIC SECTION.
     DATA lv_public TYPE i.
-    
+
     METHODS data_declaration.
 
   PROTECTED SECTION.
@@ -37,6 +29,7 @@ CLASS lcl_class DEFINITION.
     DATA lv_private TYPE i.
 ENDCLASS.
 
+
 CLASS lcl_class IMPLEMENTATION.
   METHOD data_declaration.
     lv_public = 1.
@@ -45,15 +38,13 @@ CLASS lcl_class IMPLEMENTATION.
   ENDMETHOD.
 ENDCLASS.
 
+
 CLASS lcl_sub DEFINITION INHERITING FROM lcl_class.
   PUBLIC SECTION.
     METHODS data_redeclaration.
-
-  PROTECTED SECTION.
-  
-  PRIVATE SECTION.
 ENDCLASS.
-  
+
+
 CLASS lcl_sub IMPLEMENTATION.
   METHOD data_redeclaration.
     lv_public = 10.
@@ -62,7 +53,7 @@ CLASS lcl_sub IMPLEMENTATION.
 ENDCLASS.
 
 START-OF-SELECTION.
-  DATA(lo_local_class) = NEW lcl_class( ).  
+  DATA(lo_local_class) = NEW lcl_class( ).
 
   lo_local_class->data_declaration( ).
   lo_local_class->lv_public.

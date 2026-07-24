@@ -1,17 +1,17 @@
 TYPES tt_mara TYPE STANDARD TABLE OF mara.
 
-DATA: lt_data TYPE REF TO data,
-      lr_data TYPE REF TO data,
-      lv_data TYPE string,
-      lt_mara TYPE tt_mara.
+DATA lt_data TYPE REF TO data.
+DATA lr_data TYPE REF TO data.
+DATA lv_data TYPE string.
+DATA lt_mara TYPE tt_mara.
 
-FIELD-SYMBOLS: <lt_data>      TYPE STANDARD TABLE,
-               <lt_node>      TYPE STANDARD TABLE,
-               <lv_id>        TYPE any,  
-               <ls_data>      TYPE any,
-               <lfs_any_tab>  TYPE ANY TABLE,
-               <lv_line>      TYPE REF TO data,
-               <fs_mara>      LIKE LINE OF lt_mara.            
+FIELD-SYMBOLS <lt_data>     TYPE STANDARD TABLE.
+FIELD-SYMBOLS <lt_node>     TYPE STANDARD TABLE.
+FIELD-SYMBOLS <lv_id>       TYPE any.
+FIELD-SYMBOLS <ls_data>     TYPE any.
+FIELD-SYMBOLS <lfs_any_tab> TYPE ANY TABLE.
+FIELD-SYMBOLS <lv_line>     TYPE REF TO data.
+FIELD-SYMBOLS <fs_mara>     LIKE LINE OF lt_mara.
 
 " Assign
 ASSIGN cr_data->* TO <ls_data>.
@@ -26,7 +26,7 @@ ENDLOOP.
 
 LOOP AT <lt_node> ASSIGNING FIELD-SYMBOL(<ls_node>).
   ASSIGN COMPONENT 'NAME' OF STRUCTURE <ls_node> TO FIELD-SYMBOL(<fs_name>).
-  IF sy-subrc EQ 0.
+  IF sy-subrc = 0.
     <fs_name> = 'SMERCAN'.
   ENDIF.
 ENDLOOP.
@@ -43,11 +43,12 @@ ENDIF.
 
 " Create
 ASSIGN lt_data->* TO <lt_data>.
-CREATE DATA lr_data LIKE LINE OF <lt_data>. 
+CREATE DATA lr_data LIKE LINE OF <lt_data>.
 
 " Definition
 APPEND INITIAL LINE TO lt_data ASSIGNING FIELD-SYMBOL(<ls_data>).
-<ls_data> = VALUE #( id = 'X' value = '1' ).
+<ls_data> = VALUE #( id    = 'X'
+                     value = '1' ).
 
 " Insert
 INSERT INITIAL LINE INTO lt_mara ASSIGNING <fs_mara> INDEX 2.
@@ -62,7 +63,7 @@ LOOP AT lt_data ASSIGNING FIELD-SYMBOL(<ls_data>).
 ENDLOOP.
 
 " Read
-READ TABLE it_key ASSIGNING FIELD-SYMBOL(<fs_key>) WITH KEY name = 'X' INDEX 1 TRANSPORTING name.
-IF sy-subrc EQ 0.
+READ TABLE it_key ASSIGNING FIELD-SYMBOL(<fs_key>) WITH KEY name = 'X' index 1 TRANSPORTING name.
+IF sy-subrc = 0.
   <fs_key>-value = abap_true.
 ENDIF.

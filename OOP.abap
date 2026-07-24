@@ -2,21 +2,20 @@ REPORT zsm_tst.
 
 CLASS lcl_alv DEFINITION.
   PUBLIC SECTION.
-    METHODS:
-      get_data,
-      set_column,
-      set_display,
-      set_header,
-      set_toolbar,
-      show_data.
+    METHODS get_data.
+    METHODS set_column.
+    METHODS set_display.
+    METHODS set_header.
+    METHODS set_toolbar.
+    METHODS show_data.
 
   PRIVATE SECTION.
-    DATA: lt_data TYPE TABLE OF mara,
-          lo_alv  TYPE REF TO cl_salv_table.
+    DATA lt_data TYPE TABLE OF mara.
+    DATA lo_alv  TYPE REF TO cl_salv_table.
 ENDCLASS.
 
-CLASS lcl_alv IMPLEMENTATION.
 
+CLASS lcl_alv IMPLEMENTATION.
   METHOD get_data.
     SELECT * FROM mara INTO TABLE lt_data UP TO 100 ROWS.
   ENDMETHOD.
@@ -42,8 +41,10 @@ CLASS lcl_alv IMPLEMENTATION.
   METHOD set_header.
     DATA(lo_header) = NEW cl_salv_form_layout_grid( ).
 
-    lo_header->create_label( row = 1 column = 1 )->set_text( 'Header' ).
-    lo_header->create_flow( row = 2 column = 1 )->create_text( text = 'Subheader' ).
+    lo_header->create_label( row    = 1
+                             column = 1 )->set_text( 'Header' ).
+    lo_header->create_flow( row    = 2
+                            column = 1 )->create_text( text = 'Subheader' ).
 
     lo_alv->set_top_of_list( lo_header ).
   ENDMETHOD.
@@ -69,15 +70,16 @@ CLASS lcl_alv IMPLEMENTATION.
     set_header( ).
     set_toolbar( ).
 
-    lo_alv->set_screen_popup( start_column = 10  end_column = 75  start_line = 5  end_line = 25 ).
+    lo_alv->set_screen_popup( start_column = 10
+                              end_column   = 75
+                              start_line   = 5
+                              end_line     = 25 ).
 
     lo_alv->display( ).
   ENDMETHOD.
-
 ENDCLASS.
 
 START-OF-SELECTION.
-
   DATA(lo_x_alv) = NEW lcl_alv( ).
 
   lo_x_alv->get_data( ).

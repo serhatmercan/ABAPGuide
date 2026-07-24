@@ -5,7 +5,7 @@ lv_in  = '12345'.
 lv_out = '00000000000000000000000012345'.
 
 DATA(lrd_in)  = NEW /scdl/dl_docno_int( CONV #( |{ lv_in ALPHA = IN }| ) ).
-DATA(lrd_out) = NEW /scdl/dl_docno_int( CONV #( |{ lv_out ALPHA = OUT }| ) ). 
+DATA(lrd_out) = NEW /scdl/dl_docno_int( CONV #( |{ lv_out ALPHA = OUT }| ) ).
 
 " ALPHA IN: Add Zero To Initial
 DATA lv_vbeln TYPE char10.
@@ -26,11 +26,14 @@ TYPES: BEGIN OF ty_viqmel,
          description TYPE char40,
        END OF ty_viqmel.
 
-DATA: ls_viqmel TYPE ty_viqmel,
-      ls_data   TYPE ty_viqmel.
+DATA ls_viqmel TYPE ty_viqmel.
+DATA ls_data   TYPE ty_viqmel.
 
-ls_viqmel = VALUE ty_viqmel( notif_no = '0000001234' notif_type  = 'M1' description = 'Initial Notification' ).
-ls_data   = VALUE ty_viqmel( notif_type  = 'M2' description = 'Updated Notification' ).
+ls_viqmel = VALUE ty_viqmel( notif_no    = '0000001234'
+                             notif_type  = 'M1'
+                             description = 'Initial Notification' ).
+ls_data   = VALUE ty_viqmel( notif_type  = 'M2'
+                             description = 'Updated Notification' ).
 
 ls_viqmel = CORRESPONDING #( BASE ( ls_viqmel ) ls_data ).
 
@@ -39,49 +42,44 @@ ls_viqmel = CORRESPONDING #( BASE ( ls_viqmel ) ls_data ).
 " UI: new Date() 
 " GW: YYYYMMDD
 
-DATA: lv_timestamp TYPE timestampl, 
-      lv_datum     TYPE datum,
-      lv_time      TYPE tims.
+DATA lv_timestamp TYPE timestampl.
+DATA lv_datum     TYPE datum.
+DATA lv_time      TYPE tims.
 
-CONVERT DATE sy-datum TIME sy-uzeit INTO TIME STAMP lv_timestamp TIME ZONE sy-zonlo.      
+CONVERT DATE sy-datum TIME sy-uzeit INTO TIME STAMP lv_timestamp TIME ZONE sy-zonlo.
 CONVERT TIME STAMP lv_timestamp TIME ZONE sy-zonlo INTO DATE lv_datum TIME lv_time.
 CONVERT TIME STAMP lv_timestamp TIME ZONE sy-zonlo INTO DATE DATA(lv_datum) TIME DATA(lv_time).
 
 " Conversion w/ Data Type
 DATA(lv_data)  = CONV int4( ls_data-value ).
-DATA(lv_posnr) = CONV zsm_e_posnr('').
+DATA(lv_posnr) = CONV zsm_e_posnr( '' ).
 DATA(ls_data)  = CORRESPONDING zsm_t_data( ls_xdata ).
 
 " Conversion Float => IMRC_READG -> ESECOMPAVG
 CALL FUNCTION 'C14W_NUMBER_CHAR_CONVERSION'
-    EXPORTING
-        i_float = lv_float
-    IMPORTING
-        e_dec   = lv_data.
+  EXPORTING i_float = lv_float
+  IMPORTING e_dec   = lv_data.
 
 " Conversion: Class
-check_appointment(
-  EXPORTING         
-    iv_tc_no       = CONV #( ls_vbak-driver_tc )
-    iv_vkorg       = ls_appointment-vkorg     
-  IMPORTING
-    ev_return_code = DATA(lv_return_code)).
-  
-" Conversion: Data -> String
-DATA: lv_data   TYPE data,
-      lv_string TYPE string.
+check_appointment( EXPORTING iv_tc_no       = CONV #( ls_vbak-driver_tc )
+                             iv_vkorg       = ls_appointment-vkorg
+                   IMPORTING ev_return_code = data(lv_return_code)).
 
-lv_string = /ui2/cl_json=>serialize( data = lv_data compress = abap_true pretty_name = /ui2/cl_json=>pretty_mode-camel_case ).
- 
+" Conversion: Data -> String
+DATA lv_data   TYPE data.
+DATA lv_string TYPE string.
+
+lv_string = /ui2/cl_json=>serialize( data        = lv_data
+                                     compress    = abap_true
+                                     pretty_name = /ui2/cl_json=>pretty_mode-camel_case ).
+
 " Corresponding
 lt_data = CORRESPONDING #( ls_deep-operations ).
 
 " Corresponding w/ Mapping & Except
-DATA(lt_mara) = CORRESPONDING tt_mara( lt_data MAPPING matnr = matnr ersda = ersda EXCEPT ernam ). 
+DATA(lt_mara) = CORRESPONDING tt_mara( lt_data MAPPING matnr = matnr ersda = ersda EXCEPT ernam ).
 
 " Function
 CALL FUNCTION 'ZSM_F_FUNCTION'
-  EXPORTING
-    iv_matnr = CONV lv_vbeln( parameters[ name = 'VBELN' ]-value )
-  IMPORTING
-    ev_flag  = DATA(lv_flag).
+  EXPORTING iv_matnr = CONV lv_vbeln( parameters[ name = 'VBELN' ]-value )
+  IMPORTING ev_flag  = data(lv_flag).

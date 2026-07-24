@@ -1,16 +1,16 @@
 " Check Statu
-CHECK sy-subrc NE 0 AND lt_data[] IS NOT INITIAL.
+CHECK sy-subrc <> 0 AND lt_data[] IS NOT INITIAL.
 
 " Check System Client
 CASE sy-mandt.
-    WHEN '100'.      
-    WHEN OTHERS.
+  WHEN '100'.
+  WHEN OTHERS.
 ENDCASE.
 
 " Check System ID
 CASE sy-sysid.
-    WHEN 'SED'.      
-    WHEN OTHERS.
+  WHEN 'SED'.
+  WHEN OTHERS.
 ENDCASE.
 
 " Wait

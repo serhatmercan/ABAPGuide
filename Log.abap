@@ -1,14 +1,14 @@
 " TABLE
-MANDT	    MANDT
-USERNAME	UNAME
-LOGDATE	    ERDAT
-LOGTIME	    ERZET
+mandt mandt
+username uname
+logdate erdat
+logtime erzet
 
 " Get Data
-SELECT SINGLE *
-  INTO CORRESPONDING FIELDS OF @DATA(ls_data)
+select single *
+  into corresponding fields of @DATA(ls_data)
   FROM zsm_t_log
-  WHERE username EQ @sy-uname.
+  WHERE username = @sy-uname.
 
 " Save Data
 DATA lt_data TYPE TABLE OF zsm_t_log.
