@@ -213,6 +213,14 @@ SELECT SINGLE 1
 
 DATA(lv_pa_exist) = xsdbool( sy-subrc = 0 ).
 
+" Existence check pattern: SELECT SINGLE @abap_true (cheaper than COUNT for an existence test)
+SELECT SINGLE @abap_true
+  FROM zsm_ct_0001
+  WHERE dokod EQ @lv_dokod
+  INTO @DATA(lv_hit).
+
+DATA(lv_exist) = xsdbool( lv_hit = abap_true ).
+
 " COUNT DISTINCT with GROUP BY
 TYPES: BEGIN OF lty_order_appointment,
          begin_time   TYPE ztprsd0036-begin_time,
