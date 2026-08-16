@@ -18,14 +18,12 @@ Every ABAP program (report, class pool, or function pool) is built from a set of
 ## 🧪 Example — Program Header & Global Declarations
 
 ```abap
-" -----------------------------------
-"            Report                -
-" -----------------------------------
-" Created By    : XSMERCAN / Modül -
-" Creation Date : 23.11.2021       -
-" Definition    : … (…)            -
-" Company       : …                -
-" -----------------------------------
+"----------------------------------------------------------------------
+" Report  : ZSM_R_DELIVERY_MONITOR
+" Purpose : Displays open deliveries per plant for the daily review.
+"           Read-only; no document is changed here.
+" Ref     : <business requirement / ticket>
+"----------------------------------------------------------------------
 CLASS lcl_main DEFINITION DEFERRED.
 
 DATA go_container     TYPE REF TO cl_gui_custom_container.
@@ -35,7 +33,7 @@ DATA go_grid          TYPE REF TO cl_gui_alv_grid.
 DATA go_splitter      TYPE REF TO cl_gui_splitter_container.
 DATA go_subcontainer1 TYPE REF TO cl_gui_container.
 DATA go_subcontainer2 TYPE REF TO cl_gui_container.
-DATA gt_out           TYPE TABLE OF zsm_t_table.
+DATA gt_out           TYPE TABLE OF zsm_s_delivery.
 
 INITIALIZATION.
   go_main = NEW #( ).
@@ -70,9 +68,9 @@ sequenceDiagram
 
 ## ✅ Best Practices
 
-- Prefer **object-oriented design** (local classes) over pure procedural code, even in classical reports — it keeps global state to a minimum and is easier to unit test.
+- Prefer **object-oriented design** (local classes) over pure procedural code, even in classical reports — it keeps global state to a minimum and is easier to test.
 - Keep the global declaration section small; move working data into class attributes or method-local variables.
-- Always add a **header comment block** documenting author, date, and purpose (as shown above) for maintainability.
+- Use a header comment to record **why the program exists** and any non-obvious constraint. Author and date are already in version control and in the object's attributes, so a banner that repeats them just goes stale — many organisations still mandate one, so follow your team's standard, but put the effort into the purpose line.
 
 ## ⚠️ Common Mistakes
 

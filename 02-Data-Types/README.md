@@ -47,7 +47,7 @@ SHIFT lv_data LEFT DELETING LEADING '0'.
 
 | Statement | Purpose |
 |---|---|
-| `CONDENSE` | Removes leading/trailing spaces and (optionally, with `NO-GAPS`) all internal spaces |
+| `CONDENSE` | Removes leading blanks and collapses each run of internal blanks to a single blank. With `NO-GAPS`, removes **all** blanks |
 | `SHIFT ... LEFT DELETING LEADING '0'` | Strips leading zeros — useful before comparing numeric-looking strings |
 
 ## 🔁 Type Conversions
@@ -67,7 +67,7 @@ DATA(lv_data)  = CONV int4( ls_data-value ).
 DATA(ls_data)  = CORRESPONDING zsm_t_data( ls_xdata ).
 ```
 
-Conversion exits (`CONVERSION_EXIT_*`) are the classical, function-module–based way of doing the same thing and are still widely used with material numbers, dates, and other domain-specific fields — see [14-Function-Modules](../14-Function-Modules/README.md#-conversion-exits).
+Conversion exits (`CONVERSION_EXIT_*`) are the classical, function-module–based way of doing the same thing and are still widely used with material numbers, dates, and other domain-specific fields — see [09-Modularization](../09-Modularization/README.md#-conversion-exits).
 
 ## ✅ Best Practices
 

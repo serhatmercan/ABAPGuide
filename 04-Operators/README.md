@@ -7,11 +7,10 @@ This chapter covers arithmetic operators and the built-in mathematical functions
 ## ➕ Arithmetic & Constant Declarations
 
 ```abap
-" Definition
-CONSTANTS lv_value TYPE p LENGTH 8 DECIMALS 1 VALUE '7.5'.
-CONSTANTS lv_value TYPE i                     VALUE 5.
+" Constants use the lc_ (local) / gc_ (global) prefix, not lv_
+CONSTANTS lc_tax_rate  TYPE p LENGTH 8 DECIMALS 1 VALUE '7.5'.
+CONSTANTS lc_max_items TYPE i                     VALUE 5.
 ```
-> ⚠️ As in the previous chapter, declaring `lv_value` twice is shown here purely to illustrate constant syntax variations — in real code use distinct names.
 
 ## 🧮 Built-in Math Functions
 
@@ -39,10 +38,10 @@ DATA lv_result TYPE p LENGTH 8 DECIMALS 2.
 lv_result = lv_value * 100.
 lv_result = floor( lv_result ) / 100.               " => 7896.65
 
-" Mod - check if a value is an exact multiple of another
-DATA lv_minutes TYPE int4. " => 3600
+" Mod - check whether a value is an exact multiple of another
+DATA lv_seconds TYPE int4 VALUE 3600.
 
-IF lv_minutes MOD 60 = 0.                          " => 3600 % 60 = 0
+IF lv_seconds MOD 60 = 0.                          " 3600 MOD 60 = 0 -> true
 ENDIF.
 ```
 

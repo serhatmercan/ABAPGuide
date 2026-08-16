@@ -4,11 +4,13 @@
 
 ALV is the standard SAP grid control for displaying tabular data with sorting, filtering, totals, and export capabilities built in. There are three common ways to build an ALV report, from simplest to most flexible:
 
-| Approach | Class/FM | Complexity | Flexibility |
-|---|---|---|---|
-| **SALV** (simple API) | `cl_salv_table` | ⭐ Low | ⭐⭐ Medium |
-| **Function-module based** | `REUSE_ALV_GRID_DISPLAY` | ⭐⭐ Medium | ⭐⭐⭐ High (classic events) |
-| **OOP ALV Grid** | `cl_gui_alv_grid` | ⭐⭐⭐ High | ⭐⭐⭐⭐ Highest (full event handling, editable grids) |
+| Approach | Class/FM | Complexity | Flexibility | Lifecycle |
+|---|---|---|---|---|
+| **SALV** (simple API) | `cl_salv_table` | ⭐ Low | ⭐⭐ Medium | `CURRENT / RECOMMENDED` for display-oriented reports |
+| **Function-module based** | `REUSE_ALV_GRID_DISPLAY` | ⭐⭐ Medium | ⭐⭐⭐ High (classic events) | `CLASSIC BUT STILL RELEVANT` — very widespread; not for new code |
+| **OOP ALV Grid** | `cl_gui_alv_grid` | ⭐⭐⭐ High | ⭐⭐⭐⭐ Highest (full event handling, editable grids) | `CLASSIC BUT STILL RELEVANT` — still the only on-premise option for editable, event-rich grids |
+
+> **All three are SAP GUI technologies** and are outside the ABAP Cloud development model, where the UI layer is Fiori/UI5 over OData. That does not make them obsolete — it makes them on-premise technologies. All three are kept in this chapter deliberately. See [21-Classic-vs-Modern-ABAP](../21-Classic-vs-Modern-ABAP/README.md).
 
 ## 🟢 Option 1 — `cl_salv_table` (Simple ALV / SALV)
 
@@ -34,16 +36,24 @@ ENDCLASS.
 
 CLASS lcl_alv IMPLEMENTATION.
   METHOD get_data.
-    SELECT * FROM mara INTO TABLE lt_data UP TO 100 ROWS.
+    SELECT * FROM mara UP TO 100 ROWS INTO TABLE @lt_data.
   ENDMETHOD.
 
   METHOD set_column.
     DATA(lo_columns) = lo_alv->get_columns( ).
 
-    lo_columns->get_column( 'MANDT' )->set_visible( abap_false ).
-    lo_columns->get_column( 'MATKL' )->set_short_text( 'AMG' ).
-    lo_columns->get_column( 'MATKL' )->set_medium_text( 'Ana MG' ).
-    lo_columns->get_column( 'MATKL' )->set_long_text( 'Ana Mal Grubu' ).
+    " get_column( ) raises CX_SALV_NOT_FOUND for an unknown column name
+    TRY.
+        lo_columns->get_column( 'MANDT' )->set_visible( abap_false ).
+
+        DATA(lo_matkl) = lo_columns->get_column( 'MATKL' ).
+        lo_matkl->set_short_text( 'MatGrp' ).
+        lo_matkl->set_medium_text( 'Material Grp' ).
+        lo_matkl->set_long_text( 'Material Group' ).
+
+      CATCH cx_salv_not_found INTO DATA(lx_not_found).
+        MESSAGE lx_not_found->get_text( ) TYPE 'S' DISPLAY LIKE 'W'.
+    ENDTRY.
 
     lo_columns->set_optimize( abap_true ).
   ENDMETHOD.
@@ -75,15 +85,22 @@ CLASS lcl_alv IMPLEMENTATION.
   ENDMETHOD.
 
   METHOD show_data.
+    " Everything that depends on lo_alv must stay INSIDE the TRY - if factory( )
+    " raises, lo_alv is still initial and calling display( ) on it would dump.
     TRY.
         cl_salv_table=>factory( IMPORTING r_salv_table = lo_alv
                                 CHANGING  t_table      = lt_data ).
-      CATCH cx_salv_msg INTO DATA(lx_msg).
-        cl_demo_output=>display( lx_msg ).
-    ENDTRY.
 
-    " ... call set_column( ), set_display( ), set_header( ), set_toolbar( ) here ...
-    lo_alv->display( ).
+        set_column( ).
+        set_display( ).
+        set_header( ).
+        set_toolbar( ).
+
+        lo_alv->display( ).
+
+      CATCH cx_salv_msg INTO DATA(lx_msg).
+        MESSAGE lx_msg->get_text( ) TYPE 'E'.
+    ENDTRY.
   ENDMETHOD.
 ENDCLASS.
 ```
@@ -92,24 +109,23 @@ ENDCLASS.
 
 The classic function-module approach, still very common in existing systems, offering full control over field catalog, layout, sort, filter, and events via callback forms.
 
+> ⚠️ **SLIS and LVC are two different type families and they are not interchangeable.**
+> `REUSE_ALV_*` uses the **SLIS** types (`slis_t_fieldcat_alv`, `slis_layout_alv`, `slis_t_sortinfo_alv`, …).
+> `cl_gui_alv_grid` uses the **LVC** types (`lvc_t_fcat`, `lvc_s_layo`, `lvc_t_sort`, …).
+> Mixing them is one of the most common compile errors in ALV code. This section uses SLIS throughout; [Option 3](#-option-3--oop-alv-grid-cl_gui_alv_grid--full-interactive-control) uses LVC throughout.
+
 ```abap
-CONSTANTS gc_program_name TYPE sy-repid VALUE 'ZSMERCAN'.
-
-TYPE-POOLS: slis, stms.
-
-DATA gs_layout          TYPE lvc_s_layo.
+DATA gs_layout          TYPE slis_layout_alv.
 DATA gs_print           TYPE slis_print_alv.
 DATA gs_variant         TYPE disvariant.
 DATA gt_bseg            TYPE TABLE OF bseg.
 DATA gt_excluding       TYPE slis_t_extab.
 DATA gt_events          TYPE slis_t_event.
-DATA gt_fieldcat        TYPE lvc_t_fcat.
+DATA gt_fieldcat        TYPE slis_t_fieldcat_alv.
 DATA gt_filter          TYPE slis_t_filter_alv.
 DATA gt_list_commentary TYPE slis_t_listheader.
 DATA gt_sort            TYPE slis_t_sortinfo_alv.
-DATA gt_table           TYPE TABLE OF zsm_s_structure.
 DATA gv_exit            TYPE char1.
-DATA gv_tabname         TYPE slis_tabname.
 DATA gv_title           TYPE lvc_title.
 
 PARAMETERS p_variant TYPE disvariant-variant.
@@ -124,6 +140,7 @@ INITIALIZATION.
                program_error = 3
                OTHERS        = 4.
 
+" F4 help on the layout parameter - this event ONLY supplies a value.
 AT SELECTION-SCREEN ON VALUE-REQUEST FOR p_variant.
   CALL FUNCTION 'REUSE_ALV_VARIANT_F4'
     EXPORTING  is_variant    = gs_variant
@@ -136,19 +153,31 @@ AT SELECTION-SCREEN ON VALUE-REQUEST FOR p_variant.
     p_variant = gs_variant-variant.
   ENDIF.
 
-  " Generate a field catalog automatically from the internal table's structure
-  CALL FUNCTION 'REUSE_ALV_FIELDCATALOG_MERGE'
-    EXPORTING i_program_name     = sy-repid
-              i_internal_tabname = gv_tabname
-              i_inclname         = sy-repid
-    CHANGING  ct_fieldcat        = gt_fieldcat[].
+" Data retrieval and display belong in the main processing block,
+" NOT in the F4 handler above.
+START-OF-SELECTION.
+  PERFORM get_data.
 
+END-OF-SELECTION.
+  " Generate a field catalog automatically from a DDIC structure
   CALL FUNCTION 'REUSE_ALV_FIELDCATALOG_MERGE'
-    EXPORTING i_program_name         = gc_program_name
-              i_structure_name       = 'BSEG'
-              i_client_never_display = abap_true
-              i_inclname             = gc_program_name
-    CHANGING  ct_fieldcat            = gt_fieldcat[].
+    EXPORTING  i_program_name         = sy-repid
+               i_structure_name       = 'BSEG'
+               i_client_never_display = abap_true
+               i_inclname             = sy-repid
+    CHANGING   ct_fieldcat            = gt_fieldcat
+    EXCEPTIONS inconsistent_interface = 1
+               program_error          = 2
+               OTHERS                 = 3.
+
+  IF sy-subrc <> 0.
+    MESSAGE 'Could not build the field catalog' TYPE 'E'.
+  ENDIF.
+
+  PERFORM set_sort.
+  PERFORM set_filter.
+  PERFORM set_events.
+  PERFORM set_excluding.
 
   " Show the ALV
   CALL FUNCTION 'REUSE_ALV_GRID_DISPLAY'
@@ -163,17 +192,19 @@ AT SELECTION-SCREEN ON VALUE-REQUEST FOR p_variant.
                is_variant              = gs_variant
                it_excluding            = gt_excluding
                it_events               = gt_events
-               it_fieldcat             = gt_fieldcat[]
+               it_fieldcat             = gt_fieldcat
                it_filter               = gt_filter
                it_sort                 = gt_sort
     TABLES     t_outtab                = gt_bseg
     EXCEPTIONS program_error           = 1
                OTHERS                  = 2.
+
   IF sy-subrc <> 0.
+    MESSAGE 'ALV display failed' TYPE 'E'.
   ENDIF.
 
 FORM set_color.
-  LOOP AT gt_table ASSIGNING FIELD-SYMBOL(<fs_table>).
+  LOOP AT gt_out ASSIGNING FIELD-SYMBOL(<fs_table>).
     IF <fs_table>-ebelp = '10'.
       <fs_table>-line_color = 'C301'.
     ELSE.
@@ -227,14 +258,18 @@ FORM pf_status_set USING p_exttab TYPE slis_t_extab.
 ENDFORM.
 
 FORM top_of_page.
+  " CLEAR first - this callback runs once per page, so without it the
+  " commentary table grows on every page.
+  CLEAR gt_list_commentary.
+
   APPEND VALUE #( typ  = 'H'
                   info = 'PO Report' ) TO gt_list_commentary.
   APPEND VALUE #( typ  = 'S'
                   key  = 'Date'
-                  info = '27/11/2022' ) TO gt_list_commentary.
+                  info = |{ sy-datum DATE = USER }| ) TO gt_list_commentary.
   APPEND VALUE #( typ  = 'A'
-                  key  = 'Report Count:'
-                  info = '100' ) TO gt_list_commentary.
+                  key  = 'Row count:'
+                  info = |{ lines( gt_bseg ) }| ) TO gt_list_commentary.
 
   CALL FUNCTION 'REUSE_ALV_COMMENTARY_WRITE'
     EXPORTING it_list_commentary = gt_list_commentary.
@@ -268,45 +303,46 @@ INITIALIZATION.
 START-OF-SELECTION.
   go_main->start_of_selection( ).
 
+" Event handlers are declared as INSTANCE methods (METHODS, not CLASS-METHODS)
+" so they can be registered with SET HANDLER go_main->... FOR co_grid.
+" A static handler would have to be registered as SET HANDLER lcl_main=>... .
 CLASS lcl_main DEFINITION.
   PUBLIC SECTION.
-    CLASS-METHODS start_of_selection.
+    METHODS start_of_selection.
 
-    CLASS-METHODS show_alv IMPORTING iv_container_name TYPE char50
-                                     iv_structure_name TYPE dd02l-tabname
-                           CHANGING  co_container      TYPE REF TO cl_gui_custom_container
-                                     co_grid           TYPE REF TO cl_gui_alv_grid
-                                     ct_data           TYPE STANDARD TABLE.
+    METHODS show_alv IMPORTING iv_container_name TYPE char50
+                               iv_structure_name TYPE dd02l-tabname
+                     CHANGING  co_container      TYPE REF TO cl_gui_custom_container
+                               co_grid           TYPE REF TO cl_gui_alv_grid
+                               ct_data           TYPE STANDARD TABLE.
 
-    CLASS-METHODS handle_after_user_command       FOR EVENT after_user_command    OF cl_gui_alv_grid IMPORTING e_ucomm e_saved e_not_processed.
-    CLASS-METHODS handle_before_user_command      FOR EVENT before_user_command   OF cl_gui_alv_grid IMPORTING e_ucomm.
-    CLASS-METHODS handle_button_click             FOR EVENT button_click          OF cl_gui_alv_grid IMPORTING es_col_id es_row_no.
-    CLASS-METHODS handle_context_menu_request     FOR EVENT context_menu_request  OF cl_gui_alv_grid IMPORTING e_object.
-    CLASS-METHODS handle_data_changed             FOR EVENT data_changed          OF cl_gui_alv_grid IMPORTING er_data_changed e_onf4 e_onf4_before e_onf4_after e_ucomm.
-    CLASS-METHODS handle_data_changed_finished    FOR EVENT data_changed_finished OF cl_gui_alv_grid IMPORTING sender e_modified.
-    CLASS-METHODS handle_double_click             FOR EVENT double_click          OF cl_gui_alv_grid IMPORTING e_row e_column es_row_no.
-    CLASS-METHODS handle_hotspot_click            FOR EVENT hotspot_click         OF cl_gui_alv_grid IMPORTING e_row_id e_column_id es_row_no.
-    CLASS-METHODS handle_insert_icons             FOR EVENT toolbar               OF cl_gui_alv_grid IMPORTING e_object.
-    CLASS-METHODS handle_menu_button              FOR EVENT menu_button           OF cl_gui_alv_grid IMPORTING e_object e_ucomm.
-    CLASS-METHODS handle_on_f1                    FOR EVENT onf1                  OF cl_gui_alv_grid IMPORTING e_fieldname es_row_no  er_event_data.
-    CLASS-METHODS handle_on_f4                    FOR EVENT onf4                  OF cl_gui_alv_grid IMPORTING e_fieldname e_fieldvalue es_row_no er_event_data et_bad_cells e_display.
-    CLASS-METHODS handle_toolbar                  FOR EVENT toolbar               OF cl_gui_alv_grid IMPORTING sender e_object e_interactive.
-    CLASS-METHODS handle_top_of_page               FOR EVENT top_of_page           OF cl_gui_alv_grid IMPORTING e_dyndoc_id table_index.
-    CLASS-METHODS handle_user_command              FOR EVENT user_command          OF cl_gui_alv_grid IMPORTING e_ucomm.
+    METHODS handle_after_user_command    FOR EVENT after_user_command    OF cl_gui_alv_grid IMPORTING e_ucomm e_saved e_not_processed.
+    METHODS handle_button_click          FOR EVENT button_click          OF cl_gui_alv_grid IMPORTING es_col_id es_row_no.
+    METHODS handle_context_menu_request  FOR EVENT context_menu_request  OF cl_gui_alv_grid IMPORTING e_object.
+    METHODS handle_data_changed          FOR EVENT data_changed          OF cl_gui_alv_grid IMPORTING er_data_changed e_onf4 e_onf4_before e_onf4_after e_ucomm.
+    METHODS handle_data_changed_finished FOR EVENT data_changed_finished OF cl_gui_alv_grid IMPORTING sender e_modified.
+    METHODS handle_double_click          FOR EVENT double_click          OF cl_gui_alv_grid IMPORTING e_row e_column es_row_no.
+    METHODS handle_hotspot_click         FOR EVENT hotspot_click         OF cl_gui_alv_grid IMPORTING e_row_id e_column_id es_row_no.
+    METHODS handle_menu_button           FOR EVENT menu_button           OF cl_gui_alv_grid IMPORTING e_object e_ucomm.
+    METHODS handle_on_f1                 FOR EVENT onf1                  OF cl_gui_alv_grid IMPORTING e_fieldname es_row_no er_event_data.
+    METHODS handle_on_f4                 FOR EVENT onf4                  OF cl_gui_alv_grid IMPORTING e_fieldname e_fieldvalue es_row_no er_event_data et_bad_cells e_display.
+    METHODS handle_toolbar               FOR EVENT toolbar               OF cl_gui_alv_grid IMPORTING sender e_object e_interactive.
+    METHODS handle_top_of_page           FOR EVENT top_of_page           OF cl_gui_alv_grid IMPORTING e_dyndoc_id table_index.
+    METHODS handle_user_command          FOR EVENT user_command          OF cl_gui_alv_grid IMPORTING e_ucomm.
 
   PRIVATE SECTION.
-    CLASS-METHODS get_data.
-    CLASS-METHODS show_data.
-    CLASS-METHODS set_dropdown RETURNING VALUE(rt_dropdown) TYPE lvc_t_drop.
+    METHODS get_data.
+    METHODS show_data.
+    METHODS set_dropdown RETURNING VALUE(rt_dropdown) TYPE lvc_t_drop.
 
-    CLASS-METHODS set_fieldcatalog IMPORTING VALUE(iv_structure_name) TYPE dd02l-tabname
-                                   RETURNING VALUE(rt_fielcat)        TYPE lvc_t_fcat.
+    METHODS set_fieldcatalog IMPORTING VALUE(iv_structure_name) TYPE dd02l-tabname
+                             RETURNING VALUE(rt_fieldcat)       TYPE lvc_t_fcat.
 
-    CLASS-METHODS set_filter     RETURNING VALUE(rt_filter)     TYPE lvc_t_filt.
-    CLASS-METHODS set_layout     RETURNING VALUE(rs_layout_alv) TYPE lvc_s_layo.
-    CLASS-METHODS set_sort       RETURNING VALUE(rs_sort)       TYPE lvc_t_sort.
-    CLASS-METHODS set_variant    RETURNING VALUE(rt_variant)    TYPE disvariant.
-    CLASS-METHODS set_toolbar_ex CHANGING  VALUE(ct_toolbar_ex) TYPE ui_functions.
+    METHODS set_filter     RETURNING VALUE(rt_filter)     TYPE lvc_t_filt.
+    METHODS set_layout     RETURNING VALUE(rs_layout_alv) TYPE lvc_s_layo.
+    METHODS set_sort       RETURNING VALUE(rt_sort)       TYPE lvc_t_sort.
+    METHODS set_variant    RETURNING VALUE(rs_variant)    TYPE disvariant.
+    METHODS set_toolbar_ex CHANGING  VALUE(ct_toolbar_ex) TYPE ui_functions.
 ENDCLASS.
 
 
@@ -314,8 +350,8 @@ CLASS lcl_main IMPLEMENTATION.
   METHOD start_of_selection.
     get_data( ).
 
-    IF gt_out[] IS INITIAL.
-      MESSAGE 'No Record.' TYPE 'S' DISPLAY LIKE 'E'.
+    IF gt_out IS INITIAL.
+      MESSAGE 'No records found.' TYPE 'S' DISPLAY LIKE 'E'.
       LEAVE LIST-PROCESSING.
     ENDIF.
 
@@ -345,8 +381,9 @@ CLASS lcl_main IMPLEMENTATION.
         " Screen with a named custom container
         co_grid = NEW #( i_parent = co_container ).
 
-        " Alternative: full-screen grid, no container needed
-        co_grid = NEW #( i_parent = cl_gui_container=>screen0 ).
+        " Alternative (choose ONE): full-screen grid, no container needed.
+        " Creating the grid twice would leak the first instance.
+        " co_grid = NEW #( i_parent = cl_gui_container=>screen0 ).
 
         set_toolbar_ex( CHANGING ct_toolbar_ex = lt_toolbar_ex ).
 
@@ -407,46 +444,38 @@ CLASS lcl_main IMPLEMENTATION.
       RETURN.
     ENDIF.
 
-    LOOP AT lt_selected INTO DATA(ls_selected).
-      READ TABLE gt_out INTO DATA(ls_data) INDEX ls_selected-row_id.
-      IF sy-subrc <> 0.
-        CONTINUE.
-      ENDIF.
-
-      CASE e_ucomm.
-        WHEN 'DELETE'.
-          DELETE gt_out INDEX ls_selected-row_id.
-        WHEN 'EDIT'.
-          ls_data-fieldname = 'New Value'.
-          MODIFY gt_out FROM ls_data INDEX ls_selected-row_id.
-        WHEN 'DISPLAY'.
-          WRITE: / 'Selected Row:', ls_data.
-        WHEN OTHERS.
-          MESSAGE 'Unknown command' TYPE 'E'.
-      ENDCASE.
-    ENDLOOP.
-
-    go_grid->refresh_table_display( ).
-  ENDMETHOD.
-
-  METHOD handle_before_user_command.
-    go_grid->get_selected_rows( IMPORTING et_index_rows = DATA(lt_selected) ).
-
-    IF lt_selected IS INITIAL.
-      MESSAGE 'No rows selected. Please select at least one row.' TYPE 'I'.
-      RETURN.
-    ENDIF.
-
     CASE e_ucomm.
       WHEN 'DELETE'.
-        AUTHORITY-CHECK OBJECT 'Z_DELETE_AUTH' ID 'ACTVT' FIELD '06'.
+        " Authorization is checked HERE, at the point that actually performs
+        " the action - before_user_command cannot cancel the command.
+        AUTHORITY-CHECK OBJECT 'ZSM_ALV'
+                        ID 'ACTVT' FIELD '06'.       " 06 = delete
         IF sy-subrc <> 0.
-          MESSAGE 'You do not have authorization to delete.' TYPE 'E'.
-          RETURN.
+          MESSAGE 'You are not authorized to delete rows.' TYPE 'E'.
         ENDIF.
+
+        " Delete by DESCENDING index. Deleting ascending shifts every later
+        " index by one and removes the wrong rows on a multi-row selection.
+        SORT lt_selected BY row_id DESCENDING.
+
+        LOOP AT lt_selected INTO DATA(ls_selected).
+          DELETE gt_out INDEX ls_selected-row_id.
+        ENDLOOP.
+
       WHEN 'EDIT'.
+        LOOP AT lt_selected INTO ls_selected.
+          READ TABLE gt_out ASSIGNING FIELD-SYMBOL(<ls_edit>) INDEX ls_selected-row_id.
+          IF sy-subrc = 0.
+            <ls_edit>-pstyv = 'ZTAN'.
+          ENDIF.
+        ENDLOOP.
+
       WHEN OTHERS.
+        MESSAGE 'Unknown command' TYPE 'I'.
+        RETURN.
     ENDCASE.
+
+    go_grid->refresh_table_display( ).
   ENDMETHOD.
 
   METHOD handle_button_click.
@@ -460,66 +489,65 @@ CLASS lcl_main IMPLEMENTATION.
   ENDMETHOD.
 
   METHOD handle_context_menu_request.
-    DATA lt_menu TYPE TABLE OF cl_ctmenu=>ty_s_node.
-
-    APPEND VALUE #( text    = 'Delete Row'
-                    item_id = 'DELETE' ) TO lt_menu.
-    APPEND VALUE #( text    = 'Edit Row'
-                    item_id = 'EDIT' ) TO lt_menu.
-    APPEND VALUE #( text    = 'Display Details'
-                    item_id = 'DISPLAY' ) TO lt_menu.
-
-    e_object->add_items( it_items = lt_menu ).
+    " e_object is a CL_CTMENU. Build the menu with its documented API:
+    " add_function( ) / add_separator( ) / add_submenu( ).
+    e_object->add_function( fcode = 'DELETE'
+                            text  = 'Delete Row' ).
+    e_object->add_function( fcode = 'EDIT'
+                            text  = 'Edit Row' ).
+    e_object->add_separator( ).
+    e_object->add_function( fcode = 'DISPLAY'
+                            text  = 'Display Details' ).
   ENDMETHOD.
 
   METHOD handle_data_changed.
-    LOOP AT er_data_changed->mt_good_cells REFERENCE INTO DATA(ls_cell).
-      CASE ls_cell->fieldname.
+    LOOP AT er_data_changed->mt_good_cells REFERENCE INTO DATA(lr_cell).
+      CASE lr_cell->fieldname.
         WHEN 'CHBOX'.
-          MESSAGE s001(zit_2020_07) WITH ls_cell->row_id.
-          MESSAGE s001(zit_2020_07) WITH ls_cell->value.
+          MESSAGE s001(zsm_msg) WITH lr_cell->row_id lr_cell->value.
       ENDCASE.
     ENDLOOP.
   ENDMETHOD.
 
   METHOD handle_data_changed_finished.
     CHECK e_modified IS NOT INITIAL.
-    CASE sender.
-      WHEN go_grid.
-        go_grid->get_current_cell( IMPORTING es_col_id = DATA(lv_current_col_id)
-                                             es_row_no = DATA(ls_current_row_no) ).
 
-        CASE lv_current_col_id.
-          WHEN 'LFIMG'.
-            ASSIGN gt_out[ ls_current_row_no-row_id ] TO FIELD-SYMBOL(<ls_out>).
-            IF sy-subrc = 0.
-              <ls_out>-color = 'C610'.
-            ENDIF.
-        ENDCASE.
+    IF sender <> go_grid.
+      RETURN.
+    ENDIF.
 
-        go_grid->refresh_table_display( is_stable      = VALUE lvc_s_stbl( col = abap_true
-                                                                           row = abap_true )
-                                        i_soft_refresh = abap_true ).
+    go_grid->get_current_cell( IMPORTING es_col_id = DATA(ls_current_col_id)
+                                         es_row_no = DATA(ls_current_row_no) ).
+
+    " es_col_id is a STRUCTURE (lvc_s_col) - compare its FIELDNAME component,
+    " not the structure itself.
+    CASE ls_current_col_id-fieldname.
+      WHEN 'LFIMG'.
+        " ASSIGN is the one place where a table expression sets sy-subrc
+        " instead of raising CX_SY_ITAB_LINE_NOT_FOUND.
+        ASSIGN gt_out[ ls_current_row_no-row_id ] TO FIELD-SYMBOL(<ls_out>).
+        IF sy-subrc = 0.
+          <ls_out>-color = 'C610'.
+        ENDIF.
     ENDCASE.
+
+    go_grid->refresh_table_display( is_stable      = VALUE lvc_s_stbl( col = abap_true
+                                                                       row = abap_true )
+                                    i_soft_refresh = abap_true ).
   ENDMETHOD.
 
   METHOD handle_hotspot_click.
-    READ TABLE gt_out REFERENCE INTO DATA(ls_out) INDEX es_row_no-row_id.
+    READ TABLE gt_out REFERENCE INTO DATA(lr_out) INDEX es_row_no-row_id.
     IF sy-subrc = 0 AND e_column_id-fieldname = 'VBELN'.
-      SET PARAMETER ID 'VL' FIELD ls_out->vbeln.
-      CALL TRANSACTION 'VL03N'.
+      SET PARAMETER ID 'VL' FIELD lr_out->vbeln.
+
+      " Make the authorization decision explicit when navigating to a transaction
+      TRY.
+          CALL TRANSACTION 'VL03N' WITH AUTHORITY-CHECK AND SKIP FIRST SCREEN.
+        CATCH cx_sy_authorization_error INTO DATA(lx_auth).
+          MESSAGE lx_auth->get_text( ) TYPE 'S' DISPLAY LIKE 'E'.
+      ENDTRY.
     ENDIF.
-  ENDMETHOD.
-
-  METHOD handle_insert_icons.
-    DATA lt_toolbar TYPE ui_functions.
-
-    lt_toolbar = VALUE #(
-        ( function = 'ADD_ROW'    icon = icon_add     text = 'Add Row'    quickinfo = 'Add a new row' )
-        ( function = 'DELETE_ROW' icon = icon_delete  text = 'Delete Row' quickinfo = 'Delete the selected row' )
-        ( function = 'REFRESH'    icon = icon_refresh text = 'Refresh'    quickinfo = 'Refresh the data' ) ).
-
-    e_object->mt_toolbar = lt_toolbar.
   ENDMETHOD.
 
   METHOD handle_on_f1.
@@ -541,9 +569,9 @@ CLASS lcl_main IMPLEMENTATION.
     DATA lt_return_tab TYPE TABLE OF ddshretval.
     DATA lt_value_tab  TYPE TABLE OF lty_value_tab.
 
-    lt_value_tab = VALUE #( ( pstyv = 'X' )
-                            ( pstyv = 'Y' )
-                            ( pstyv = 'Z' ) ).
+    lt_value_tab = VALUE #( ( pstyv = 'ZTAN' )
+                            ( pstyv = 'ZTAX' )
+                            ( pstyv = 'ZTAD' ) ).
 
     CALL FUNCTION 'F4IF_INT_TABLE_VALUE_REQUEST'
       EXPORTING retfield     = 'PSTYV'
@@ -560,17 +588,16 @@ CLASS lcl_main IMPLEMENTATION.
   ENDMETHOD.
 
   METHOD handle_toolbar.
-    CASE sender.
-      WHEN go_grid.
-        APPEND VALUE #( function  = '100_SLA'
-                        quickinfo = TEXT-101
-                        text      = TEXT-101
-                        icon      = icon_select_all ) TO e_object->mt_toolbar.
-        APPEND VALUE #( function  = 'ADD_LINE'
-                        quickinfo = TEXT-102
-                        text      = TEXT-102
-                        icon      = icon_insert_row ) TO e_object->mt_toolbar.
-    ENDCASE.
+    CHECK sender = go_grid.
+
+    APPEND VALUE #( function  = 'SEL_ALL'
+                    quickinfo = TEXT-101
+                    text      = TEXT-101
+                    icon      = icon_select_all ) TO e_object->mt_toolbar.
+    APPEND VALUE #( function  = 'ADD_LINE'
+                    quickinfo = TEXT-102
+                    text      = TEXT-102
+                    icon      = icon_insert_row ) TO e_object->mt_toolbar.
   ENDMETHOD.
 
   METHOD handle_top_of_page.
@@ -587,19 +614,23 @@ CLASS lcl_main IMPLEMENTATION.
   ENDMETHOD.
 
   METHOD get_data.
-    SELECT * FROM lips
-      INTO CORRESPONDING FIELDS OF TABLE gt_out
-      UP TO 20 ROWS.
+    " gt_out is TYPE TABLE OF zsm_t_table, a custom structure that carries both
+    " the business fields and the ALV control columns (BUTTON, COLOR, STATU,
+    " TLGHT, CELLCOLOR). Select only the columns you actually display.
+    SELECT vbeln, posnr, matnr, pstyv, lfimg, vrkme
+      FROM lips
+      UP TO 20 ROWS
+      INTO CORRESPONDING FIELDS OF TABLE @gt_out.
 
-    LOOP AT gt_out REFERENCE INTO DATA(ls_out) WHERE pstyv = 'NLC'.
-      ls_out->button = 'C710'.
-      ls_out->color  = 'C710'. " Row Color: C610 -> Red | 'C310' -> Yellow | 'C510' -> Green
-      ls_out->statu  = '@01@'.
-      ls_out->tlght  = '2'.    " Cell Color: 1 -> Red 2 -> Yellow 3 -> Green
+    LOOP AT gt_out REFERENCE INTO DATA(lr_out) WHERE pstyv = 'ZTAN'.
+      lr_out->button = 'C710'.
+      lr_out->color  = 'C710'. " Row color:  C610 red | C310 yellow | C510 green
+      lr_out->statu  = '@01@'.
+      lr_out->tlght  = '2'.    " Traffic light: 1 red | 2 yellow | 3 green
       APPEND VALUE #( fname     = 'VBELN'
                       color-col = '5'
                       color-int = '1'
-                      color-inv = '1' ) TO ls_out->cellcolor.
+                      color-inv = '1' ) TO lr_out->cellcolor.
     ENDLOOP.
   ENDMETHOD.
 
@@ -608,12 +639,14 @@ CLASS lcl_main IMPLEMENTATION.
   ENDMETHOD.
 
   METHOD set_dropdown.
-    SELECT zzprint FROM zsm_t_print
-      INTO TABLE @DATA(lt_table).
+    SELECT print_option
+      FROM zsm_t_print
+      WHERE active = @abap_true
+      INTO TABLE @DATA(lt_options).
 
-    LOOP AT lt_table INTO DATA(ls_data).
+    LOOP AT lt_options INTO DATA(ls_option).
       APPEND VALUE #( handle = '1'
-                      value  = ls_data-zzprint ) TO rt_dropdown.
+                      value  = ls_option-print_option ) TO rt_dropdown.
     ENDLOOP.
   ENDMETHOD.
 
@@ -621,32 +654,32 @@ CLASS lcl_main IMPLEMENTATION.
     CALL FUNCTION 'LVC_FIELDCATALOG_MERGE'
       EXPORTING i_bypassing_buffer = abap_true
                 i_structure_name   = iv_structure_name
-      CHANGING  ct_fieldcat        = rt_fielcat[].
+      CHANGING  ct_fieldcat        = rt_fieldcat.
 
-    LOOP AT rt_fielcat REFERENCE INTO DATA(ls_fieldcat).
-      CASE ls_fieldcat->fieldname.
+    LOOP AT rt_fieldcat REFERENCE INTO DATA(lr_fieldcat).
+      CASE lr_fieldcat->fieldname.
         WHEN 'BUTTON'.
-          ls_fieldcat->icon      = abap_true.
-          ls_fieldcat->scrtext_s = 'Button'.
-          ls_fieldcat->style     = cl_gui_alv_grid=>mc_style_button.
+          lr_fieldcat->icon      = abap_true.
+          lr_fieldcat->scrtext_s = 'Button'.
+          lr_fieldcat->style     = cl_gui_alv_grid=>mc_style_button.
         WHEN 'CHBOX'.
-          ls_fieldcat->checkbox = abap_true.
-          ls_fieldcat->edit     = abap_true.
+          lr_fieldcat->checkbox = abap_true.
+          lr_fieldcat->edit     = abap_true.
         WHEN 'DROPDOWN'.
-          ls_fieldcat->drdn_hndl = 1.
-          ls_fieldcat->edit      = abap_true.
+          lr_fieldcat->drdn_hndl = 1.
+          lr_fieldcat->edit      = abap_true.
         WHEN 'LFIMG'.
-          ls_fieldcat->do_sum  = abap_true.
-          ls_fieldcat->edit    = abap_true.
-          ls_fieldcat->no_zero = abap_true.
+          lr_fieldcat->do_sum  = abap_true.
+          lr_fieldcat->edit    = abap_true.
+          lr_fieldcat->no_zero = abap_true.
         WHEN 'PSTYV'.
-          ls_fieldcat->edit       = abap_true.
-          ls_fieldcat->f4availabl = abap_true.
+          lr_fieldcat->edit       = abap_true.
+          lr_fieldcat->f4availabl = abap_true.
         WHEN 'VBELN'.
-          ls_fieldcat->hotspot   = abap_true.
-          ls_fieldcat->key       = abap_true.
-          ls_fieldcat->ref_table = 'VBAK'.
-          ls_fieldcat->ref_field = 'VBELN'.
+          lr_fieldcat->hotspot   = abap_true.
+          lr_fieldcat->key       = abap_true.
+          lr_fieldcat->ref_table = 'VBAK'.
+          lr_fieldcat->ref_field = 'VBELN'.
       ENDCASE.
     ENDLOOP.
   ENDMETHOD.
@@ -655,26 +688,31 @@ CLASS lcl_main IMPLEMENTATION.
     APPEND VALUE #( fieldname = 'PSTYV'
                     sign      = 'E'
                     option    = 'EQ'
-                    low       = 'ZT89' ) TO rt_filter.
+                    low       = 'ZTAD' ) TO rt_filter.
   ENDMETHOD.
 
   METHOD set_layout.
-    rs_layout_alv-ctab_fname = 'CELLCOLOR'.   " ALV Cell Color
-    rs_layout_alv-cwidth_opt = abap_true.     " Column Width Optimization
-    rs_layout_alv-edit       = abap_true.     " All Fields Are Editable
-    rs_layout_alv-excp_fname = 'TLGHT'.       " Icon Field
-    rs_layout_alv-excp_led   = abap_true.     " Displaying LED Instead Of Traffic Light
-    rs_layout_alv-grid_title = TEXT-001.      " ALV Header
-    rs_layout_alv-no_headers = abap_true.     " Close Column Header
-    rs_layout_alv-no_hgridln = abap_true.     " Remove Row Line
-    rs_layout_alv-no_keyfix  = abap_true.     " Fixed Key Fields
-    rs_layout_alv-no_rowmark = abap_true.     " Remove Selection Box
-    rs_layout_alv-no_toolbar = abap_true.     " Close The Toolbar
-    rs_layout_alv-info_fname = 'COLOR'.       " ALV Row Color
-    rs_layout_alv-sel_mode   = 'A'.           " Selection mode ('A' -> no_rowmark = abap_false)
-    rs_layout_alv-smalltitle = abap_true.     " ALV Header small font
-    rs_layout_alv-stylefname = 'FIELD_STYLE'. " Per-cell style, TYPE lvc_t_styl
-    rs_layout_alv-zebra      = abap_true.     " Alternating row colors
+    " Settings actually used by THIS grid (editable, multi-select, coloured).
+    rs_layout_alv-ctab_fname = 'CELLCOLOR'.   " cell colour column, TYPE lvc_t_scol
+    rs_layout_alv-info_fname = 'COLOR'.       " row colour column
+    rs_layout_alv-stylefname = 'FIELD_STYLE'. " per-cell style, TYPE lvc_t_styl
+    rs_layout_alv-excp_fname = 'TLGHT'.       " traffic-light column
+    rs_layout_alv-excp_led   = abap_true.     " show an LED instead of a traffic light
+    rs_layout_alv-cwidth_opt = abap_true.     " optimise column width
+    rs_layout_alv-grid_title = TEXT-001.      " grid header
+    rs_layout_alv-smalltitle = abap_true.     " smaller header font
+    rs_layout_alv-sel_mode   = 'A'.           " multiple row selection
+    rs_layout_alv-zebra      = abap_true.     " alternating row shading
+
+    " The options below are DELIBERATELY NOT SET here - each one contradicts
+    " something this grid needs. Enable them only in a grid that does not:
+    "   no_rowmark = abap_true   " removes the selection column - conflicts with sel_mode 'A'
+    "   no_toolbar = abap_true   " hides the toolbar - conflicts with handle_toolbar
+    "   no_headers = abap_true   " hides column headers
+    "   no_hgridln = abap_true   " removes horizontal grid lines
+    "   no_keyfix  = abap_true   " stops key columns being fixed on the left
+    "   edit       = abap_true   " makes EVERY field editable; prefer per-field
+    "                            " fieldcat-edit as set_fieldcatalog( ) does
   ENDMETHOD.
 ENDCLASS.
 ```
@@ -682,33 +720,43 @@ ENDCLASS.
 ## 🎨 Field Catalog — Building It Manually
 
 ```abap
-DATA: BEGIN OF gt_data OCCURS 0,
-        ebeln LIKE ekko~ebeln,
-        ebelp LIKE ekpo~ebelp,
-      END OF gt_data.
+" TYPES declares a type; the internal table is then declared from it.
+" (An older form, DATA BEGIN OF ... OCCURS 0, creates a table WITH A HEADER
+"  LINE - see the lifecycle note below.)
+TYPES: BEGIN OF ty_data,
+         ebeln TYPE ekko-ebeln,   " note: '-' , not '~'. The tilde is the
+         ebelp TYPE ekpo-ebelp,   " ABAP SQL component separator.
+       END OF ty_data.
 
+DATA gt_data          TYPE STANDARD TABLE OF ty_data WITH EMPTY KEY.
 DATA gt_fieldcat      TYPE lvc_t_fcat.
 DATA gt_field_catalog TYPE slis_t_fieldcat_alv.
-DATA gv_tabname       TYPE slis_tabname DEFAULT 'GT_DATA'.
+DATA gv_tabname       TYPE slis_tabname VALUE 'GT_DATA'.
 
-" Declare field catalog manually
-gt_fieldcat = VALUE #( ( col_pos = 1 coltext = 'Text' fieldname = 'SPMON' scrtext_m = abap_true ) ).
+" Declare an LVC field catalog manually
+gt_fieldcat = VALUE #( ( col_pos   = 1
+                         fieldname = 'EBELN'
+                         coltext   = 'PO Number'
+                         scrtext_m = 'PO Number' ) ).
 
-" Add another line
-DATA(lv_lines) = lines( gt_fieldcat ).
-APPEND VALUE #( ( col_pos = lv_lines + 1 coltext = 'Text' fieldname = 'SPMON' scrtext_m = abap_true ) ) TO gt_fieldcat.
+" Append ANOTHER ROW. Note the single set of parentheses: APPEND VALUE #( ( ... ) )
+" would build a TABLE and try to append it as one row.
+APPEND VALUE #( col_pos   = lines( gt_fieldcat ) + 1
+                fieldname = 'EBELP'
+                coltext   = 'Item'
+                scrtext_m = 'Item' ) TO gt_fieldcat.
 
-" Declare field catalog (SLIS, function-module style) with various options
+" Declare an SLIS field catalog (function-module style) with various options
 gt_field_catalog = VALUE #( ( col_pos   = 1
                               do_sum    = abap_true
                               edit      = abap_true
-                              fieldname = 'SPMON'
+                              fieldname = 'EBELP'
                               hotspot   = abap_true
                               key       = abap_true
-                              outputlen = 100
-                              seltext_s = 'Small'
-                              seltext_m = 'Medium'
-                              seltext_l = 'Large' ) ).
+                              outputlen = 10
+                              seltext_s = 'Item'
+                              seltext_m = 'PO Item'
+                              seltext_l = 'Purchase Order Item' ) ).
 
 " Reusable macros to tweak an existing field catalog entry
 DEFINE checkbox.
@@ -741,7 +789,7 @@ END-OF-DEFINITION.
 
 " Example usage
 change_color 'BUKRS' 'C610'.
-change_text TEXT-a01 'BUKRS'.
+change_text TEXT-A01 'BUKRS'.
 clear_key 'BUKRS'.
 
 " Or generate the field catalog automatically from a DDIC structure/internal table
@@ -752,33 +800,30 @@ CALL FUNCTION 'REUSE_ALV_FIELDCATALOG_MERGE'
   CHANGING  ct_fieldcat        = gt_field_catalog.
 ```
 
+> **Lifecycle:** the macros above are `LEGACY / HISTORICAL REFERENCE`. They are shown because you will find exactly this pattern in existing ALV reports, and reading it is a real skill. For new code prefer a small private method per adjustment — macros bypass type checking and cannot be debugged line by line. See [09-Modularization](../09-Modularization/README.md#-macros-define--end-of-definition).
+
 ## 🎛️ Layout — LVC vs. SLIS
 
+The two layout structures are **not interchangeable**: `lvc_s_layo` goes with `cl_gui_alv_grid`, `slis_layout_alv` goes with the `REUSE_ALV_*` function modules. Their component names differ too (`cwidth_opt` vs. `colwidth_optimize`, `ctab_fname` vs. `coltab_fieldname`).
+
 ```abap
-" LVC layout (used with cl_gui_alv_grid and REUSE_ALV_GRID_DISPLAY)
+" LVC layout - used with cl_gui_alv_grid
 DATA gs_layout_lvc TYPE lvc_s_layo.
 
-gs_layout_lvc = VALUE #( ctab_fname = 'CELLCOLOR' " ALV cell color
-                         cwidth_opt = abap_true   " Optimize column width
-                         edit       = abap_true   " All fields editable
-                         excp_fname = 'TLGHT'     " Icon/exception field
-                         excp_led   = abap_true   " Show LED instead of traffic light
-                         grid_title = TEXT-001    " ALV header
-                         no_headers = abap_true   " Hide column headers
-                         no_hgridln = abap_true   " Remove horizontal grid lines
-                         no_keyfix  = abap_true   " Don't fix key columns
-                         no_rowmark = abap_true   " Remove selection checkbox column
-                         no_toolbar = abap_true   " Hide toolbar
-                         info_fname = 'COLOR'     " ALV row color
-                         sel_mode   = 'A'         " Selection mode
-                         smalltitle = abap_true   " Smaller header font
-                         zebra      = abap_true ). " Alternating row shading
+gs_layout_lvc = VALUE #( ctab_fname = 'CELLCOLOR'  " cell colour column
+                         info_fname = 'COLOR'      " row colour column
+                         excp_fname = 'TLGHT'      " traffic-light column
+                         excp_led   = abap_true    " LED instead of traffic light
+                         cwidth_opt = abap_true    " optimise column width
+                         grid_title = TEXT-001     " grid header
+                         smalltitle = abap_true    " smaller header font
+                         sel_mode   = 'A'          " multiple row selection
+                         zebra      = abap_true ). " alternating row shading
 
-" SLIS layout (used with REUSE_ALV_LIST_DISPLAY / classic list-based ALV)
+" SLIS layout - used with REUSE_ALV_GRID_DISPLAY / REUSE_ALV_LIST_DISPLAY
 DATA gs_layout_slis TYPE slis_layout_alv.
 
 gs_layout_slis = VALUE #( box_fieldname     = 'SELKZ'
-                          edit              = abap_true
                           coltab_fieldname  = 'CELL_COLOR'
                           colwidth_optimize = abap_true ).
 ```
@@ -786,35 +831,52 @@ gs_layout_slis = VALUE #( box_fieldname     = 'SELKZ'
 ## 🧰 Toolbar Customization
 
 ```abap
-" Exclude specific standard buttons from the ALV toolbar
-DATA(lt_ucomm) = VALUE string_table( ( '&REFR' ) ( '&DEGISIM' ) ).
+" Exclude specific standard buttons from the grid toolbar.
+" The excluding table is TYPE ui_functions (a table of ui_func), not a
+" string table - it is passed to it_toolbar_excluding.
+DATA lt_toolbar_ex TYPE ui_functions.
+
+lt_toolbar_ex = VALUE #( ( cl_gui_alv_grid=>mc_fc_refresh )
+                         ( cl_gui_alv_grid=>mc_fc_loc_delete_row )
+                         ( cl_gui_alv_grid=>mc_fc_loc_insert_row ) ).
 ```
 
 ## ✅ Best Practices
 
 - Use `cl_salv_table` for straightforward display-only reports — much less boilerplate than the classic function-module or OOP grid approaches.
 - Use `cl_gui_alv_grid` when you need editable cells, custom toolbar buttons, hotspots, or fine-grained event handling.
-- Always generate the field catalog from the DDIC structure (`LVC_FIELDCATALOG_MERGE`/`REUSE_ALV_FIELDCATALOG_MERGE`) when possible, then tweak only the fields that need customization — don't build it 100% manually unless there's no underlying DDIC structure.
+- **Keep the SLIS and LVC type families apart.** `REUSE_ALV_*` takes `slis_*`; `cl_gui_alv_grid` takes `lvc_*`.
+- Always generate the field catalog from the DDIC structure (`LVC_FIELDCATALOG_MERGE` / `REUSE_ALV_FIELDCATALOG_MERGE`) when possible, then tweak only the fields that need customization.
 - Use `refresh_table_display( is_stable = VALUE lvc_s_stbl( row = abap_true col = abap_true ) )` after modifying displayed data to keep scroll position and selection stable.
+- **Delete selected rows in descending index order**, or the indexes shift under you.
+- Register event handlers consistently: instance handlers with `SET HANDLER obj->handler`, static handlers with `SET HANDLER class=>handler`.
 
 ## ⚠️ Common Mistakes
 
 - Forgetting to register edit events (`register_edit_event`) before expecting `data_changed`/`data_changed_finished` events to fire on an editable grid.
+- Mixing `lvc_*` and `slis_*` types between the two ALV families.
+- **Registering a static handler with an instance reference** (`SET HANDLER go_main->static_method`) — this does not compile.
+- **Deleting multiple selected rows by ascending index**, which removes the wrong rows after the first deletion.
+- Comparing a structure (`es_col_id`) to a literal instead of its `-fieldname` component.
+- Calling `lo_alv->display( )` outside the `TRY` that created the object — if the factory raised, the reference is initial.
+- Setting contradictory layout options (`no_rowmark` together with `sel_mode = 'A'`, or `no_toolbar` in a grid that adds toolbar buttons).
 - Not handling `sy-subrc` after `set_table_for_first_display`.
-- Rebuilding the whole field catalog manually when `LVC_FIELDCATALOG_MERGE` could generate 90% of it automatically.
-- Using color codes (`C310`, `C610`, etc.) without a documented legend — always comment what each color means (as in the examples above).
+- Using color codes (`C310`, `C610`, …) without a documented legend.
 
-## 🎤 Interview Tips
+## 🎤 Interview & Review Checkpoints
 
 - Explain the difference between `cl_salv_table`, `REUSE_ALV_GRID_DISPLAY`, and `cl_gui_alv_grid`, and when to use each.
-- Be ready to explain how to make an ALV Grid cell editable and how to react to data changes (`data_changed`/`data_changed_finished` events).
+- Explain the difference between the LVC and SLIS type families and why they cannot be mixed.
+- Be ready to explain how to make an ALV Grid cell editable and how to react to data changes (`data_changed` / `data_changed_finished`).
 - Explain what a field catalog is and how `LVC_FIELDCATALOG_MERGE` helps generate one automatically.
+- Explain why multi-row deletion must run in descending index order.
 
 ## 🖥️ Related Transaction Codes
 
 | T-Code | Purpose |
 |---|---|
 | SE38 / SE80 | Create/test ALV report programs |
+| SE51 | Screen Painter — the dynpro and custom container that host the grid |
 | SLG1 | Application log (for logging ALV data issues) |
 
 ## 🔗 Related Chapters
@@ -822,3 +884,4 @@ DATA(lt_ucomm) = VALUE string_table( ( '&REFR' ) ( '&DEGISIM' ) ).
 - [11-Classical-Reports](../11-Classical-Reports/README.md) — dynamic field catalogs/tables
 - [07-Internal-Tables](../07-Internal-Tables/README.md)
 - [10-Objects](../10-Objects/README.md)
+- [21-Classic-vs-Modern-ABAP](../21-Classic-vs-Modern-ABAP/README.md) — where the three ALV generations sit

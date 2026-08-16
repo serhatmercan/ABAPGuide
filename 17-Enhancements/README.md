@@ -6,24 +6,41 @@ Beyond BAdIs ([16-BADIs](../16-BADIs/README.md)), SAP provides several other **e
 
 ## 🧭 Enhancement Techniques Overview
 
-| Technique | Introduced | Modifies Standard Code? | Multiple Implementations? | Typical Use |
-|---|---|---|---|---|
-| **User Exit** (`CALL CUSTOMER-FUNCTION`) | Classic (SD/MM legacy modules) | ❌ No (calls a predefined "hook") | ❌ No (one implementation via SMOD/CMOD) | Legacy SD/MM enhancements (e.g., `SAPMV45A` exits) |
-| **BAdI** (Business Add-In) | 4.6+ | ❌ No | ✅ Yes (filter-dependent) | Modern, object-oriented enhancement points |
-| **Enhancement Point / Section** | ECC 6.0+ (Enhancement Framework) | ❌ No (implicit "slots" in standard code) | ✅ Yes | Inserting custom code inside standard logic at pre-defined points |
-| **Explicit Enhancement Spot** | ECC 6.0+ | ❌ No | ✅ Yes | Similar to enhancement points, but explicitly designed by SAP for extension |
-| **Modification (Access Key)** | Classic | ✅ Yes (direct SAP object change) | N/A | Last resort — changes standard SAP code directly, at risk during upgrades |
+| Technique | Era | Modifies Standard Code? | Multiple Implementations? | Typical Use | Lifecycle |
+|---|---|---|---|---|---|
+| **User Exit** (`USEREXIT_*` form routines) | Oldest — classic SD | ⚠️ Effectively yes — you edit a delivered include | ❌ No | Classic SD enhancements in includes such as `MV45AFZZ` | `LEGACY / HISTORICAL REFERENCE` |
+| **Customer Exit / Function Exit** (`CALL CUSTOMER-FUNCTION`) | Classic (SMOD/CMOD) | ❌ No — a pre-planned hook | ❌ No (one CMOD project per enhancement) | Function, menu and screen exits in older modules | `LEGACY / HISTORICAL REFERENCE` |
+| **BAdI** (Business Add-In) | From SAP R/3 4.6 onward | ❌ No | ✅ Yes (multiple-use and/or filter-dependent) | The standard object-oriented extension point | `CURRENT / RECOMMENDED` |
+| **Enhancement Point / Section** (Enhancement Framework) | NetWeaver 7.0 / ECC 6.0 onward | ❌ No — inserted at explicit or implicit positions | ✅ Yes | Inserting code inside standard logic | `CLASSIC BUT STILL RELEVANT` |
+| **Explicit Enhancement Spot** | NetWeaver 7.0 / ECC 6.0 onward | ❌ No | ✅ Yes | Extension positions SAP designed deliberately | `CLASSIC BUT STILL RELEVANT` |
+| **Modification (access key)** | Classic | ✅ Yes — direct change to an SAP object | N/A | Last resort only | `LEGACY / HISTORICAL REFERENCE` |
 
-## 🔧 User Exits (Classic)
+> 📝 **NEEDS OFFICIAL VERIFICATION** for the exact release in which each technique was introduced. The eras above are expressed deliberately loosely; check SAP Help for your target release before quoting a version number.
 
-User exits are empty `FORM` routines (`CALL CUSTOMER-FUNCTION 'xxx'`) built into certain standard programs, activated via a project in transaction `CMOD` referencing an SAP enhancement (`SMOD`).
+## 🔧 User Exits vs. Customer Exits
+
+These two are constantly confused, including in job interviews. They are different mechanisms.
+
+**User exits** (classic SD) are empty `FORM` routines that SAP delivers inside modification-enabled includes such as `MV45AFZZ`. You write your code directly into the delivered include:
 
 ```abap
-" Inside a standard SAP program (not modifiable directly):
+" In include MV45AFZZ (delivered by SAP, intended to be edited)
+FORM userexit_save_document_prepare.
+  " your validation / defaulting logic
+ENDFORM.
+```
+
+Because you are editing an SAP object, these are registered as modifications in some landscapes and show up in `SPAU` during an upgrade.
+
+**Customer exits** (also called function exits) are a genuine hook mechanism: SAP calls `CALL CUSTOMER-FUNCTION 'nnn'` from standard code, and you implement the corresponding function module — activated through a project in `CMOD` that references an SAP enhancement in `SMOD`. You never edit standard code:
+
+```abap
+" Inside standard SAP code (not modified by you):
 CALL CUSTOMER-FUNCTION '001'.
 
-" Your implementation lives in an include like ZXVBFU01/EXIT_SAPMV45A_001,
-" assigned via a CMOD project.
+" You implement the generated function module EXIT_SAPMV45A_001, whose
+" coding lives in a customer include such as ZXVVAU01, and activate the
+" containing enhancement through a CMOD project.
 ```
 
 ## 🧵 Enhancement Points & Implicit Enhancements
@@ -37,41 +54,55 @@ FORM standard_form.
 ENDFORM.
 ```
 
-## 🆚 BAdI vs. User Exit vs. Enhancement Point
+## 🆚 Choosing Between Them
 
-- **User Exit**: oldest, procedural, one implementation only, tied to a specific `SMOD` enhancement.
-- **BAdI**: object-oriented, supports multiple filter-dependent implementations, the modern standard for "planned" extension points.
-- **Enhancement Point/Spot**: allows inserting code almost *anywhere* in standard code (not just pre-planned hooks), even where SAP didn't explicitly design an extension point.
+- **User exit** (`USEREXIT_*`): oldest, procedural, one implementation, and you edit a delivered include — so it carries modification-like upgrade cost.
+- **Customer exit** (`CALL CUSTOMER-FUNCTION` + SMOD/CMOD): a real hook, but one active project per enhancement, and procedural.
+- **BAdI**: object-oriented, can support multiple filter-dependent implementations. The standard answer for a planned extension point.
+- **Enhancement point/spot**: lets you insert code at explicit positions SAP designed, or at *implicit* positions that exist almost everywhere. Powerful, and correspondingly easy to abuse.
+
+## ☁️ Under ABAP Cloud
+
+Most of this chapter describes on-premise techniques. In the ABAP Cloud development model the picture narrows sharply: extension happens through **released** extension points — released BAdIs, released APIs and the defined extensibility options — not through modifications, implicit enhancements, or edits to delivered includes. That is the practical meaning of "keep the core clean". The techniques above remain correct and necessary for the on-premise systems that run today; they simply are not the path for a cloud-model extension. See [21-Classic-vs-Modern-ABAP](../21-Classic-vs-Modern-ABAP/README.md).
 
 ## ✅ Best Practices
 
-- Always prefer the **least invasive** technique available: BAdI > Enhancement Spot/Point > User Exit > Modification.
-- Never modify standard SAP objects directly (Access Key modifications) unless absolutely no other technique is available — modifications complicate every future upgrade/support package.
-- Document every enhancement implementation with a clear comment referencing the business requirement/ticket number.
-- Keep enhancement implementations thin — call out to your own Z classes/methods rather than embedding large blocks of logic directly in the enhancement include.
+- Prefer the **least invasive** technique available: released BAdI > BAdI > enhancement spot/point > customer exit > user exit > modification.
+- Never modify standard SAP objects directly unless no other technique exists — modifications complicate every future upgrade and support package.
+- Prefer **explicit** enhancement spots over implicit enhancement options. Implicit enhancements attach to code SAP never designed as an interface, so they break silently when that code changes.
+- Document every enhancement with a comment referencing the business requirement or ticket.
+- Keep enhancement implementations thin — call out to your own Z classes rather than embedding large blocks of logic in an enhancement include.
+- Keep a register of your enhancements. They are the single easiest thing to lose track of before an upgrade.
 
 ## ⚠️ Common Mistakes
 
-- Using a modification when a BAdI or enhancement point would have worked — creates unnecessary upgrade risk.
-- Forgetting that a classic user exit (`SMOD`/`CMOD`) only allows **one active project** per enhancement — conflicts arise if two teams try to implement the same user exit separately.
-- Not testing enhancement implementations against the *unenhanced* standard flow, missing edge cases the enhancement doesn't cover.
+- Using a modification where a BAdI or enhancement point would have worked.
+- **Confusing user exits with customer exits** — different mechanisms, different upgrade consequences.
+- Forgetting that a customer exit (`SMOD`/`CMOD`) allows only **one active project** per enhancement, so two teams cannot implement it independently.
+- Relying on implicit enhancement options in code that SAP may restructure at any support package.
+- Not testing the enhanced flow against the *unenhanced* standard flow.
 
-## 🎤 Interview Tips
+## 🎤 Interview & Review Checkpoints
 
-- Be ready to rank enhancement techniques by "upgrade safety" (BAdI/enhancement point > user exit > modification).
-- Explain what SPAU/SPDD are used for during an upgrade (adjusting modifications).
-- Explain the relationship between `SMOD` (enhancement) and `CMOD` (project) for classic user exits.
+- Rank the enhancement techniques by upgrade safety and justify the ranking.
+- Explain the difference between a user exit, a customer exit, and a BAdI — precisely.
+- Explain the difference between an explicit and an implicit enhancement, and why the latter is riskier.
+- Explain what `SPAU` and `SPDD` are used for during an upgrade.
+- Explain the relationship between `SMOD` (enhancement) and `CMOD` (project).
+- Explain what changes about all of this under ABAP Cloud.
 
 ## 🖥️ Related Transaction Codes
 
 | T-Code | Purpose |
 |---|---|
-| SMOD | Display/manage classic SAP enhancements |
-| CMOD | Create a project to implement a classic user exit |
-| SE18 / SE19 | Define/implement a BAdI |
-| SPAU / SPDD | Adjust modifications and enhancements during an upgrade |
+| SMOD | Display/manage SAP enhancements (customer exits) |
+| CMOD | Create the project that activates a customer exit |
+| SE18 / SE19 | Define / implement a BAdI |
+| SE80 | Enhancement spots and enhancement implementations |
+| SPAU / SPDD | Adjust modifications (repository / Dictionary) during an upgrade |
 
 ## 🔗 Related Chapters
 
 - [16-BADIs](../16-BADIs/README.md)
 - [10-Objects](../10-Objects/README.md)
+- [21-Classic-vs-Modern-ABAP](../21-Classic-vs-Modern-ABAP/README.md)

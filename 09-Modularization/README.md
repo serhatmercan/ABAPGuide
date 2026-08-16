@@ -7,12 +7,13 @@ Modularization means splitting logic into reusable, testable units. ABAP offers 
 ## 🧩 Calling a Function Module
 
 ```abap
-CALL FUNCTION cl_cam_address_bcs=>create_internet_addres
-  EXPORTING i_address_string = CONV #( gv_sender_email )
-            iv_statu         = ls_entity-util+8(2)
-            iv_task_code     = CONV mncod( ls_entity-util+10(4) )
-  RECEIVING result           = gr_sender.
+" A function module is called by NAME. Always handle its exceptions.
+CALL FUNCTION 'CONVERSION_EXIT_ALPHA_INPUT'
+  EXPORTING input  = lv_external_value
+  IMPORTING output = lv_internal_value.
 ```
+
+> ⚠️ `CALL FUNCTION` is for **function modules only**. A class method is called as `class=>method( ... )` or `object->method( ... )` — never with `CALL FUNCTION`. See [03-Variables](../03-Variables/README.md#-calling-methods-function-modules--includes) for the method-call forms.
 
 ### 🔁 Conversion Exits
 
@@ -51,17 +52,26 @@ CALL FUNCTION 'CONVERSION_EXIT_CUNIT_OUTPUT'
             language = sy-langu
   IMPORTING output   = ls_data-meins.
 
-" WBS element: internal (P4.24CV.02.001.40.MUH) <-> display (00001223)
-DATA lv_posid LIKE prps-posid.
+" WBS element. The two formats are:
+"   EXTERNAL / display  : the readable coded form, e.g. 'P-1000.01.01' (PRPS-POSID)
+"   INTERNAL            : the numeric key, e.g. 00001223              (PRPS-PSPNR)
+" INPUT  converts external -> internal
+" OUTPUT converts internal -> external
+DATA lv_posid TYPE prps-posid.   " external / display format
+DATA lv_pspnr TYPE prps-pspnr.   " internal numeric key
 
 CALL FUNCTION 'CONVERSION_EXIT_ABPSP_INPUT'
   EXPORTING  input     = lv_posid
-  IMPORTING  output    = lv_posid
+  IMPORTING  output    = lv_pspnr
   EXCEPTIONS not_found = 1
              OTHERS    = 2.
 
+IF sy-subrc <> 0.
+  " WBS element not found - handle as a business error
+ENDIF.
+
 CALL FUNCTION 'CONVERSION_EXIT_ABPSP_OUTPUT'
-  EXPORTING input  = lv_posid
+  EXPORTING input  = lv_pspnr
   IMPORTING output = lv_posid.
 
 " Generic ALPHA conversion exit (used for most numeric keys, e.g. document numbers)
@@ -75,22 +85,20 @@ CALL FUNCTION 'CONVERSION_EXIT_ALPHA_INPUT'
 ### 📐 Unit Conversions
 
 ```abap
-DATA lv_amount       TYPE kwmeng.
-DATA lv_gross_weight TYPE brgew_ap.
-DATA lv_material     TYPE matnr.
-DATA lv_net_weight   TYPE ntgew_ap.
-DATA lv_unit_m3      TYPE meins    VALUE 'M3'.
-DATA lv_unit_toa     TYPE meins    VALUE 'TOA'.
+DATA lv_material      TYPE matnr.
+DATA lv_weight_kg     TYPE brgew_ap.
+DATA lv_volume_m3     TYPE ntgew_ap.
+DATA lv_unit_kg       TYPE meins VALUE 'KG'.
+DATA lv_unit_m3       TYPE meins VALUE 'M3'.
 
-lv_gross_weight = lv_amount * 1000. " L
-
+" Convert a weight in KG into a volume in M3 for the given material
 CALL FUNCTION 'MATERIAL_UNIT_CONVERSION'
-  EXPORTING  input                = lv_gross_weight
+  EXPORTING  input                = lv_weight_kg
              kzmeinh              = abap_true
              matnr                = lv_material
              meinh                = lv_unit_m3
-             meins                = 'KG'
-  IMPORTING  output               = lv_net_weight
+             meins                = lv_unit_kg
+  IMPORTING  output               = lv_volume_m3
   EXCEPTIONS conversion_not_found = 1
              input_invalid        = 2
              material_not_found   = 3
@@ -101,12 +109,12 @@ CALL FUNCTION 'MATERIAL_UNIT_CONVERSION'
              overflow             = 8
              OTHERS               = 9.
 
-CHECK sy-subrc <> 0.
-
-MESSAGE ID sy-msgid
-        TYPE sy-msgty
-        NUMBER sy-msgno
-        WITH sy-msgv1 sy-msgv2 sy-msgv3 sy-msgv4.
+" IF, not CHECK. CHECK leaves the whole processing block when its condition is
+" FALSE - so "CHECK sy-subrc <> 0." would abort on SUCCESS, the exact opposite
+" of what is intended here.
+IF sy-subrc <> 0.
+  MESSAGE e001(zsm_msg) WITH lv_material lv_unit_kg lv_unit_m3.
+ENDIF.
 
 " Generic material unit conversion (any unit -> any unit for a given material)
 CALL FUNCTION 'MD_CONVERT_MATERIAL_UNIT'
@@ -123,8 +131,10 @@ CALL FUNCTION 'MD_CONVERT_MATERIAL_UNIT'
 ### 🧰 Other Useful Standard Function Modules
 
 ```abap
-" Extract a file extension from a MIME type (application/pdf -> pdf)
-DATA lv_extension TYPE c LENGTH 1.
+" Extract a file extension from a MIME type (application/pdf -> pdf).
+" Size the receiving field for the LONGEST extension you expect - a
+" CHAR1 target would silently truncate 'pdf' to 'p'.
+DATA lv_extension TYPE string.
 DATA lv_mime_type TYPE w3conttype.
 
 CALL FUNCTION 'SDOK_FILE_NAME_EXTENSION_GET'
@@ -180,25 +190,52 @@ IF NOT line_exists( lt_return[ type = 'E' ] ).
 ENDIF.
 
 " Progress indicator for long-running batch jobs
+" (use a text symbol so the message can be translated)
 CALL FUNCTION 'SAPGUI_PROGRESS_INDICATOR'
   EXPORTING percentage = 10
-            text       = '1 / 10 Equipment master data is reading.'.
+            text       = |{ TEXT-p01 } { lv_step }/{ lv_total }|.
 ```
 
 ### 📡 Calling a Function Module via RFC Destination
 
+> **Lifecycle:** `CLASSIC BUT STILL RELEVANT`. RFC remains the backbone of system-to-system integration in on-premise landscapes. Under ABAP Cloud, outbound calls go through released APIs and communication scenarios instead.
+
 ```abap
 CONSTANTS lc_rfc_name TYPE tfdir-funcname VALUE 'ZSM_F_TEST'.
-DATA lv_destination TYPE rfcdest.
 
+" The destination is maintained in SM59 and should come from Customizing,
+" not be hardcoded in the program.
+DATA(lv_destination) = get_destination( ).   " TYPE rfcdest
+
+" A remote call can fail for reasons a local call cannot. ALWAYS handle
+" system_failure and communication_failure - otherwise an unreachable or
+" misconfigured destination produces a short dump.
 CALL FUNCTION lc_rfc_name DESTINATION lv_destination
-  EXPORTING iv_uname    = lv_uname
-  IMPORTING ev_is_admin = lv_admin.
+  EXPORTING  iv_uname              = lv_uname
+  IMPORTING  ev_is_admin           = lv_admin
+  EXCEPTIONS system_failure        = 1 MESSAGE DATA(lv_system_msg)
+             communication_failure = 2 MESSAGE DATA(lv_comm_msg)
+             OTHERS                = 3.
+
+CASE sy-subrc.
+  WHEN 0.
+    " success
+  WHEN 1.
+    MESSAGE lv_system_msg TYPE 'E'.
+  WHEN 2.
+    MESSAGE lv_comm_msg TYPE 'E'.
+  WHEN OTHERS.
+    MESSAGE 'Remote call failed' TYPE 'E'.
+ENDCASE.
 ```
+
+> ⚠️ **RFC destinations carry authorization implications.** A destination configured with stored credentials executes in the target system as *that* user, not as the caller — so the calling program becomes responsible for deciding who may trigger it. A trusted-RFC destination propagates the caller's identity instead, and requires the corresponding authorizations in the target system. Never assume the remote side re-checks what the local side allowed: authorization-check the *entry point* in your own program, and keep destination names in Customizing rather than hardcoded.
 
 ## 🧵 Macros (`DEFINE` / `END-OF-DEFINITION`)
 
-Macros perform a **textual substitution** at compile time — no type checking of parameters, so they should be used sparingly in modern code (prefer methods).
+> **Lifecycle:** `LEGACY / HISTORICAL REFERENCE`. Macros are obsolete for new code and are not available in ABAP Cloud. They are kept here because they appear constantly in existing programs — particularly in ALV and BAPI-filling code — and reading them is a real skill.
+
+Macros perform a **textual substitution** before compilation. There is no type checking of parameters, no signature, and no line-by-line debugging: the debugger steps over the whole macro as one statement. Prefer a small private method for anything beyond trivial local repetition.
 
 ```abap
 " Simple macro
@@ -218,8 +255,8 @@ DEFINE gx.
   &1x-&2 = abap_true.
 END-OF-DEFINITION.
 
-gx ls_header_in doc_type  'ZI00'.
-gx ls_header_in sales_org '1200'.
+gx ls_header_in doc_type  'ZSTD'.
+gx ls_header_in sales_org '1000'.
 
 WRITE: ls_header_in-doc_type, ls_header_inx-doc_type.
 
@@ -229,8 +266,12 @@ DEFINE conv_char.
   CONDENSE &2.
 END-OF-DEFINITION.
 
-conv_char 'Ş' <fs_data>-value 'S'.
+conv_char '-' <fs_data>-value ' '.
 ```
+
+> 💡 The `gx` macro above is the classic idiom for filling a BAPI structure and its `...X` "changed flag" companion in one line — `&1x` works because the macro is expanded as text before compilation. It is genuinely useful, and genuinely untypeable. That trade-off is why macros persist in BAPI-heavy code.
+>
+> Character-transliteration macros (replacing locale-specific characters) are common in localized systems but are encoding-dependent — verify the behaviour against your system's code page before relying on them.
 
 ## 📞 Calling Other Programs — SUBMIT & Screen Chaining
 
@@ -260,34 +301,45 @@ ENDIF.
 
 ## 📊 Modularization Techniques Compared
 
-| Technique | Reusable Across Programs? | Type-Checked? | RFC-Callable? | Recommended For |
-|---|---|---|---|---|
-| `FORM`/`PERFORM` | ❌ No (same program only) | ✅ Yes | ❌ No | Legacy code, quick local subroutines |
-| Macro (`DEFINE`) | ❌ No (same program only) | ❌ No | ❌ No | Repetitive boilerplate within one program (use sparingly) |
-| Function Module | ✅ Yes (function group) | ✅ Yes | ✅ Yes (if RFC-enabled) | Cross-program/cross-system reusable logic, BAPIs |
-| Class/Method | ✅ Yes (if global class) | ✅ Yes | ✅ Yes (via RFC-enabled methods, S/4HANA) | All new development (modern, testable, OOP) |
+| Technique | Reusable Across Programs? | Type-Checked? | Directly Remote-Callable? | Lifecycle | Recommended For |
+|---|---|---|---|---|---|
+| `FORM`/`PERFORM` | ❌ No (same program only) | ⚠️ Only if parameters are typed | ❌ No | `LEGACY / HISTORICAL REFERENCE` | Reading existing code; not for new development |
+| Macro (`DEFINE`) | ❌ No (same program only) | ❌ No | ❌ No | `LEGACY / HISTORICAL REFERENCE` | Reading existing code; trivial local repetition at most |
+| Function Module | ✅ Yes (via its function group) | ✅ Yes | ✅ Yes, if the FM is RFC-enabled | `CLASSIC BUT STILL RELEVANT` | Remote-callable logic, BAPIs, compatibility with existing APIs |
+| Class/Method | ✅ Yes (if a global class) | ✅ Yes | ❌ **Not directly** — see below | `CURRENT / RECOMMENDED` | All new development |
+
+> ⚠️ **There is no such thing as an "RFC-enabled method".** Remote callability is a property of a *function module*, not of a method. To expose class logic to another system you wrap it — in an RFC-enabled function module, or behind a service model such as OData/RAP or a web service. Keep the logic in the class and let the wrapper be a thin adapter.
 
 ## ✅ Best Practices
 
-- Prefer **methods on classes** for new development; use function modules mainly when RFC-callability or compatibility with older APIs (BAPIs) is required.
-- Avoid macros for anything beyond trivial, local repetitive code — they bypass type checking and are hard to debug.
-- Always check `sy-subrc`/handle `EXCEPTIONS` after `CALL FUNCTION`.
+- Prefer **methods on classes** for new development; use function modules mainly when remote callability or compatibility with existing APIs (BAPIs) is required.
+- Avoid macros for anything beyond trivial, local repetition — they bypass type checking and cannot be debugged line by line.
+- Type every parameter, including `FORM ... USING` parameters in code you have to touch anyway.
+- Always check `sy-subrc` / handle `EXCEPTIONS` after `CALL FUNCTION` — and handle `system_failure` / `communication_failure` for remote calls.
 - Use `SUBMIT ... AND RETURN` (not a plain `SUBMIT`) when you need control to come back to your program.
+- Keep RFC destination names in Customizing, not in the code.
 
 ## ⚠️ Common Mistakes
 
-- Forgetting the `OTHERS = n` catch-all exception in a `CALL FUNCTION ... EXCEPTIONS` list.
-- Using a macro where a method would be clearer and safer — macros have no parameter type checking and are a common source of hard-to-find bugs.
-- Not handling the `ALPHA`/conversion-exit direction correctly (`INPUT` vs. `OUTPUT`), leading to double-converted or wrongly-padded keys.
+- Calling a class method with `CALL FUNCTION`.
+- Forgetting the `OTHERS = n` catch-all in a `CALL FUNCTION ... EXCEPTIONS` list.
+- Omitting `system_failure` / `communication_failure` on a `DESTINATION` call, turning an unreachable system into a short dump.
+- Using `CHECK` where `IF` is meant — `CHECK` leaves the whole processing block when its condition is false, which inverts an error-handling branch.
+- Using a macro where a method would be clearer and safer.
+- Getting the conversion-exit direction wrong (`INPUT` = external→internal, `OUTPUT` = internal→external), leading to double-converted or wrongly-padded keys.
 
-## 🎤 Interview Tips
+## 🎤 Interview & Review Checkpoints
 
-- Explain the difference between a function module and a BAPI (a BAPI is a function module that is part of the official Business Object API, RFC-enabled, and follows strict naming/interface conventions).
-- Be ready to explain why macros are discouraged in modern ABAP (Clean ABAP guidelines).
+- Explain the difference between a function module and a BAPI (a BAPI is a function module that belongs to the official Business Object API, is RFC-enabled, and follows strict naming and interface conventions).
+- Explain how you would expose a class's logic to another system, and why "make the method RFC-enabled" is not an answer.
+- Be ready to explain why macros are discouraged in modern ABAP.
 - Explain what a conversion exit is and give an example (`ALPHA`, `MATN1`).
+- Explain the difference between `CHECK` and `IF`, and where each belongs.
 
 ## 🔗 Related Chapters
 
+- [03-Variables](../03-Variables/README.md#-form--perform-classical-subroutines) — `FORM`/`PERFORM` syntax in detail
 - [10-Objects](../10-Objects/README.md)
 - [14-Function-Modules](../14-Function-Modules/README.md)
 - [15-BAPIs](../15-BAPIs/README.md)
+- [21-Classic-vs-Modern-ABAP](../21-Classic-vs-Modern-ABAP/README.md)
