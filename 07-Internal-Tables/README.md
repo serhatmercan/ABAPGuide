@@ -168,6 +168,8 @@ lt_licence_mdx = VALUE #( FOR ls_licence_md IN lt_licence_md WHERE ( licin IN ir
                           ( CORRESPONDING #( ls_licence_md ) ) ).
 ```
 
+> 🔗 For `VALUE ... FOR` mapping domain fixed values read via RTTS into a value/text table, see [02-Data-Types](../02-Data-Types/README.md#-reading-domain-fixed-values-at-runtime-rtts).
+
 ### FILTER — Building a Subset of a Table
 
 `FILTER` returns a new table containing only the rows that match a condition. It has two variants, and one **prerequisite that is easy to miss**: the source table must have at least one **sorted or hashed key** (primary or secondary) covering the components used in the condition.
