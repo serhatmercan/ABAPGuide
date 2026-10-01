@@ -227,6 +227,8 @@ SELECT a~rbukrs, a~gjahr, a~belnr
 
 > 💡 **Client handling.** ABAP SQL restricts client-dependent access to the current client automatically. Do **not** add `mandt = @sy-mandt` to a `WHERE` clause and do not select `mandt` in a field list — both conflict with the implicit handling. Cross-client access requires the explicit `CLIENT SPECIFIED` / `USING CLIENT` addition and is rarely correct in application code.
 
+> ⚠️ **VERSION-DEPENDENT: `WITH PRIVILEGED ACCESS`.** When ABAP SQL reads a CDS entity, that entity's CDS access control is applied implicitly. Writing `WITH PRIVILEGED ACCESS` directly after the data source (before `AS alias`), e.g. `FROM i_purchaseorderapi01 WITH PRIVILEGED ACCESS AS po`, switches it off for that source only. The program then owns the authorization check. Database tables and classic views have no CDS access control, so the addition has no effect on them. See [CDSGuide — Bypassing Access Control](https://github.com/serhatmercan/CDSGuide/blob/master/09-Security/AccessControl.md#bypassing-access-control-with-privileged-access) for details.
+
 ## 🧮 Calculations, CASE, and Functions in SELECT
 
 ```abap
