@@ -389,6 +389,32 @@ SELECT t1~file_no,
   INTO TABLE @DATA(lt_invoice_sum_amount).
 ```
 
+> 📝 **Contextual snippet** — `lv_min_items` is assumed to be declared in the surrounding program. The CDS view is read without `WITH PRIVILEGED ACCESS`, so its CDS access control applies (see the note at the end of the Joins section).
+
+```abap
+" Purchase orders with more than lv_min_items open, non-deleted items, largest first
+SELECT FROM i_purchaseorderitemapi01
+  FIELDS purchaseorder,
+         COUNT( * ) AS item_count
+  WHERE iscompletelydelivered          IS INITIAL
+    AND purchasingdocumentdeletioncode IS INITIAL
+  GROUP BY purchaseorder
+  HAVING COUNT( * ) > @lv_min_items
+  ORDER BY item_count DESCENDING
+  INTO TABLE @DATA(lt_large_orders).
+```
+
+> 💡 **`WHERE` vs. `HAVING`, and the `GROUP BY` rules.**
+>
+> 1. `WHERE` filters rows *before* grouping; `HAVING` filters groups *after* aggregation. Conditions on individual rows — like the two `IS INITIAL` checks above — belong in `WHERE`; `HAVING` is for conditions on aggregates such as `COUNT( * )`.
+> 2. Every non-aggregated column in the `SELECT` list must also appear in `GROUP BY` — here, `purchaseorder`.
+> 3. `ORDER BY` can refer to a `SELECT`-list alias, as `ORDER BY item_count DESCENDING` does. The example repeats `COUNT( * )` in `HAVING` rather than relying on the alias there.
+> 4. `COUNT( * )` counts rows; `COUNT( DISTINCT col )` counts the distinct values of `col`.
+
+> ⚠️ **VERSION-DEPENDENT: `IS INITIAL` in `WHERE`.** `IS INITIAL` compares a column with the initial value of its type; it is not the same as `IS NULL`. This matters for columns from the right-hand side of a `LEFT OUTER JOIN`: when there is no matching row, the column is `NULL`, not initial, so `IS INITIAL` does not match it. Older code writes the same check as `= @abap_false` or `= @space`. Verify `IS INITIAL` in ABAP SQL against the ABAP Keyword Documentation for your target release.
+
+> 💡 **Join only data sources you read from or filter on.** A join that contributes no column to the result and no condition only adds cost — and if the join target is not unique for the join condition, it can multiply rows and inflate aggregates such as `COUNT( * )`.
+
 ## 🔤 LIKE, EXISTS / NOT EXISTS
 
 ```abap
