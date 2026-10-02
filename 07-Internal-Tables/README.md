@@ -70,51 +70,73 @@ DATA:   objnr TYPE qals-objnr,
 APPEND INITIAL LINE TO sales_items ASSIGNING FIELD-SYMBOL(<sales_item>).
 <sales_item>-itm_number = last_item_number + 10.
 <sales_item>-material   = return_item-matnr.
+```
 
+```abap
 " VALUE with a shared header value applied to every row
 material_lines = VALUE #( lgort = '0001'
                           ( mtart = 'AAAA' )
                           ( mtart = 'BBBB' ) ).
+```
 
+```abap
 " Append corresponding lines from a differently-typed table
 DATA target_lines TYPE zsm_tt_order_item.
 APPEND LINES OF CORRESPONDING zsm_tt_order_item( source_lines ) TO target_lines.
+```
 
+```abap
 " Append a single corresponding structure
 DATA(notification_items) = VALUE crmt_rfc_viqmsm_t( ( ) ).
 APPEND CORRESPONDING #( notification_item ) TO notification_items.
+```
 
+```abap
 " Append a full structure / a VALUE literal
 APPEND target_line TO target_lines.
 APPEND VALUE #( material = '123' ) TO sales_items.
+```
 
+```abap
 " VALUE with default (shared) parameters applied to each row
 order_methods = VALUE #( refnumber = '1'
                          objectkey = 'X'
                          method    = 'CREATE'
                          ( objecttype = 'HEADER' )
                          ( objecttype = 'OPERATION' ) ).
+```
 
+```abap
 " VALUE with an explicit table type
 DATA(documents) = VALUE document_items( ( vbeln  = '1' posnr = '10' auart = 'X' )
                                         ( vbeln  = '2' posnr = '20' auart = 'Y' ) ).
+```
 
+```abap
 " Append additional rows while keeping the existing ones with BASE
 documents[] = VALUE #( BASE documents[]
                        ( vbeln = '3' posnr = '10' auart = 'Z' ) ).
+```
 
+```abap
 " Building a return-message table
 DATA messages TYPE bapiret2_t.
 messages = VALUE #( ( type = 'E' id = 'ZSM_MSG' number = '001' ) ).
+```
 
+```abap
 " Building a table with nested corresponding tables
 er_deep_entity = VALUE #( returned = abap_true
                           header   = CORRESPONDING #( entity-header[] )
                           items    = CORRESPONDING #( entity-items[] ) ).
+```
 
+```abap
 " Insert by table key
 INSERT VALUE #( id = '1' value = 'X' ) INTO TABLE key_values.
+```
 
+```abap
 " Insert at a specific position
 INSERT VALUE #( kunnr = ''
                 name1 = '' ) INTO sub_customers INDEX 1.
