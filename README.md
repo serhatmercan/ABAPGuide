@@ -7,7 +7,8 @@ That last part is the point. Real SAP systems run several generations of ABAP at
 ### Scope
 
 - **Covers:** ABAP language fundamentals, internal tables, ABAP SQL, modularization, ABAP Objects, classical reports, selection screens and dynpro, three generations of ALV, BAPIs, BAdIs and the enhancement framework, messages and exceptions, and performance — including the modern (7.40-generation) expression syntax throughout.
-- **Does not cover:** RAP, CDS, AMDP, ABAP Unit, or ABAP Cloud beyond the boundary explained in [Chapter 21](21-Classic-vs-Modern-ABAP/README.md). That is a deliberate boundary, not an oversight.
+- **Does not cover:** RAP, CDS, AMDP, or ABAP Cloud beyond the boundary explained in [Chapter 21](21-Classic-vs-Modern-ABAP/README.md). That is a deliberate boundary, not an oversight. ABAP Unit is planned.
+- **Coding rules:** new and changed examples follow [docs/ABAP-Development-Rules.md](docs/ABAP-Development-Rules.md).
 - **Examples are illustrative.** They are written to teach a pattern, not to be dropped into production unchanged. See [How to Use](#-how-to-use).
 - **Not official SAP documentation.** For anything version-sensitive, the [ABAP Keyword Documentation](https://help.sap.com/doc/abapdocu_latest_index_htm/latest/en-US/index.htm) is the authority.
 
