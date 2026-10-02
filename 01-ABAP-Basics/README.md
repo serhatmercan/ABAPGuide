@@ -57,7 +57,7 @@ CLASS lcl_main DEFINITION FINAL.
     DATA splitter         TYPE REF TO cl_gui_splitter_container.
     DATA header_container TYPE REF TO cl_gui_container.
     DATA grid_container   TYPE REF TO cl_gui_container.
-    DATA deliveries       TYPE TABLE OF zsm_s_delivery.
+    DATA deliveries       TYPE STANDARD TABLE OF zsm_s_delivery WITH EMPTY KEY.
 ENDCLASS.
 
 INITIALIZATION.
