@@ -62,7 +62,7 @@ SHIFT raw_value LEFT DELETING LEADING '0'.
 
 ABAP performs a lot of *implicit* conversions, but it's important to know how to convert **explicitly**, especially between internal keys and their "human readable" (ALPHA) form.
 
-> 📝 **Contextual snippet** — assumes a structure `document` with the component `vbeln`, a structure `entry` with the component `value`, and a structure `external_entry` whose components partly match the custom table `zsm_t_data`.
+> 📝 **Contextual snippet** — assumes a structure `document` with the component `vbeln`, a structure `entry` with the component `value`, and a structure `external_entry` whose components partly match the custom table `zsm_t_order`.
 
 ```abap
 " ALPHA IN: Add leading zeros (internal format)
@@ -76,7 +76,7 @@ document_number = |{ document-vbeln ALPHA = OUT }|.
 DATA(quantity) = CONV int4( entry-value ).
 
 " Mapping between structures with CORRESPONDING
-DATA(mapped_entry) = CORRESPONDING zsm_t_data( external_entry ).
+DATA(mapped_entry) = CORRESPONDING zsm_t_order( external_entry ).
 ```
 
 - `CONV` converts inline; use `EXACT` when a value must not be rounded or truncated — [Rule 3.7](../docs/ABAP-Development-Rules.md#37-convert-types-inline-with-conv-use-exact-when-data-must-not-be-lost).
@@ -90,7 +90,7 @@ Conversion exits (`CONVERSION_EXIT_*`) are the classical, function-module–base
 
 **RTTS** (Runtime Type Services) is the set of `CL_ABAP_*DESCR` classes that describe a type at runtime — including DDIC types looked up by name. A common use is reading the **fixed values of a data element's domain**, so that dropdowns, value checks or OData value help stay in sync with the DDIC instead of hard-coding the domain values in the program.
 
-> 📝 **Contextual snippet** — `statuses` is assumed to be an exporting parameter of the surrounding method; the `TYPES` show its shape and the `DATA statuses` line stands in for that parameter. `ZSM_E_STATUS` is a placeholder data element whose domain has fixed values.
+> 📝 **Contextual snippet** — `result` is assumed to be the returning parameter of the surrounding method (`RETURNING VALUE(result) TYPE status_values`, Rule 5.9); the `TYPES` show its shape and the `DATA result` line stands in for that parameter. `ZSM_E_STATUS` is a placeholder data element whose domain has fixed values.
 
 ```abap
 TYPES: BEGIN OF status_value,
@@ -99,13 +99,13 @@ TYPES: BEGIN OF status_value,
        END OF status_value.
 TYPES status_values TYPE STANDARD TABLE OF status_value WITH EMPTY KEY.
 
-DATA statuses TYPE status_values.
+DATA result TYPE status_values.
 
 DATA(fixed_values) = CAST cl_abap_elemdescr(
   cl_abap_typedescr=>describe_by_name( 'ZSM_E_STATUS' ) )->get_ddic_fixed_values( ).
 
-statuses = VALUE #( FOR fixed_value IN fixed_values
-                    ( status = fixed_value-low status_text = fixed_value-ddtext ) ).
+result = VALUE #( FOR fixed_value IN fixed_values
+                  ( status = fixed_value-low status_text = fixed_value-ddtext ) ).
 ```
 
 The compact form above assumes the name is known to be a valid elementary DDIC type. When the name comes from configuration or user input, use the robust variant. It turns the classic exceptions into the method's own exceptions at this boundary ([Rule 6.9](../docs/ABAP-Development-Rules.md#69-turn-sy-subrc-and-bapi-return-tables-into-exceptions-at-the-boundary)).
@@ -152,8 +152,8 @@ IF sy-subrc <> 0.
     MESSAGE e022(zsm_msg) WITH type_name.
 ENDIF.
 
-statuses = VALUE #( FOR fixed_value IN fixed_values
-                    ( status = fixed_value-low status_text = fixed_value-ddtext ) ).
+result = VALUE #( FOR fixed_value IN fixed_values
+                  ( status = fixed_value-low status_text = fixed_value-ddtext ) ).
 ```
 
 **Common mistakes / notes**
