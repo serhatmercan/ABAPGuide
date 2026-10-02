@@ -35,7 +35,7 @@ Coding rules: docs/ABAP-Development-Rules.md (planned; until it exists, follow t
 - Exactly five lifecycle labels: `CURRENT / RECOMMENDED`,
   `CLASSIC BUT STILL RELEVANT`, `LEGACY / HISTORICAL REFERENCE`,
   `ABAP CLOUD / MODERN CONTEXT`, `VERSION-DEPENDENT`.
-- Lifecycle note format: `> **Lifecycle:** \`LABEL\`. <one or two sentences>`.
+- Lifecycle note format: ``> **Lifecycle:** `LABEL`. <one or two sentences>``.
   Chapter-level notes go directly under the title or Introduction; legacy
   notes state what replaces the construct and link to Chapter 21.
 - Version notes: `> ⚠️ **VERSION-DEPENDENT: <feature>.** <text>` and point
