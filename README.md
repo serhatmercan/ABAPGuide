@@ -77,7 +77,7 @@ Chapters and examples are labelled with one of these. Full definitions in [Chapt
 | [17-Enhancements](17-Enhancements/README.md) | Enhancements | User exits vs. customer exits, enhancement points, modifications | Classic + legacy |
 | [18-Debugging](18-Debugging/README.md) | Messages & Exceptions | `MESSAGE`, exception handling, application log | Current |
 | [19-Performance](19-Performance/README.md) | Performance & Memory | Internal table tuning, ABAP Memory, database access | Current |
-| [20-Best-Practices](20-Best-Practices/README.md) | Best Practices | Naming conventions, code review checklist | Current |
+| [20-Best-Practices](20-Best-Practices/README.md) | Best Practices & Clean ABAP | Clean ABAP naming, classic prefixes as a reading aid, rule summaries, refactoring example, review checklist | Current + classic |
 | [21-Classic-vs-Modern-ABAP](21-Classic-vs-Modern-ABAP/README.md) | **Classic vs Modern** | **Lifecycle map, ABAP Cloud boundary, decision table** | **Start here for context** |
 | [Examples](Examples/README.md) | Examples | Strings, dates/times, conversions | Current + legacy |
 
