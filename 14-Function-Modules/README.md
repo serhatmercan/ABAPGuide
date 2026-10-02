@@ -80,7 +80,7 @@ FORM bdc_append
 ENDFORM.
 ```
 
-> ⚠️ **State the authorization intent explicitly.** `CALL TRANSACTION` supports both `WITH AUTHORITY-CHECK` and `WITHOUT AUTHORITY-CHECK`. Use `WITH AUTHORITY-CHECK` for anything a user triggers — a BDC loader that drives a transaction on the user's behalf must not give them access they would not have interactively. Use `WITHOUT AUTHORITY-CHECK` only in a technical context where you have already performed the check yourself, and say so in a comment. Leaving the addition off entirely makes the behaviour depend on release and system configuration rather than on a decision you made.
+> ⚠️ **State the authorization intent explicitly.** `CALL TRANSACTION` supports both `WITH AUTHORITY-CHECK` and `WITHOUT AUTHORITY-CHECK`. Use `WITH AUTHORITY-CHECK` for anything a user triggers — a BDC loader that drives a transaction on the user's behalf must not give them access they would not have interactively. Use `WITHOUT AUTHORITY-CHECK` only in a technical context where you have already performed the check yourself, and say so in a comment. Leaving both additions off is obsolete according to the ABAP Keyword Documentation ([Rule 8.9](../docs/ABAP-Development-Rules.md#89-call-transactions-with-authority-check)): the call then no longer states whether the user's authorization is checked.
 
 ### 📋 BDC Structure Reference
 
