@@ -72,7 +72,7 @@ DATA order_quantity TYPE int4.
 PERFORM get_component TABLES headers
                              operations
                              components.
-PERFORM use_data USING order_quantity.
+PERFORM check_quantity USING order_quantity.
 
 FORM get_component TABLES order_headers    STRUCTURE bapi_order_header1
                           order_operations STRUCTURE bapi_order_operation1
@@ -81,7 +81,7 @@ ENDFORM.
 
 " Always TYPE a USING parameter - an untyped one accepts anything and
 " defers every error to runtime.
-FORM use_data USING quantity TYPE int4.
+FORM check_quantity USING quantity TYPE int4.
 ENDFORM.
 ```
 
