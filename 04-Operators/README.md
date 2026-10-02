@@ -8,8 +8,8 @@ This chapter covers arithmetic operators and the built-in mathematical functions
 
 ```abap
 " Constants use the lc_ (local) / gc_ (global) prefix, not lv_
-CONSTANTS lc_tax_rate  TYPE p LENGTH 8 DECIMALS 1 VALUE '7.5'.
-CONSTANTS lc_max_items TYPE i                     VALUE 5.
+CONSTANTS tax_rate  TYPE p LENGTH 8 DECIMALS 1 VALUE '7.5'.
+CONSTANTS max_items TYPE i                     VALUE 5.
 ```
 
 ## 🧮 Built-in Math Functions
@@ -23,25 +23,25 @@ CONSTANTS lc_max_items TYPE i                     VALUE 5.
 
 ```abap
 " Absolute
-DATA(lv_absolute) = abs( -3 ).                      " => 3
+DATA(absolute_value) = abs( -3 ).                   " => 3
 
 " Ceil -> round up to integer
-DATA(lv_ceil) = ceil( '7.15' ).                     " => 8
+DATA(rounded_up) = ceil( '7.15' ).                  " => 8
 
 " Floor -> round down to integer
-DATA(lv_floor) = floor( '7.95' ).                   " => 7
+DATA(rounded_down) = floor( '7.95' ).               " => 7
 
 " Floor -> keep a fixed number of decimals (truncate to 2 decimals)
-DATA lv_value  TYPE p LENGTH 8 DECIMALS 4 VALUE '7896.6579'.
-DATA lv_result TYPE p LENGTH 8 DECIMALS 2.
+DATA exact_value     TYPE p LENGTH 8 DECIMALS 4 VALUE '7896.6579'.
+DATA truncated_value TYPE p LENGTH 8 DECIMALS 2.
 
-lv_result = lv_value * 100.
-lv_result = floor( lv_result ) / 100.               " => 7896.65
+truncated_value = exact_value * 100.
+truncated_value = floor( truncated_value ) / 100.   " => 7896.65
 
 " Mod - check whether a value is an exact multiple of another
-DATA lv_seconds TYPE int4 VALUE 3600.
+DATA duration_in_seconds TYPE int4 VALUE 3600.
 
-IF lv_seconds MOD 60 = 0.                          " 3600 MOD 60 = 0 -> true
+IF duration_in_seconds MOD 60 = 0.                 " 3600 MOD 60 = 0 -> true
 ENDIF.
 ```
 
@@ -52,10 +52,10 @@ ENDIF.
 ABAP provides the class `cl_abap_random` (or `cl_abap_random_int` for integers) to generate random numbers — useful for test data generation or unique temporary keys:
 
 ```abap
-DATA(lo_random) = cl_abap_random_int=>create( seed = cl_abap_random=>seed( )
-                                              min  = 1
-                                              max  = 100 ).
-DATA(lv_random_number) = lo_random->get_next( ).
+DATA(random_generator) = cl_abap_random_int=>create( seed = cl_abap_random=>seed( )
+                                                     min  = 1
+                                                     max  = 100 ).
+DATA(random_number) = random_generator->get_next( ).
 ```
 
 ## ✅ Best Practices
