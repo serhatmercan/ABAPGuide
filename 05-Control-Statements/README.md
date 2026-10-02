@@ -92,7 +92,7 @@ DATA(message_type) = COND symsgty( WHEN defect->severity >= severity_levels-high
 ```abap
 DATA(status) = SWITCH char10( sy-msgty
                               WHEN 'S' THEN 'SUCCESS'
-                              WHEN 'W' THEN 'OK'
+                              WHEN 'W' THEN 'WARNING'
                               WHEN 'E' THEN 'ERROR'
                               ELSE          'UNKNOWN' ).
 ```
