@@ -16,50 +16,50 @@ The statements below are an **independent cookbook** — a catalogue of forms, n
 
 ```abap
 " Internal table used as the source/target for the examples below
-DATA lt_data TYPE TABLE OF zsm_t_data.
-DATA ls_data TYPE zsm_t_data.
+DATA entries TYPE TABLE OF zsm_t_entry.
+DATA entry   TYPE zsm_t_entry.
 
 " INSERT - from an internal table (bulk insert)
-INSERT zsm_t_data FROM TABLE lt_data.
+INSERT zsm_t_entry FROM TABLE entries.
 
 " INSERT - from a single structure
-INSERT zsm_t_data FROM ls_data.
+INSERT zsm_t_entry FROM entry.
 
 " MODIFY - insert or update, from a single structure
-MODIFY zsm_t_data FROM ls_data.
+MODIFY zsm_t_entry FROM entry.
 
 " MODIFY - insert or update, from an internal table
-IF lt_data IS NOT INITIAL.
-  MODIFY zsm_t_data FROM TABLE lt_data.
+IF entries IS NOT INITIAL.
+  MODIFY zsm_t_entry FROM TABLE entries.
 ENDIF.
 
 " UPDATE - from a single structure (matches on primary key)
-UPDATE zsm_t_data FROM ls_data.
+UPDATE zsm_t_entry FROM entry.
 
 " UPDATE - with a WHERE condition, qualified by the full key
-UPDATE zsm_t_data SET name = 'DEMO'
-                  WHERE vbeln = ls_data-vbeln
-                    AND posnr = ls_data-posnr.
+UPDATE zsm_t_entry SET name = 'DEMO'
+                   WHERE vbeln = entry-vbeln
+                     AND posnr = entry-posnr.
 
 " UPDATE - multiple fields
-UPDATE zsm_t_log SET   density    = is_ticket-density
-                       volume_uom = is_ticket-volume_uom
+UPDATE zsm_t_log SET   density    = ticket-density
+                       volume_uom = ticket-volume_uom
                        process    = '01'
-                 WHERE sns_number = is_ticket-sns_number.
+                 WHERE sns_number = ticket-sns_number.
 
 " UPDATE - directly from a constructed value, with no intermediate variable
-UPDATE zsm_t_data FROM @( VALUE #( customer      = iv_customer
-                                   request_count = iv_request_count
-                                   approval_id   = lv_approval_id ) ).
+UPDATE zsm_t_entry FROM @( VALUE #( customer      = customer
+                                    request_count = request_count
+                                    approval_id   = approval_id ) ).
 
 " DELETE - by a full structure (matches on primary key)
-DELETE zsm_t_data FROM ls_data.
+DELETE zsm_t_entry FROM entry.
 
 " DELETE - with a WHERE condition
-DELETE FROM zsm_t_data WHERE vbeln = ls_data-vbeln.
+DELETE FROM zsm_t_entry WHERE vbeln = entry-vbeln.
 
 " DELETE - from an internal table of keys (bulk delete)
-DELETE zsm_t_data FROM TABLE lt_data.
+DELETE zsm_t_entry FROM TABLE entries.
 ```
 
 > ⚠️ **Qualify mass `UPDATE` and `DELETE` statements.** A `DELETE FROM ... WHERE` on a non-key, non-selective column can remove far more rows than intended, and there is no confirmation prompt. Filter by the key where possible, and know the expected row count before you run it. `sy-dbcnt` holds the number of rows actually changed — check it.
@@ -79,26 +79,26 @@ This is the single most important concept in this chapter, and the one most ofte
 ```abap
 " ✅ Reusable unit: performs its DML, reports what happened, commits nothing.
 METHOD save_entries.
-  MODIFY zsm_t_data FROM TABLE it_entries.
+  MODIFY zsm_t_entry FROM TABLE entries.
 
-  rv_updated = sy-dbcnt.          " report the outcome, let the caller decide
+  result = sy-dbcnt.          " report the outcome, let the caller decide
 ENDMETHOD.
 ```
 
 ```abap
 " ✅ Transaction owner: one place decides the outcome for the whole unit of work.
 START-OF-SELECTION.
-  DATA(lo_writer) = NEW zcl_data_writer( ).
+  DATA(writer) = NEW zcl_zsm_entry_writer( ).
 
   TRY.
-      lo_writer->save_entries( it_entries = lt_entries ).
-      lo_writer->save_log( it_log = lt_log ).
+      writer->save_entries( entries = entries ).
+      writer->save_log( log_entries = log_entries ).
 
       COMMIT WORK.                " one commit, at the boundary that owns the work
 
-    CATCH cx_root INTO DATA(lx_error).
+    CATCH cx_root INTO DATA(error).
       ROLLBACK WORK.              " discard the entire unit of work
-      MESSAGE lx_error->get_text( ) TYPE 'E'.
+      MESSAGE error->get_text( ) TYPE 'E'.
   ENDTRY.
 ```
 
@@ -137,27 +137,27 @@ The pattern is: acquire the lock before reading data you intend to change, relea
 " SELECT SINGLE - always qualify it; without a WHERE you get an ARBITRARY row
 SELECT SINGLE matnr, mtart, meins
   FROM mara
-  WHERE matnr = @iv_matnr
-  INTO @DATA(ls_data).
+  WHERE matnr = @material
+  INTO @DATA(material_header).
 
 " SELECT SINGLE into multiple target variables
 SELECT SINGLE position~position_id,
               position~position_txt
   FROM zsm_t_position AS position
-  WHERE position~position_id = @iv_position_id
-  INTO ( @DATA(lv_position_id), @DATA(lv_position_txt) ).
+  WHERE position~position_id = @position_id
+  INTO ( @DATA(found_position_id), @DATA(position_text) ).
 
 " SELECT rows into an internal table
 SELECT vbeln, fkart, netwr, waerk
   FROM vbrk
   WHERE fkdat IN @s_fkdat
-  INTO TABLE @DATA(lt_data).
+  INTO TABLE @DATA(billing_documents).
 
 " SELECT MAX (aggregate, single value)
 SELECT MAX( posnr ) AS max_posnr
   FROM lips
   WHERE vbeln = @p_vbeln
-  INTO @DATA(lv_posnr).
+  INTO @DATA(max_item_number).
 ```
 
 > ⚠️ **Strict ABAP SQL clause order.** As soon as a statement uses `@` host-variable escaping (or a comma-separated field list), the strict syntax rules apply and **`INTO` must be the last clause** — after `FROM`, `WHERE`, `GROUP BY`, `ORDER BY` and `UP TO n ROWS`. Several older code bases put `INTO` directly after the field list; that form is only tolerated in the obsolete non-strict syntax.
@@ -171,8 +171,8 @@ SELECT SINGLE mara~matnr,
   FROM mara
          LEFT JOIN
            makt ON makt~matnr = mara~matnr
-  WHERE mara~matnr = @iv_matnr
-  INTO @DATA(ls_material).
+  WHERE mara~matnr = @material
+  INTO @DATA(material_text).
 
 " INNER JOIN with MAX + GROUP BY
 " NOTE: SELECT SINGLE and GROUP BY are mutually exclusive - an aggregation over
@@ -185,7 +185,7 @@ SELECT a~posnr,
   WHERE a~abgru = @space
     AND b~auart = 'ZSTD'
   GROUP BY a~posnr
-  INTO TABLE @DATA(lt_max_vbeln).
+  INTO TABLE @DATA(latest_orders).
 
 " Selecting all fields of one table plus specific fields of another (mara~*, marc~prctr)
 SELECT mara~*,
@@ -194,7 +194,7 @@ SELECT mara~*,
          INNER JOIN
            mara ON mara~matnr = marc~matnr
   WHERE marc~is_default = @abap_true
-  INTO TABLE @DATA(lt_data).
+  INTO TABLE @DATA(materials_with_profit_center).
 
 " A classic multi-table join
 " NOTE: no MANDT predicate - ABAP SQL handles the client implicitly. Naming the
@@ -208,22 +208,22 @@ SELECT vbrk~vbeln,
            vbrp ON vbrp~vbeln = vbrk~vbeln
              INNER JOIN
                mara ON mara~matnr = vbrp~matnr
-  WHERE vbrk~vbeln IN @ir_vbeln
-  INTO TABLE @DATA(lt_billing).
+  WHERE vbrk~vbeln IN @billing_document_range
+  INTO TABLE @DATA(billing_items).
 
 " Joining the database against an already-selected internal table
 SELECT a~rbukrs, a~gjahr, a~belnr
   FROM acdoca AS a
          INNER JOIN
-           @lt_skb1 AS b ON b~saknr = a~racct
-  WHERE a~rbukrs  = @iv_bukrs
+           @gl_accounts AS b ON b~saknr = a~racct
+  WHERE a~rbukrs  = @company_code
     AND a~rldnr   = '0L'
-    AND a~gjahr   = @iv_gjahr
-    AND a~rbusa  IN @ir_gsber
-  INTO TABLE @DATA(lt_acdoca).
+    AND a~gjahr   = @fiscal_year
+    AND a~rbusa  IN @business_area_range
+  INTO TABLE @DATA(journal_entries).
 ```
 
-> ⚠️ **VERSION-DEPENDENT:** using an internal table as an ABAP SQL data source (`FROM @lt_itab AS alias`) was introduced in the 7.5x generation. Verify support on your target release before relying on it.
+> ⚠️ **VERSION-DEPENDENT:** using an internal table as an ABAP SQL data source (`FROM @itab AS alias`) was introduced in the 7.5x generation. Verify support on your target release before relying on it.
 
 > 💡 **Client handling.** ABAP SQL restricts client-dependent access to the current client automatically. Do **not** add `mandt = @sy-mandt` to a `WHERE` clause and do not select `mandt` in a field list — both conflict with the implicit handling. Cross-client access requires the explicit `CLIENT SPECIFIED` / `USING CLIENT` addition and is rarely correct in application code.
 
@@ -237,7 +237,7 @@ SELECT CASE WHEN strkorr <> @space THEN strkorr
             ELSE 'A'
        END                                      AS request_no
   FROM e070
-  INTO TABLE @DATA(lt_requests).
+  INTO TABLE @DATA(requests).
 
 " Arithmetic function in the SELECT list
 SELECT brgew,
@@ -245,29 +245,29 @@ SELECT brgew,
        gewei,
        abs( brgew - ntgew ) AS diff
   FROM mara
-  INTO TABLE @DATA(lt_mara).
+  INTO TABLE @DATA(weights).
 
 " String concatenation function
 SELECT SINGLE concat_with_space( first_name, last_name, 1 ) AS driver_name
   FROM oigd
-  WHERE perscode = @iv_driver_id
-  INTO @DATA(lv_driver_name).
+  WHERE perscode = @driver_id
+  INTO @DATA(driver_name).
 
 " Date-difference function
 SELECT v1~qmnum,
        v1~product_group,
        dats_days_between( @sy-datum, v1~ltrmn ) AS days_remaining
-  FROM @lt_data AS v1
+  FROM @notifications AS v1
          LEFT OUTER JOIN
            zsm_i_characteristic_values AS v2 ON v2~atwrt = v1~product_group
-  INTO TABLE @DATA(lt_data_cl).
+  INTO TABLE @DATA(notification_deadlines).
 
 " RIGHT() string function
 SELECT DISTINCT dlv~parent_key,
                 right( dlv~base_btd_id, 10 )    AS vbeln,
                 right( dlv~base_btditem_id, 6 ) AS posnr
-  FROM @lt_dlv_ref AS dlv
-  INTO TABLE @DATA(lt_dlv_keys).
+  FROM @delivery_references AS dlv
+  INTO TABLE @DATA(delivery_keys).
 ```
 
 > ⚠️ **VERSION-DEPENDENT.** SQL expressions in the field list — `CASE`, arithmetic, `abs( )`, `concat_with_space( )`, `dats_days_between( )`, `right( )` — were introduced progressively across the 7.4x and 7.5x releases, not all at once. Check each function in the ABAP Keyword Documentation against your target release. Expressions in the field list generally need an `AS` alias.
@@ -277,45 +277,45 @@ SELECT DISTINCT dlv~parent_key,
 ```abap
 " COUNT(*)
 SELECT COUNT(*) FROM t001w
-  WHERE werks = @lv_werks
-  INTO @DATA(lv_count).
-IF lv_count = 0.
+  WHERE werks = @plant
+  INTO @DATA(plant_count).
+IF plant_count = 0.
 ENDIF.
 
 " Existence check pattern: SELECT SINGLE 1 (cheaper than COUNT for an existence test)
-DATA(lt_document_categories) = VALUE rseloption( sign   = 'I'
-                                                 option = 'EQ'
-                                                 ( low = 'K' )
-                                                 ( low = 'L' ) ).
+DATA(document_categories) = VALUE rseloption( sign   = 'I'
+                                              option = 'EQ'
+                                              ( low = 'K' )
+                                              ( low = 'L' ) ).
 
 SELECT SINGLE @abap_true AS exists_flag
   FROM ekko AS t1
          INNER JOIN
            ekpo AS t2 ON t2~ebeln = t1~ebeln
-  WHERE t1~bstyp IN @lt_document_categories
+  WHERE t1~bstyp IN @document_categories
     AND t1~kdatb <= @sy-datum
     AND t1~kdate >= @sy-datum
-    AND t2~matnr  = @iv_material
+    AND t2~matnr  = @material
     AND t2~loekz  = @space
-  INTO @DATA(lv_hit).
+  INTO @DATA(agreement_hit).
 
-DATA(lv_agreement_exists) = xsdbool( sy-subrc = 0 ).
+DATA(agreement_exists) = xsdbool( sy-subrc = 0 ).
 
 " Same pattern against a single table
 SELECT SINGLE @abap_true AS exists_flag
-  FROM zsm_ct_0001
-  WHERE dokod = @lv_dokod
-  INTO @DATA(lv_doc_hit).
+  FROM zsm_t_document
+  WHERE dokod = @document_code
+  INTO @DATA(document_hit).
 
-DATA(lv_doc_exists) = xsdbool( lv_doc_hit = abap_true ).
+DATA(document_exists) = xsdbool( document_hit = abap_true ).
 
 " COUNT DISTINCT with GROUP BY
-TYPES: BEGIN OF lty_order_appointment,
+TYPES: BEGIN OF order_appointment,
          begin_time  TYPE zsm_t_appointment-begin_time,
          finish_time TYPE zsm_t_appointment-finish_time,
          order_count TYPE i,
-       END OF lty_order_appointment.
-DATA lt_order_appointments TYPE STANDARD TABLE OF lty_order_appointment WITH EMPTY KEY.
+       END OF order_appointment.
+DATA order_appointments TYPE STANDARD TABLE OF order_appointment WITH EMPTY KEY.
 
 SELECT t1~begin_time,
        t1~finish_time,
@@ -323,18 +323,18 @@ SELECT t1~begin_time,
   FROM zsm_t_appointment AS t1
          INNER JOIN
            vbak AS t2 ON  t2~vbeln = t1~order_no
-                      AND t2~kunnr = @iv_customer
-  WHERE t1~appt_date = @lv_date
+                      AND t2~kunnr = @customer
+  WHERE t1~appt_date = @appointment_date
     AND t1~is_closed = @abap_false
   GROUP BY t1~begin_time,
            t1~finish_time
-  INTO TABLE @lt_order_appointments.
+  INTO TABLE @order_appointments.
 
 " DISTINCT
 SELECT DISTINCT charg
-  FROM zsm_t_charg
-  WHERE matnr = @lv_matnr
-  INTO TABLE @DATA(lt_charg).
+  FROM zsm_t_batch
+  WHERE matnr = @material
+  INTO TABLE @DATA(batches).
 
 " SUM + GROUP BY + ORDER BY
 " NOTE: a batch number is unique only PER MATERIAL, so batch tables must always
@@ -350,58 +350,58 @@ SELECT mch1~vfdat                     AS vfdat,
              INNER JOIN
                mch1 ON  mch1~matnr = mcha~matnr
                     AND mch1~charg = mcha~charg
-  WHERE mcha~matnr  = @iv_matnr
-    AND mcha~werks  = @iv_werks
+  WHERE mcha~matnr  = @material
+    AND mcha~werks  = @plant
     AND mcha~lvorm  = @space
     AND mchb~clabs <> 0
   GROUP BY mch1~vfdat,
            mch1~charg
   ORDER BY mch1~vfdat,
            mch1~charg
-  INTO TABLE @DATA(lt_batch_stock).
+  INTO TABLE @DATA(batch_stocks).
 
 " Conditional SUM (pivot-like aggregation) with CASE inside SUM
 SELECT a~partner,
        a~credit_sgmnt,
        a~credit_limit,
-       SUM( CASE WHEN a~credit_sgmnt = @lc_credit_segment_domestic THEN b~amount ELSE 0 END ) AS sum_domestic_amount,
-       SUM( CASE WHEN a~credit_sgmnt = @lc_credit_segment_overseas THEN b~amount ELSE 0 END ) AS sum_overseas_amount,
+       SUM( CASE WHEN a~credit_sgmnt = @credit_segment_domestic THEN b~amount ELSE 0 END ) AS sum_domestic_amount,
+       SUM( CASE WHEN a~credit_sgmnt = @credit_segment_overseas THEN b~amount ELSE 0 END ) AS sum_overseas_amount,
        b~currency
   FROM ukmbp_cms_sgm AS a
          LEFT OUTER JOIN
            ukm_item AS b ON  b~partner      = a~partner
                          AND b~credit_sgmnt = a~credit_sgmnt
-  WHERE a~partner      IN @lr_customers
-    AND a~credit_sgmnt IN (@lc_credit_segment_domestic, @lc_credit_segment_overseas)
+  WHERE a~partner      IN @customer_range
+    AND a~credit_sgmnt IN (@credit_segment_domestic, @credit_segment_overseas)
   GROUP BY a~partner,
            a~credit_sgmnt,
            a~credit_limit,
            b~currency
   ORDER BY a~partner,
            a~credit_sgmnt
-  INTO TABLE @DATA(lt_credit).
+  INTO TABLE @DATA(credit_exposure).
 
 " SUM against an internal table used as a virtual source table (VERSION-DEPENDENT)
 SELECT t1~file_no,
        SUM( t1~fkimg ) AS total_fkimg
-  FROM @lt_invoice_sum AS t1
+  FROM @invoice_lines AS t1
   GROUP BY t1~file_no
-  INTO TABLE @DATA(lt_invoice_sum_amount).
+  INTO TABLE @DATA(invoice_totals).
 ```
 
-> 📝 **Contextual snippet** — `lv_min_items` is assumed to be declared in the surrounding program. The CDS view is read without `WITH PRIVILEGED ACCESS`, so its CDS access control applies (see the note at the end of the Joins section).
+> 📝 **Contextual snippet** — `min_items` is assumed to be declared in the surrounding program. The CDS view is read without `WITH PRIVILEGED ACCESS`, so its CDS access control applies (see the note at the end of the Joins section).
 
 ```abap
-" Purchase orders with more than lv_min_items open, non-deleted items, largest first
+" Purchase orders with more than min_items open, non-deleted items, largest first
 SELECT FROM i_purchaseorderitemapi01
   FIELDS purchaseorder,
          COUNT( * ) AS item_count
   WHERE iscompletelydelivered          IS INITIAL
     AND purchasingdocumentdeletioncode IS INITIAL
   GROUP BY purchaseorder
-  HAVING COUNT( * ) > @lv_min_items
+  HAVING COUNT( * ) > @min_items
   ORDER BY item_count DESCENDING
-  INTO TABLE @DATA(lt_large_orders).
+  INTO TABLE @DATA(large_orders).
 ```
 
 > 💡 **`WHERE` vs. `HAVING`, and the `GROUP BY` rules.**
@@ -421,15 +421,15 @@ SELECT FROM i_purchaseorderitemapi01
 " LIKE with wildcard characters (ABAP wildcard '*' converted to SQL '%')
 " Build the pattern in a SEPARATE, long-enough variable - never concatenate
 " wildcards into the short field that holds the original value.
-DATA lv_vehicle         TYPE oig_vhlnmr.
-DATA lv_vehicle_pattern TYPE string.
-DATA lv_text_pattern    TYPE string.
+DATA vehicle         TYPE oig_vhlnmr.
+DATA vehicle_pattern TYPE string.
+DATA text_pattern    TYPE string.
 
-lv_vehicle_pattern = |%{ lv_vehicle }%|.
-lv_text_pattern    = replace( val  = iv_search_text
-                              sub  = '*'
-                              with = '%'
-                              occ  = 0 ).
+vehicle_pattern = |%{ vehicle }%|.
+text_pattern    = replace( val  = search_text
+                           sub  = '*'
+                           with = '%'
+                           occ  = 0 ).
 
 " Predicates on the OPTIONAL side of a LEFT OUTER JOIN belong in the ON clause.
 SELECT oigv~vehicle,
@@ -443,17 +443,17 @@ SELECT oigv~vehicle,
              LEFT OUTER JOIN
                toigvt ON  toigvt~veh_type = oigv~veh_type
                       AND toigvt~language = @sy-langu
-  WHERE oigv~vehicle LIKE @lv_vehicle_pattern
-  INTO TABLE @DATA(lt_vehicles).
+  WHERE oigv~vehicle LIKE @vehicle_pattern
+  INTO TABLE @DATA(vehicles).
 
 " EXISTS subquery
 SELECT COUNT( * ) AS hits
-  FROM zsm_t_data
-  WHERE werks = @iv_werks
+  FROM zsm_t_entry
+  WHERE werks = @plant
     AND EXISTS ( SELECT * FROM mara
-                   WHERE matnr = @iv_matnr
-                     AND mtart = zsm_t_data~mtart )
-  INTO @DATA(lv_exist_count).
+                   WHERE matnr = @material
+                     AND mtart = zsm_t_entry~mtart )
+  INTO @DATA(match_count).
 
 " NOT EXISTS subquery (anti-join)
 SELECT DISTINCT vk~vbeln,
@@ -464,14 +464,14 @@ SELECT DISTINCT vk~vbeln,
            vbap AS vp ON vp~vbeln = vk~vbeln
              LEFT OUTER JOIN
                oigd ON oigd~perscode = vk~zz1_driverid_sdh
-  WHERE     vk~vbeln IN @lr_vbeln
-    AND     vp~matnr IN @lr_matnr
+  WHERE     vk~vbeln IN @order_range
+    AND     vp~matnr IN @material_range
     AND NOT EXISTS ( SELECT vkorg FROM zsm_t_exclusion
-                       WHERE vkorg = @lv_vkorg
+                       WHERE vkorg = @sales_org
                          AND kunnr = vk~kunnr )
     AND NOT EXISTS ( SELECT vgbel FROM lips
                        WHERE vgbel = vk~vbeln )
-  INTO TABLE @DATA(lt_open_orders).
+  INTO TABLE @DATA(open_orders).
 ```
 
 > ⚠️ **A `WHERE` predicate on the right-hand table silently turns a `LEFT OUTER JOIN` into an inner join.** When no matching text row exists, the outer join supplies `NULL` for `oigvt~language`; a `WHERE oigvt~language = @sy-langu` then filters that row out — so the vehicles you were specifically trying to keep disappear. Restrictions on the **optional** side of an outer join belong in the `ON` clause, as shown above. This is one of the most common wrong-results bugs in production ABAP, and it never raises an error.
@@ -487,7 +487,7 @@ SELECT name1 FROM kna1
 UNION ALL
 SELECT name1 FROM lfa1
   WHERE loevm = @abap_false
-INTO TABLE @DATA(lt_names).
+INTO TABLE @DATA(names).
 
 " UNION DISTINCT (removes duplicates)
 SELECT name1 FROM kna1
@@ -495,7 +495,7 @@ SELECT name1 FROM kna1
 UNION DISTINCT
 SELECT name1 FROM lfa1
   WHERE loevm = @abap_false
-INTO TABLE @DATA(lt_names).
+INTO TABLE @DATA(distinct_names).
 ```
 
 ## 🐢 FOR ALL ENTRIES IN
@@ -503,24 +503,24 @@ INTO TABLE @DATA(lt_names).
 `FOR ALL ENTRIES` is the classical way to "join" a driver internal table against the database when a real `JOIN`/subquery isn't possible or practical.
 
 ```abap
-IF lt_itab IS NOT INITIAL.
-  DATA(lt_driver) = lt_itab.
+IF order_items IS NOT INITIAL.
+  DATA(driver_items) = order_items.
 
   " Prepare the driver table: no duplicates, no initial key values
-  SORT lt_driver BY vbeln posnr.
-  DELETE ADJACENT DUPLICATES FROM lt_driver COMPARING vbeln posnr.
-  DELETE lt_driver WHERE posnr IS INITIAL.
+  SORT driver_items BY vbeln posnr.
+  DELETE ADJACENT DUPLICATES FROM driver_items COMPARING vbeln posnr.
+  DELETE driver_items WHERE posnr IS INITIAL.
 
-  IF lt_driver IS NOT INITIAL.
+  IF driver_items IS NOT INITIAL.
     SELECT vbfa~vbeln,
            vbfa~posnn,
            vbfa~vbtyp_n
       FROM vbfa
-      FOR ALL ENTRIES IN @lt_driver
-      WHERE vbfa~vbeln = @lt_driver-vbeln
-        AND vbfa~posnn = @lt_driver-posnr
+      FOR ALL ENTRIES IN @driver_items
+      WHERE vbfa~vbeln = @driver_items-vbeln
+        AND vbfa~posnn = @driver_items-posnr
       ORDER BY vbfa~vbeln, vbfa~posnn
-      INTO TABLE @DATA(lt_vbfa).
+      INTO TABLE @DATA(document_flow).
   ENDIF.
 ENDIF.
 ```
@@ -539,56 +539,56 @@ ENDIF.
 ## 🏗️ Building Range Tables from a SELECT
 
 ```abap
-DATA lt_werks_range TYPE RANGE OF werks_d.
+DATA plant_range TYPE RANGE OF werks_d.
 
 SELECT 'I'         AS sign,
        'EQ'        AS option,
        t001w~werks AS low
   FROM t001w
-  INTO CORRESPONDING FIELDS OF TABLE @lt_werks_range.
+  INTO CORRESPONDING FIELDS OF TABLE @plant_range.
 
-DATA lr_tags TYPE RANGE OF zsm_e_tag.
+DATA tag_range TYPE RANGE OF zsm_e_tag.
 
-SELECT FROM @ls_input-tag_names AS t1
+SELECT FROM @input-tag_names AS t1
   FIELDS 'I'     AS sign,
          'EQ'    AS option,
          t1~name AS low
-  INTO CORRESPONDING FIELDS OF TABLE @lr_tags.
+  INTO CORRESPONDING FIELDS OF TABLE @tag_range.
 
-SELECT FROM zsm_ct_tag
+SELECT FROM zsm_t_tag
   FIELDS tag_name,
          'Units'  AS property_name,
          unit     AS property_value
-  WHERE werks     = @ls_input-plant
-    AND tag_name IN @lr_tags
-  INTO CORRESPONDING FIELDS OF TABLE @ls_proxy_response-get_tag_info_response-properties.
+  WHERE werks     = @input-plant
+    AND tag_name IN @tag_range
+  INTO CORRESPONDING FIELDS OF TABLE @proxy_response-get_tag_info_response-properties.
 ```
 
 ## 🧪 Dynamic SQL
 
 ```abap
-DATA lv_fieldname TYPE fieldname.
-DATA lv_table     TYPE tabname.
-DATA lt_condition TYPE TABLE OF string.
-DATA lr_values    TYPE RANGE OF char30.
-DATA lr_result    TYPE REF TO data.
+DATA field_name  TYPE fieldname.
+DATA table_name  TYPE tabname.
+DATA conditions  TYPE TABLE OF string.
+DATA value_range TYPE RANGE OF char30.
+DATA result_ref  TYPE REF TO data.
 
-FIELD-SYMBOLS <lt_result> TYPE STANDARD TABLE.
+FIELD-SYMBOLS <result_table> TYPE STANDARD TABLE.
 
 " In a DYNAMIC condition the ABAP data object is written with the same
 " @ host-variable escape as in static ABAP SQL, as in the examples of the
 " ABAP Keyword Documentation.
-lt_condition = VALUE #( ( |{ lv_fieldname } IN @lr_values| ) ).
+conditions = VALUE #( ( |{ field_name } IN @value_range| ) ).
 
 " The target must be created dynamically too, because its type is not
 " known until runtime.
-CREATE DATA lr_result TYPE TABLE OF (lv_table).
-ASSIGN lr_result->* TO <lt_result>.
+CREATE DATA result_ref TYPE TABLE OF (table_name).
+ASSIGN result_ref->* TO <result_table>.
 
-SELECT DISTINCT (lv_fieldname)
-  FROM (lv_table)
-  WHERE (lt_condition)
-  INTO CORRESPONDING FIELDS OF TABLE @<lt_result>.
+SELECT DISTINCT (field_name)
+  FROM (table_name)
+  WHERE (conditions)
+  INTO CORRESPONDING FIELDS OF TABLE @<result_table>.
 ```
 > ⚠️ **Two separate risks, and you must address both.**
 > 1. **Injection.** Dynamic table/field/condition tokens must come from trusted, validated sources — never build them from unvalidated user input.
@@ -601,11 +601,11 @@ SELECT DISTINCT (lv_fieldname)
 ```abap
 " Host expression as a constant column in the SELECT list (VERSION-DEPENDENT)
 SELECT SINGLE v1~qmnum,
-              @iv_task_no AS task_no,
+              @task_number AS task_no,
               v1~ernam
   FROM qmel AS v1
-  WHERE v1~qmnum = @iv_qmnum
-  INTO @DATA(ls_qmel).
+  WHERE v1~qmnum = @notification_number
+  INTO @DATA(notification).
 
 " The fragments below are WHERE-clause forms, not complete statements.
 " BETWEEN
@@ -624,7 +624,7 @@ SELECT SINGLE v1~qmnum,
 
 - Select only the fields you need — avoid `SELECT *` in production code, especially inside loops.
 - Always qualify `SELECT SINGLE` with a `WHERE` on the full key. Without one you get an arbitrary row.
-- Always check `IF lt_driver IS NOT INITIAL` before `FOR ALL ENTRIES`, and de-duplicate the driver table first.
+- Always check `IF driver_items IS NOT INITIAL` before `FOR ALL ENTRIES`, and de-duplicate the driver table first.
 - Use `SELECT SINGLE @abap_true ... INTO @DATA(...)` + `xsdbool( sy-subrc = 0 )` for existence checks instead of `COUNT(*)` when you don't need the exact count.
 - Prefer joins and subqueries over `FOR ALL ENTRIES` when possible — they push more work to the database and avoid the pitfalls above.
 - Put restrictions on the optional side of an outer join in the `ON` clause, not in `WHERE`.
