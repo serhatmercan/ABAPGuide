@@ -9,108 +9,108 @@ Internal tables are ABAP's core in-memory data structure — comparable to array
 ```abap
 " Types & table type & internal table
 TYPES:
-  BEGIN OF ty_auart,
+  BEGIN OF document_item,
     vbeln TYPE vbak-vbeln,
     posnr TYPE vbrp-posnr,
     auart TYPE vbak-auart,
-  END OF ty_auart,
+  END OF document_item,
 
-  tt_auart TYPE TABLE OF ty_auart WITH KEY vbeln.
+  document_items TYPE TABLE OF document_item WITH KEY vbeln.
 
-DATA gs_auart TYPE ty_auart.
-DATA gt_auart TYPE tt_auart.
+DATA item TYPE document_item.
+DATA items TYPE document_items.
 
 " Structure with INCLUDE - modern form: TYPES declares a TYPE, then DATA
 " declares the table from it.
-TYPES: BEGIN OF ty_data.
+TYPES: BEGIN OF inspection_lot.
          INCLUDE TYPE zsm_s_insplot.
 TYPES:   objnr TYPE qals-objnr,
-       END OF ty_data.
+       END OF inspection_lot.
 
-DATA lt_data TYPE STANDARD TABLE OF ty_data WITH EMPTY KEY.
+DATA inspection_lots TYPE STANDARD TABLE OF inspection_lot WITH EMPTY KEY.
 
 " LEGACY / HISTORICAL REFERENCE - the classical equivalent you will meet in
 " older programs. DATA BEGIN OF ... OCCURS 0 declares a table WITH A HEADER
 " LINE, where the table and its work area share one name. It is obsolete in
 " ABAP Objects contexts and unavailable in ABAP Cloud - recognise it, don't
 " write it.
-"   DATA BEGIN OF gt_data OCCURS 0.
+"   DATA BEGIN OF inspection_lots OCCURS 0.
 "           INCLUDE TYPE zsm_s_insplot.
 "   DATA:   objnr TYPE qals-objnr,
-"         END OF gt_data.
+"         END OF inspection_lots.
 
 " Table type with a secondary sorted key for performance.
 " The PRIMARY key here is the document number; the SECONDARY key gives fast
 " access by material + storage location without re-sorting the table.
-TYPES: BEGIN OF ty_charg,
+TYPES: BEGIN OF batch_stock,
          charg TYPE mspr-charg,
          matnr TYPE marc-matnr,
          lgort TYPE mseg-lgort,
          pspnr TYPE mspr-pspnr,
          post1 TYPE prps-post1,
-       END OF ty_charg.
+       END OF batch_stock.
 
-TYPES tt_charg TYPE STANDARD TABLE OF ty_charg
-               WITH NON-UNIQUE KEY charg
-               WITH NON-UNIQUE SORTED KEY matnr_lgort COMPONENTS matnr lgort.
+TYPES batch_stocks TYPE STANDARD TABLE OF batch_stock
+                   WITH NON-UNIQUE KEY charg
+                   WITH NON-UNIQUE SORTED KEY by_material_location COMPONENTS matnr lgort.
 ```
 
-> 💡 A **secondary sorted/hashed key** (`WITH ... SORTED KEY name COMPONENTS ...`) lets you do fast `READ TABLE ... WITH KEY matnr_lgort COMPONENTS ...` lookups without re-sorting the primary table — critical for performance on large tables (see [19-Performance](../19-Performance/README.md)).
+> 💡 A **secondary sorted/hashed key** (`WITH ... SORTED KEY name COMPONENTS ...`) lets you do fast `READ TABLE ... WITH KEY by_material_location COMPONENTS ...` lookups without re-sorting the primary table — critical for performance on large tables (see [19-Performance](../19-Performance/README.md)).
 
 ## ➕ Filling Tables — APPEND, INSERT, VALUE
 
 ```abap
 " Append with a field symbol to avoid an extra MODIFY
-APPEND INITIAL LINE TO lt_sales_items ASSIGNING FIELD-SYMBOL(<fs_sales_item>).
-<fs_sales_item>-itm_number = lv_posnr + 10.
-<fs_sales_item>-material   = ls_return_item-matnr.
+APPEND INITIAL LINE TO sales_items ASSIGNING FIELD-SYMBOL(<sales_item>).
+<sales_item>-itm_number = last_item_number + 10.
+<sales_item>-material   = return_item-matnr.
 
 " VALUE with a shared header value applied to every row
-lt_data = VALUE #( lgort = '1000'
-                   ( mtart = 'AAAA' )
-                   ( mtart = 'BBBB' ) ).
+material_lines = VALUE #( lgort = '1000'
+                          ( mtart = 'AAAA' )
+                          ( mtart = 'BBBB' ) ).
 
 " Append corresponding lines from a differently-typed table
-DATA lt_data TYPE zsm_tt_0001.
-APPEND LINES OF CORRESPONDING zsm_tt_0001( lt_itab ) TO lt_data.
+DATA target_lines TYPE zsm_tt_order_item.
+APPEND LINES OF CORRESPONDING zsm_tt_order_item( source_lines ) TO target_lines.
 
 " Append a single corresponding structure
-DATA(lt_qmsm) = VALUE crmt_rfc_viqmsm_t( ( ) ).
-APPEND CORRESPONDING #( ls_qmsm ) TO lt_qmsm.
+DATA(notification_items) = VALUE crmt_rfc_viqmsm_t( ( ) ).
+APPEND CORRESPONDING #( notification_item ) TO notification_items.
 
 " Append a full structure / a VALUE literal
-APPEND ls_data TO lt_data.
-APPEND VALUE #( material = '123' ) TO lt_sales_items.
+APPEND target_line TO target_lines.
+APPEND VALUE #( material = '123' ) TO sales_items.
 
 " VALUE with default (shared) parameters applied to each row
-lt_data = VALUE #( refnumber = '1'
-                   objectkey = 'X'
-                   method    = 'CREATE'
-                   ( objecttype = 'HEADER' )
-                   ( objecttype = 'OPERATION' ) ).
+order_methods = VALUE #( refnumber = '1'
+                         objectkey = 'X'
+                         method    = 'CREATE'
+                         ( objecttype = 'HEADER' )
+                         ( objecttype = 'OPERATION' ) ).
 
 " VALUE with an explicit table type
-DATA(lt_data) = VALUE tt_auart( ( vbeln  = '1' posnr = '10' auart = 'X' )
-                                ( vbeln  = '2' posnr = '20' auart = 'Y' ) ).
+DATA(documents) = VALUE document_items( ( vbeln  = '1' posnr = '10' auart = 'X' )
+                                        ( vbeln  = '2' posnr = '20' auart = 'Y' ) ).
 
 " Append additional rows while keeping the existing ones with BASE
-lt_data[] = VALUE #( BASE lt_data[]
-                     ( vbeln = '3' posnr = '10' auart = 'Z' ) ).
+documents[] = VALUE #( BASE documents[]
+                       ( vbeln = '3' posnr = '10' auart = 'Z' ) ).
 
 " Building a return-message table
-DATA et_return TYPE bapiret2_t.
-et_return = VALUE #( ( type = 'E' id = 'ZSM_MSG' number = '001' ) ).
+DATA messages TYPE bapiret2_t.
+messages = VALUE #( ( type = 'E' id = 'ZSM_MSG' number = '001' ) ).
 
 " Building a table with nested corresponding tables
 er_deep_entity = VALUE #( returned = abap_true
-                          header   = CORRESPONDING #( ls_entity-header[] )
-                          items    = CORRESPONDING #( ls_entity-items[] ) ).
+                          header   = CORRESPONDING #( entity-header[] )
+                          items    = CORRESPONDING #( entity-items[] ) ).
 
 " Insert a value into a specific position
-INSERT VALUE #( id = '1' value = 'X' ) INTO TABLE lt_data.
+INSERT VALUE #( id = '1' value = 'X' ) INTO TABLE key_values.
 
 INSERT VALUE #( kunnr = ''
-                name1 = '' ) INTO et_altmusteriset INDEX 1.
+                name1 = '' ) INTO sub_customers INDEX 1.
 ```
 
 ## 🎯 Reading & Filtering — table expressions, FILTER, FOR
@@ -118,54 +118,54 @@ INSERT VALUE #( kunnr = ''
 ```abap
 " Direct index access via a field symbol.
 " ASSIGN is the ONE place a table expression sets sy-subrc instead of raising.
-ASSIGN lt_itab[ 3 ] TO FIELD-SYMBOL(<fs_row>).
+ASSIGN materials[ 3 ] TO FIELD-SYMBOL(<third_row>).
 IF sy-subrc = 0.
-  " <fs_row> is usable
+  " <third_row> is usable
 ENDIF.
 
 " Direct key access
-ASSIGN lt_itab[ ernam = 'USER01'
-                ersda = '20240101' ] TO FIELD-SYMBOL(<fs_by_key>).
+ASSIGN materials[ ernam = 'USER01'
+                  ersda = '20240101' ] TO FIELD-SYMBOL(<material>).
 
 " FOR: build a new table via projection, with a WHERE condition
-DATA(lt_mara) = VALUE tt_mara( FOR ls_itab IN it_itab WHERE ( ernam EQ 'USER01' )
-                               ( matnr = ls_itab-matnr ernam = ls_itab-ernam ) ).
+DATA(created_materials) = VALUE material_table( FOR source_material IN source_materials WHERE ( ernam EQ 'USER01' )
+                                                ( matnr = source_material-matnr ernam = source_material-ernam ) ).
 
 " FOR with conditional logic (COND) per field
-lt_data[] = VALUE #( FOR ls_list IN lt_list
-                     ( matnr = ls_list-matnr
-                       vhart = ls_list-vhart
-                       ergew = COND #( WHEN ls_list-vhart = '1003'
-                                       THEN CONV ergew( ls_list-veh_maxwgt - ls_list-veh_unlwgt )
-                                       ELSE ls_list-ergew ) ) ).
+vehicles[] = VALUE #( FOR vehicle_entry IN vehicle_entries
+                      ( matnr = vehicle_entry-matnr
+                        vhart = vehicle_entry-vhart
+                        ergew = COND #( WHEN vehicle_entry-vhart = '1003'
+                                        THEN CONV ergew( vehicle_entry-veh_maxwgt - vehicle_entry-veh_unlwgt )
+                                        ELSE vehicle_entry-ergew ) ) ).
 
 " FOR + BASE + LET...IN: enrich existing rows with a helper lookup
-lt_data = VALUE #( BASE lt_data
-                       FOR ls_itab IN it_itab
-                   LET ls_licence = _read_licence( iv_lictp = ls_itab-lictp
-                                                   iv_licin = ls_itab-oih_licin_vf )
-                   IN  ( VALUE #( BASE CORRESPONDING #( ls_itab )
-                                  vbeln_vf = ls_licence-vbeln_vf
-                                  zadklno  = ls_licence-zadklno ) ) ).
+licence_lines = VALUE #( BASE licence_lines
+                             FOR billing_line IN billing_lines
+                         LET licence = read_licence( licence_type   = billing_line-lictp
+                                                     licence_number = billing_line-oih_licin_vf )
+                         IN  ( VALUE #( BASE CORRESPONDING #( billing_line )
+                                        vbeln_vf    = licence-vbeln_vf
+                                        licence_ref = licence-licence_ref ) ) ).
 
 " FOR w/ GROUPS: build one row per distinct group value
-DATA(lt_created_on) = VALUE tt_mara( FOR GROUPS grp OF ls_itab IN it_itab
-                                     WHERE ( ernam EQ 'USER01' )
-                                     GROUP BY ls_itab-ersda
-                                     ( ersda = grp ) ).
+DATA(creation_dates) = VALUE material_table( FOR GROUPS creation_date OF source_material IN source_materials
+                                             WHERE ( ernam EQ 'USER01' )
+                                             GROUP BY source_material-ersda
+                                             ( ersda = creation_date ) ).
 
 " FOR w/ WHERE + CORRESPONDING projection using a range table
-TYPES: BEGIN OF ty_licence,
+TYPES: BEGIN OF licence_master,
          licin TYPE oihl-licin,
          lictp TYPE oihl-lictp,
          lctxt TYPE oihl-lctxt,
-       END OF ty_licence.
+       END OF licence_master.
 
-DATA lt_licence_md  TYPE TABLE OF ty_licence.
-DATA lt_licence_mdx TYPE TABLE OF ty_licence.
+DATA licence_masters   TYPE TABLE OF licence_master.
+DATA selected_licences TYPE TABLE OF licence_master.
 
-lt_licence_mdx = VALUE #( FOR ls_licence_md IN lt_licence_md WHERE ( licin IN ir_licence_numbers )
-                          ( CORRESPONDING #( ls_licence_md ) ) ).
+selected_licences = VALUE #( FOR licence_master_line IN licence_masters WHERE ( licin IN licence_number_range )
+                             ( CORRESPONDING #( licence_master_line ) ) ).
 ```
 
 > 🔗 For `VALUE ... FOR` mapping domain fixed values read via RTTS into a value/text table, see [02-Data-Types](../02-Data-Types/README.md#-reading-domain-fixed-values-at-runtime-rtts).
@@ -175,39 +175,39 @@ lt_licence_mdx = VALUE #( FOR ls_licence_md IN lt_licence_md WHERE ( licin IN ir
 `FILTER` returns a new table containing only the rows that match a condition. It has two variants, and one **prerequisite that is easy to miss**: the source table must have at least one **sorted or hashed key** (primary or secondary) covering the components used in the condition.
 
 ```abap
-TYPES: BEGIN OF ty_row,
+TYPES: BEGIN OF material_row,
          ernam TYPE mara-ernam,
          matnr TYPE mara-matnr,
          mtart TYPE mara-mtart,
-       END OF ty_row.
+       END OF material_row.
 
 " The source table needs a sorted or hashed key for FILTER to work
-TYPES tt_row TYPE STANDARD TABLE OF ty_row
-             WITH EMPTY KEY
-             WITH NON-UNIQUE SORTED KEY by_ernam COMPONENTS ernam.
+TYPES material_rows TYPE STANDARD TABLE OF material_row
+                    WITH EMPTY KEY
+                    WITH NON-UNIQUE SORTED KEY by_ernam COMPONENTS ernam.
 
-DATA it_itab TYPE tt_row.
+DATA materials TYPE material_rows.
 
 " Variant 1 - basic: compare a component against a value.
 " Note there are no parentheses around the WHERE condition.
-DATA(lt_by_value) = FILTER #( it_itab USING KEY by_ernam WHERE ernam = 'USER01' ).
+DATA(created_by_user) = FILTER #( materials USING KEY by_ernam WHERE ernam = 'USER01' ).
 
 " Variant 1 with an explicit key, and the inverted form
-DATA(lt_keyed)  = FILTER #( it_itab USING KEY by_ernam WHERE ernam = 'USER01' ).
-DATA(lt_except) = FILTER #( it_itab EXCEPT USING KEY by_ernam WHERE ernam = 'USER01' ).
+DATA(created_by_user_keyed) = FILTER #( materials USING KEY by_ernam WHERE ernam = 'USER01' ).
+DATA(created_by_others)     = FILTER #( materials EXCEPT USING KEY by_ernam WHERE ernam = 'USER01' ).
 
 " Variant 2 - filter table: keep the rows whose component appears in a
 " second table. The right-hand side of WHERE refers to the FILTER TABLE,
 " here via its table_line (a table of elementary values).
-DATA lt_wanted_users TYPE SORTED TABLE OF mara-ernam WITH UNIQUE KEY table_line.
+DATA wanted_users TYPE SORTED TABLE OF mara-ernam WITH UNIQUE KEY table_line.
 
-lt_wanted_users = VALUE #( ( 'USER01' ) ( 'USER02' ) ).
+wanted_users = VALUE #( ( 'USER01' ) ( 'USER02' ) ).
 
-DATA(lt_by_table) = FILTER #( it_itab IN lt_wanted_users WHERE ernam = table_line ).
+DATA(created_by_wanted) = FILTER #( materials IN wanted_users WHERE ernam = table_line ).
 ```
 
 > ⚠️ **Two things to get right.**
-> 1. **`IN` takes an internal table, not a type name.** `FILTER #( it_itab IN tt_row ... )` would be wrong — `tt_row` is a *type*. The filter table must be a real data object.
+> 1. **`IN` takes an internal table, not a type name.** `FILTER #( materials IN material_rows ... )` would be wrong — `material_rows` is a *type*. The filter table must be a real data object.
 > 2. **The two variants have different `WHERE` forms.** The basic variant compares against a value (`WHERE ernam = 'USER01'`); the filter-table variant compares against a component of the filter table (`WHERE ernam = table_line`). You cannot mix them.
 >
 > `#` for the result type is fine in an inline declaration here — it is derived from the source table.
@@ -219,73 +219,73 @@ DATA(lt_by_table) = FILTER #( it_itab IN lt_wanted_users WHERE ernam = table_lin
 ```abap
 " Sum a quantity. The RESULT type must be wide enough for what you accumulate -
 " reducing a QUAN(13,3) into TYPE i would silently truncate the decimals.
-DATA(lv_total_stock) = REDUCE labst( INIT lv_sum   TYPE labst
-                                     FOR  ls_mard IN lt_mard
-                                     WHERE ( labst <> 0 )
-                                     NEXT lv_sum   = lv_sum + ls_mard-labst ).
+DATA(total_stock) = REDUCE labst( INIT sum TYPE labst
+                                  FOR  stock IN stocks
+                                  WHERE ( labst <> 0 )
+                                  NEXT sum = sum + stock-labst ).
 
-DATA(lv_amount) = REDUCE bstmg( INIT lv_total TYPE bstmg
-                                FOR  ls_data  IN lt_data
-                                WHERE ( mtart EQ 'ZSTD' AND werks EQ '1000' )
-                                NEXT lv_total = lv_total + ls_data-total ).
+DATA(amount) = REDUCE bstmg( INIT total TYPE bstmg
+                             FOR  order_line IN order_lines
+                             WHERE ( mtart EQ 'ZSTD' AND werks EQ '1000' )
+                             NEXT total = total + order_line-total ).
 
 " Counting: give the result an explicit type rather than relying on #
-DATA(lv_days) = REDUCE i( INIT lv_count = 0
-                          FOR  ls_day  IN is_tcurr-days
-                          WHERE ( periodat BETWEEN gv_first_date AND gv_last_date )
-                          NEXT lv_count = lv_count + 1 ).
+DATA(day_count) = REDUCE i( INIT count = 0
+                            FOR  day IN calendar-days
+                            WHERE ( periodat BETWEEN first_date AND last_date )
+                            NEXT count = count + 1 ).
 
 " REDUCE building a formatted string, e.g. "12345 / 67890"
-DATA(gv_value) = REDUCE char100( INIT lv_value TYPE char100
-                                 FOR  ls_data  IN lt_data
-                                 NEXT lv_value = COND char100( WHEN lv_value IS INITIAL
-                                                               THEN condense( |{ ls_data-value ALPHA = OUT }| )
-                                                               ELSE condense(
-                                                                        |{ lv_value } / { ls_data-value ALPHA = OUT }| ) ) ).
+DATA(value_list) = REDUCE char100( INIT text TYPE char100
+                                   FOR  entry IN entries
+                                   NEXT text = COND char100( WHEN text IS INITIAL
+                                                             THEN condense( |{ entry-value ALPHA = OUT }| )
+                                                             ELSE condense(
+                                                                      |{ text } / { entry-value ALPHA = OUT }| ) ) ).
 ```
 
 ## 🗺️ CORRESPONDING with MAPPING
 
 ```abap
-" lo_data is an object reference, so its attribute is reached with -> , not -
-lt_data = CORRESPONDING #( lo_data->values MAPPING matnr = material_no ).
+" source is an object reference, so its attribute is reached with -> , not -
+materials = CORRESPONDING #( source->values MAPPING matnr = material_no ).
 ```
 `MAPPING target = source` lets you rename fields on the fly when the source and target structures use different field names.
 
 ## 🗑️ Deleting Rows
 
 ```abap
-DELETE it_itab WHERE id = 'X' AND attribute = 'ABC'.
+DELETE entries WHERE id = 'X' AND attribute = 'ABC'.
 
 " Delete by date / time comparison
-DELETE lt_tasks WHERE erdat > sy-datum.
+DELETE tasks WHERE erdat > sy-datum.
 
-DELETE lt_tasks WHERE erdat  = sy-datum
+DELETE tasks WHERE erdat  = sy-datum
                   AND erzeit > sy-uzeit.
 
 " Delete using a range table (NOT IN)
-DELETE it_itab WHERE id NOT IN ir_data.
+DELETE entries WHERE id NOT IN id_range.
 ```
 
 ## 🔎 line_index / line_exists — Position-Based Access
 
 ```abap
-DATA(lv_index) = line_index( gt_table[ vbeln = '0060000001'] ).
+DATA(document_index) = line_index( documents[ vbeln = '0060000001'] ).
 
 " Real example: reordering rows in a response table by moving one entry
 IF et_entityset IS NOT INITIAL.
-  DATA(lv_index_bank) = line_index( et_entityset[ header = 'Bank' ] ).
-  DATA(lv_index_tax)  = line_index( et_entityset[ header = 'Tax' ] ).
+  DATA(bank_index) = line_index( et_entityset[ header = 'Bank' ] ).
+  DATA(tax_index)  = line_index( et_entityset[ header = 'Tax' ] ).
 
-  IF lv_index_tax IS NOT INITIAL.
-    DATA(ls_tax) = VALUE #( et_entityset[ header = 'Tax' ] OPTIONAL ).
+  IF tax_index IS NOT INITIAL.
+    DATA(tax_entry) = VALUE #( et_entityset[ header = 'Tax' ] OPTIONAL ).
 
-    DELETE et_entityset INDEX lv_index_tax.
+    DELETE et_entityset INDEX tax_index.
 
-    IF lv_index_bank IS NOT INITIAL.
-      INSERT ls_tax INTO et_entityset INDEX lv_index_bank + 1.
+    IF bank_index IS NOT INITIAL.
+      INSERT tax_entry INTO et_entityset INDEX bank_index + 1.
     ELSE.
-      INSERT ls_tax INTO et_entityset INDEX 1.
+      INSERT tax_entry INTO et_entityset INDEX 1.
     ENDIF.
   ENDIF.
 ENDIF.
@@ -294,33 +294,33 @@ ENDIF.
 ## 🔄 LOOP with REFERENCE INTO and Grouping Strings
 
 ```abap
-LOOP AT lt_order REFERENCE INTO DATA(lr_order).
-  CASE lr_order->property.
+LOOP AT order_properties REFERENCE INTO DATA(property_ref).
+  CASE property_ref->property.
     WHEN 'OrderNo'.
-      lr_order->property = 'ORDER_NO'.
+      property_ref->property = 'ORDER_NO'.
   ENDCASE.
 ENDLOOP.
 
 " Grouping rows and concatenating a text field per group
-TYPES: BEGIN OF lty_invoice_material,
+TYPES: BEGIN OF invoice_material,
          file_no   TYPE zsm_e_file_no,
          materials TYPE string,
-       END OF lty_invoice_material.
+       END OF invoice_material.
 
-DATA lt_invoice_materials TYPE TABLE OF lty_invoice_material.
+DATA invoice_materials TYPE TABLE OF invoice_material.
 
-LOOP AT lt_invoice_sum INTO DATA(ls_invoice_sum)
-     GROUP BY ( file_no = ls_invoice_sum-file_no ) ASCENDING
-     INTO DATA(ls_invoice_sum_group).
+LOOP AT invoice_lines INTO DATA(invoice_line)
+     GROUP BY ( file_no = invoice_line-file_no ) ASCENDING
+     INTO DATA(file_group).
 
   APPEND VALUE #(
-      file_no   = ls_invoice_sum_group-file_no
-      materials = REDUCE string( INIT lv_string = ``
-                                  FOR ls_group_row IN GROUP ls_invoice_sum_group
-                                 NEXT lv_string = COND string( WHEN lv_string IS INITIAL
-                                                               THEN ls_group_row-material
-                                                               ELSE |{ lv_string }, { ls_group_row-material }| ) ) )
-      TO lt_invoice_materials.
+      file_no   = file_group-file_no
+      materials = REDUCE string( INIT text = ``
+                                 FOR member IN GROUP file_group
+                                 NEXT text = COND string( WHEN text IS INITIAL
+                                                          THEN member-material
+                                                          ELSE |{ text }, { member-material }| ) ) )
+      TO invoice_materials.
 ENDLOOP.
 ```
 
@@ -329,55 +329,55 @@ ENDLOOP.
 Field symbols (`FIELD-SYMBOLS`) and data references (`TYPE REF TO data`) allow **dynamic, generic** access to data whose type isn't known until runtime — essential for generic frameworks, BAdIs, and dynamic programming.
 
 ```abap
-TYPES tt_mara TYPE STANDARD TABLE OF mara WITH EMPTY KEY.
+TYPES material_table TYPE STANDARD TABLE OF mara WITH EMPTY KEY.
 
-DATA lr_source     TYPE REF TO data.   " lr_ = reference, not lt_
-DATA lr_line       TYPE REF TO data.
-DATA lv_field_name TYPE string.
-DATA lt_mara       TYPE tt_mara.
+DATA source_ref TYPE REF TO data.   " lr_ = reference, not lt_
+DATA line_ref   TYPE REF TO data.
+DATA field_name TYPE string.
+DATA materials  TYPE material_table.
 
-FIELD-SYMBOLS <lt_source> TYPE STANDARD TABLE.
-FIELD-SYMBOLS <lt_node>   TYPE STANDARD TABLE.
-FIELD-SYMBOLS <ls_data>   TYPE any.
-FIELD-SYMBOLS <fs_mara>   LIKE LINE OF lt_mara.
+FIELD-SYMBOLS <source_table> TYPE STANDARD TABLE.
+FIELD-SYMBOLS <node_table>   TYPE STANDARD TABLE.
+FIELD-SYMBOLS <structure>    TYPE any.
+FIELD-SYMBOLS <material>     LIKE LINE OF materials.
 
 " Dereferencing a data reference into a field symbol
-ASSIGN cr_data->* TO <ls_data>.
-IF <ls_data> IS NOT ASSIGNED.
+ASSIGN data_ref->* TO <structure>.
+IF <structure> IS NOT ASSIGNED.
   RETURN.
 ENDIF.
 
 " Dynamic component access by name (generic structure handling).
 " ALWAYS check sy-subrc - the component may not exist in this structure.
-ASSIGN COMPONENT lv_field_name OF STRUCTURE <ls_data> TO <lt_node>.
+ASSIGN COMPONENT field_name OF STRUCTURE <structure> TO <node_table>.
 IF sy-subrc <> 0.
   RETURN.
 ENDIF.
 
-LOOP AT <lt_node> ASSIGNING FIELD-SYMBOL(<ls_node>).
-  ASSIGN COMPONENT 'EXT_ID' OF STRUCTURE <ls_node> TO FIELD-SYMBOL(<lv_id>).
+LOOP AT <node_table> ASSIGNING FIELD-SYMBOL(<node>).
+  ASSIGN COMPONENT 'EXT_ID' OF STRUCTURE <node> TO FIELD-SYMBOL(<external_id>).
   IF sy-subrc = 0.
-    DATA(lv_alpha_id) = |{ <lv_id> ALPHA = IN }|.
+    DATA(internal_id) = |{ <external_id> ALPHA = IN }|.
   ENDIF.
 
-  ASSIGN COMPONENT 'NAME' OF STRUCTURE <ls_node> TO FIELD-SYMBOL(<lv_name>).
+  ASSIGN COMPONENT 'NAME' OF STRUCTURE <node> TO FIELD-SYMBOL(<name>).
   IF sy-subrc = 0.
-    <lv_name> = 'USER01'.
+    <name> = 'USER01'.
   ENDIF.
 ENDLOOP.
 
 " Appending via a field symbol
-APPEND INITIAL LINE TO lt_mara ASSIGNING <fs_mara>.
-<fs_mara>-matnr = '000000000000123456'.
+APPEND INITIAL LINE TO materials ASSIGNING <material>.
+<material>-matnr = '000000000000123456'.
 
 " Insert at a specific index via a field symbol
-INSERT INITIAL LINE INTO lt_mara ASSIGNING <fs_mara> INDEX 2.
-<fs_mara>-matnr = '000000000000123457'.
+INSERT INITIAL LINE INTO materials ASSIGNING <material> INDEX 2.
+<material>-matnr = '000000000000123457'.
 
 " Creating a new anonymous data object of the same type as a table's line
-ASSIGN lr_source->* TO <lt_source>.
+ASSIGN source_ref->* TO <source_table>.
 IF sy-subrc = 0.
-  CREATE DATA lr_line LIKE LINE OF <lt_source>.
+  CREATE DATA line_ref LIKE LINE OF <source_table>.
 ENDIF.
 ```
 
@@ -393,11 +393,11 @@ ENDIF.
 
 ## ⚠️ Common Mistakes
 
-- **Expecting a table expression to set `sy-subrc`. It does not.** `lt_itab[ key ]` raises `CX_SY_ITAB_LINE_NOT_FOUND` when there is no match. Use one of:
-  - `line_exists( lt_itab[ key = ... ] )` before accessing;
-  - `VALUE #( lt_itab[ key = ... ] OPTIONAL )` for an initial value, or `DEFAULT ...` for a fallback;
+- **Expecting a table expression to set `sy-subrc`. It does not.** `itab[ key ]` raises `CX_SY_ITAB_LINE_NOT_FOUND` when there is no match. Use one of:
+  - `line_exists( itab[ key = ... ] )` before accessing;
+  - `VALUE #( itab[ key = ... ] OPTIONAL )` for an initial value, or `DEFAULT ...` for a fallback;
   - `TRY ... CATCH cx_sy_itab_line_not_found`;
-  - `ASSIGN lt_itab[ key = ... ] TO <fs>` — **the one construct where a table expression sets `sy-subrc`** instead of raising.
+  - `ASSIGN itab[ key = ... ] TO <fs>` — **the one construct where a table expression sets `sy-subrc`** instead of raising.
 - Reducing a packed/quantity field into an integer result and losing the decimals.
 - Using `ASSIGN COMPONENT ... OF STRUCTURE` with a hardcoded field name against a generic structure without checking `sy-subrc`.
 - Confusing `-` (structure component) with `->` (dereferencing an object or data reference).
