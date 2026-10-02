@@ -65,6 +65,26 @@ ENDIF.
 
 > 🧠 **Tip:** `floor(value * 100) / 100` is a common trick to **truncate** (not round) to 2 decimal places, which is different from just declaring a `DECIMALS 2` field (which *rounds*). The `round` function states the intent directly: `round( val = exact_value dec = 2 mode = cl_abap_math=>round_down )` rounds towards zero. Its result type is `decfloat34`. Note that `floor` rounds towards the smaller value, so the two differ for negative numbers.
 
+## 🔣 Other Operators
+
+| Operator | Meaning |
+|---|---|
+| `=` | Equal (also written `EQ`) |
+| `<>` | Not equal (`NE`) |
+| `<` | Less than (`LT`) |
+| `>` | Greater than (`GT`) |
+| `<=` | Less than or equal (`LE`) |
+| `>=` | Greater than or equal (`GE`) |
+| `AND` | True if all combined logical expressions are true |
+| `OR` | True if at least one combined logical expression is true |
+| `NOT` | Negates the logical expression to its right |
+| `EQUIV` | True if both expressions are true or both are false; only two expressions per parenthesis level |
+| `&&` | Concatenates two operands into one character string; trailing blanks of fixed-length character operands are ignored |
+
+- Use one spelling of the comparison operators consistently within a program; the ABAP Keyword Documentation considers the symbol forms the more current ones. For where these conditions are used, see the comparison of `IF`, `CASE`, `COND` and `SWITCH` in [05-Control-Statements](../05-Control-Statements/README.md#-cond-vs-switch-vs-ifcase).
+- Without parentheses, `NOT` binds most strongly, then `AND`, then `OR`, then `EQUIV`. Evaluation stops as soon as the result of a parenthesis level is known.
+- For `&&` together with string templates, see [Examples/String-Functions.md](../Examples/String-Functions.md#-concatenation).
+
 ## 🎲 Random Numbers
 
 ABAP provides the class `cl_abap_random` (or `cl_abap_random_int` for integers) to generate pseudo-random numbers — useful for test data generation:
