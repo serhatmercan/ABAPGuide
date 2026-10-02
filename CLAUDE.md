@@ -52,9 +52,16 @@ Coding rules: docs/ABAP-Development-Rules.md (planned; until it exists, follow t
   table only, `zsm_tt_` table type, `zsm_s_` structure, `zsm_e_` data
   element, `zsm_r_` report, `zsm_msg` message class; classes `zcl_`,
   exceptions `zcx_`, interfaces `zif_`.
-- Variables: the current convention is the classic prefixes from Chapter 20
-  (`lv_`, `lt_`, `ls_`, `lo_`, `iv_`, `et_`, `rv_`, `lc_`, `<fs_...>`).
-  docs/ABAP-Development-Rules.md may change this when it is written.
+- ABAP naming follows SAP's Clean ABAP style guide: descriptive names
+  without type or scope prefixes (`sales_orders`, not `lt_vbak`).
+  Exceptions: names fixed by a signature you do not own (SEGW-generated
+  methods and types, BAPI and function module interfaces, inherited or
+  interface methods) stay as they are. Existing examples are migrated in
+  the planned chapter pass; legacy-labelled examples keep their construct
+  but use current naming.
+- Chapter 20 becomes Clean ABAP first; classic prefixes are described
+  there as `CLASSIC BUT STILL RELEVANT`, because readers meet them in
+  existing code.
 - Comments in code use `"` and explain why, not what.
 - DML examples target only custom Z tables; for SAP standard data point to
   BAPIs (Chapter 15). Reusable units never `COMMIT WORK`; only the caller does.
