@@ -233,7 +233,7 @@ ENDCASE.
 
 ## 🧵 Macros (`DEFINE` / `END-OF-DEFINITION`)
 
-> **Lifecycle:** `LEGACY / HISTORICAL REFERENCE`. Macros are obsolete for new code and are not available in ABAP Cloud. They are kept here because they appear constantly in existing programs — particularly in ALV and BAPI-filling code — and reading them is a real skill.
+> **Lifecycle:** `LEGACY / HISTORICAL REFERENCE`. Macros are not classified as obsolete, but new code does not use them: the ABAP Programming Guidelines allow them only in exceptional cases, and [Rule 3.19](../docs/ABAP-Development-Rules.md#319-do-not-write-macros-use-methods-or-expressions) excludes them. `DEFINE` is not allowed in ABAP for Cloud Development. They are kept here because they appear constantly in existing programs — particularly in ALV and BAPI-filling code — and reading them is a real skill.
 
 Macros perform a **textual substitution** before compilation. There is no type checking of parameters, no signature, and no line-by-line debugging: the debugger steps over the whole macro as one statement. Prefer a small private method for anything beyond trivial local repetition.
 
