@@ -259,7 +259,7 @@ DATA order_range TYPE RANGE OF aufk-aufnr.
 SELECT 'I'   AS sign,
        'EQ'  AS option,
        aufnr AS low
-  FROM zsm_t_aufnr
+  FROM zsm_t_prod_order
   INTO CORRESPONDING FIELDS OF TABLE @order_range.
 ```
 
