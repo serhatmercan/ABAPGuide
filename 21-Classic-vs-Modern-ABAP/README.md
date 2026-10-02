@@ -108,6 +108,7 @@ Superseded, but preserved in this guide because you will meet all of it. Knowing
 | **`REPLACE f1 WITH f2 INTO g`** (obsolete) | `REPLACE ... IN ...`, `replace( )` | The short form's operand order is unmemorable and its behaviour surprising. | 3.16 |
 | **`REGEX` addition** (POSIX syntax, obsolete) | `PCRE` addition *(VERSION-DEPENDENT)* | A more complete and standard regular-expression syntax. Verify availability on your release. | 3.16 |
 | **`TYPE-POOLS`** (obsolete) | Nothing — no longer required | The statement is checked for syntax but otherwise ignored. | 3.16 |
+| **`END-OF-SELECTION`** (obsolete) | No replacement needed; process in `START-OF-SELECTION` | Intended only for programs linked to a logical database; without one it is raised directly after `START-OF-SELECTION`. | 3.16 |
 | **User exits (`USEREXIT_*`)** | BAdIs, enhancement points | You edit a delivered include, so it carries modification-like upgrade cost. | — |
 | **Customer exits (SMOD/CMOD)** | BAdIs | One active project per enhancement; procedural; no filtering. | — |
 | **Modifications (access key)** | Any of the above | Every upgrade becomes an adjustment project. | — |
