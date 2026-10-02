@@ -1,10 +1,16 @@
 # 03 — Variables
 
+> **Lifecycle:** `CURRENT / RECOMMENDED`. Declarations, constants, method calls and references are current; subroutines and classical list output are labelled where they appear. See [21-Classic-vs-Modern-ABAP](../21-Classic-vs-Modern-ABAP/README.md).
+
 ## 📖 Introduction
 
 This chapter is a reference for the most common variable, constant, and object declarations you will write in almost every ABAP program — from simple scalar variables to class instances, internal tables, and pointers.
 
+Names in the examples follow [Rules 2.1–2.6](../docs/ABAP-Development-Rules.md#2-naming): descriptive names without type prefixes, and `zsm` placeholders for development objects.
+
 ## 🧮 Declaring Variables
+
+> 📝 **Contextual snippet** — assumes a class `zcl_zsm_person` with a static method `get_surname` (`IMPORTING name`, `RETURNING VALUE(result)`), a table type `zsm_tt_value` and a matching structure `key_value`.
 
 ```abap
 " BAPI Return Message
@@ -16,18 +22,17 @@ DATA(was_found) = xsdbool( sy-subrc = 0 ).
 " Constant (TYPE, not LIKE, when referring to a Dictionary field)
 CONSTANTS default_notification TYPE bapi2080_nothdre-notif_no VALUE '000000000001'.
 
-" Calling a static method with a returning value.
-" In an operand position (right-hand side of an assignment) you may only
-" supply INPUT parameters - see the note below.
-DATA(surname) = zcl_zsm_person=>get_surname( name = 'USER01' ).
+" Calling a static method with a returning value in an operand position
+" (right-hand side of an assignment) - see the note below for its limits.
+DATA(surname) = zcl_zsm_person=>get_surname( name = 'JANE DOE' ).
 
 " Clear
 CLEAR surname.
 
 " Classic (explicit type) declarations
 DATA remark          TYPE c LENGTH 120          VALUE 'S'.
-DATA document_number TYPE n LENGTH 10           VALUE '0000001907'.
-DATA counter         TYPE i                     VALUE 1994.
+DATA document_number TYPE n LENGTH 10           VALUE '0000004711'.
+DATA counter         TYPE i                     VALUE 42.
 DATA mime_type       TYPE w3conttype            VALUE 'application/pdf'.
 DATA amount          TYPE p LENGTH 8 DECIMALS 2 VALUE '17.75'.
 DATA description     TYPE string                VALUE 'Example text'.
@@ -36,12 +41,15 @@ DATA(return_messages) = VALUE bapiret2_tab( ).
 DATA(key_values)      = VALUE zsm_tt_value( ( key_value ) ).
 ```
 
-> ⚠️ **A functional method call in an operand position takes input parameters only.** `DATA(x) = cl=>meth( ... )` cannot carry `IMPORTING` or `CHANGING` parameters — for those, use a standalone call:
+> ⚠️ **A functional method call has three limits.** According to the ABAP Keyword Documentation, actual parameters cannot be declared inline, the return value cannot be assigned with `RECEIVING`, and classic exceptions cannot be handled with `EXCEPTIONS`. Where you need one of these, use a standalone call:
 > ```abap
-> zcl_zsm_person=>get_surname( EXPORTING name    = 'USER01'
->                              IMPORTING surname = DATA(found_surname) ).
+> zcl_zsm_person=>split_name( EXPORTING name       = 'JANE DOE'
+>                             IMPORTING first_name = DATA(first_name)
+>                                       surname    = DATA(family_name) ).
 > ```
 > Also note that a literal such as `'X'` can never be bound to a `CHANGING` parameter — a changing parameter is written back to, so it needs a variable.
+
+> 💡 A functional call may also bind `IMPORTING` and `CHANGING` parameters, but a method should return one value with `RETURNING` and not combine it with `EXPORTING` or `CHANGING` — [Rule 5.9](../docs/ABAP-Development-Rules.md#59-return-one-value-with-returning-instead-of-exporting).
 
 > 💡 **`TYPE` rather than `LIKE`** when referring to a Dictionary field. `LIKE` referring to Dictionary objects is an obsolete form; `LIKE` referring to another *data object* in the same program is still valid.
 
@@ -49,7 +57,9 @@ DATA(key_values)      = VALUE zsm_tt_value( ( key_value ) ).
 
 ## 🧵 `FORM` / `PERFORM` (Classical Subroutines)
 
-> **Lifecycle:** `LEGACY / HISTORICAL REFERENCE`. Procedural subroutines are obsolete for new code and are not available in ABAP Cloud — but they are everywhere in existing programs, so reading them is a required skill. Prefer methods for anything you write. See [09-Modularization](../09-Modularization/README.md) and [21-Classic-vs-Modern-ABAP](../21-Classic-vs-Modern-ABAP/README.md).
+> **Lifecycle:** `LEGACY / HISTORICAL REFERENCE`. Subroutines are obsolete; they are technically allowed in ABAP for Cloud Development but not written in new code. They are everywhere in existing programs, so reading them is a required skill. Prefer methods for anything you write. See [09-Modularization](../09-Modularization/README.md) and [21-Classic-vs-Modern-ABAP](../21-Classic-vs-Modern-ABAP/README.md#-legacy--historical-reference).
+
+The example also shows two obsolete declarations that usually come with it: `LIKE` referring to a Dictionary structure, and `WITH HEADER LINE`.
 
 `FORM`/`PERFORM` with `TABLES`/`USING` parameters is still found in many long-lived programs:
 
@@ -77,6 +87,8 @@ ENDFORM.
 
 ## 📞 Calling Methods, Function Modules & Includes
 
+> 📝 **Contextual snippet** — assumes the variables `sender_email`, `external_value` and `internal_value`, the table `key_values` from the first snippet, and the includes of a report `zsm_r_order_overview`.
+
 ```abap
 " Calling a STATIC METHOD that returns a value.
 " Note: CALL FUNCTION is for function modules only - a class method is never
@@ -98,9 +110,15 @@ INCLUDE zsm_r_order_overview_top.
 INCLUDE zsm_r_order_overview_frm.
 ```
 
+> 💡 For the `ALPHA` conversion itself, the string template option `ALPHA = IN` / `ALPHA = OUT` needs no function module — see [02-Data-Types](../02-Data-Types/README.md#-type-conversions).
+
 > ⚠️ `CALL FUNCTION` expects a **function module name** (a character value, usually a literal or a variable). Writing `CALL FUNCTION cl_some_class=>some_method` is a syntax error. Verify a class method's real signature in SE24 before calling it — see [09-Modularization](../09-Modularization/README.md) for more on choosing between methods and function modules.
 
 ## ✍️ Output & Pointers
+
+> **Lifecycle:** `CLASSIC BUT STILL RELEVANT` for the `WRITE` list output, which exists only in Standard ABAP. `VALUE … OPTIONAL` and `REF #( )` are current.
+
+> 📝 **Contextual snippet** — assumes the table `key_values` from the first snippet and the variables `order_quantity` and `sales_unit`.
 
 ```abap
 START-OF-SELECTION.
@@ -129,6 +147,7 @@ START-OF-SELECTION.
 |---|---|---|
 | Explicit `DATA` with `TYPE` | `DATA count TYPE i.` | When the type must be visible/explicit, or declared before first use (top of routine) |
 | Inline declaration | `DATA(count) = 5.` | Modern ABAP (7.40 generation onward), when the type can be inferred; keeps declarations close to usage |
+| `FINAL(...)` *(VERSION-DEPENDENT)* | `FINAL(count) = 5.` | Inline declaration of a value that is never reassigned — [Rule 3.3](../docs/ABAP-Development-Rules.md#33-declare-values-that-are-never-reassigned-with-final) |
 | `CONSTANTS` | `CONSTANTS max_count TYPE i VALUE 5.` | Fixed values that never change during runtime |
 | `FIELD-SYMBOL(<line>)` | inline in `ASSIGN`/`LOOP` | Accessing data without copying it (performance) |
 
@@ -136,9 +155,9 @@ START-OF-SELECTION.
 
 ## ✅ Best Practices
 
-- Prefer inline declarations (`DATA(...)`) close to first use for readability, but declare variables at the top of the method if they are reused across many statements.
-- Use `CONSTANTS` (or better, custom data elements/domains) instead of "magic numbers"/hardcoded literals scattered through the code.
-- Use `VALUE #( ... OPTIONAL )` instead of `READ TABLE` + `IF sy-subrc = 0` when you just need a safe default value.
+- Declare variables inline at first use — [Rule 3.1](../docs/ABAP-Development-Rules.md#31-declare-variables-inline-at-first-use) — and give the declaration an explicit type when the initial value would infer the wrong one — [Rule 3.2](../docs/ABAP-Development-Rules.md#32-give-an-inline-declaration-an-explicit-type-when-the-initial-value-would-infer-the-wrong-one). Where an up-front declaration is needed, write one statement per variable — [Rule 12.4](../docs/ABAP-Development-Rules.md#124-do-not-chain-up-front-declarations).
+- Replace magic literals with named constants, declared in the class that owns the concept — [Rules 4.1](../docs/ABAP-Development-Rules.md#41-replace-magic-literals-with-named-constants) and [4.3](../docs/ABAP-Development-Rules.md#43-declare-constants-in-the-class-or-interface-that-owns-the-concept-grouped-by-topic).
+- Use `VALUE #( ... OPTIONAL )` or `DEFAULT` instead of `READ TABLE` + `IF sy-subrc = 0` when a missing line is allowed — [Rule 3.13](../docs/ABAP-Development-Rules.md#313-read-with-a-table-expression-only-when-a-miss-is-handled).
 - Type every `FORM`/method parameter. An untyped parameter accepts anything and defers all errors to runtime.
 
 ## ⚠️ Common Mistakes
@@ -146,9 +165,9 @@ START-OF-SELECTION.
 - Declaring the same variable name twice in the same scope (syntax error) — always check existing declarations before adding new ones.
 - Adding `TYPE` to an inline `DATA(...)` declaration.
 - Calling a class method with `CALL FUNCTION`.
-- Supplying `IMPORTING`/`CHANGING` parameters to a functional method call used in an operand position.
+- Declaring an actual parameter inline, or using `RECEIVING` or `EXCEPTIONS`, in a functional method call — these need a standalone call.
 - Using `TABLES` / header-line based parameters in new code — prefer standard internal tables with explicit work areas.
-- Forgetting to `CLEAR` reused work areas between loop iterations when not using `LOOP ... INTO` (which implicitly clears).
+- Filling a reused work area field by field across loop iterations without `CLEAR` — fields not set in the current pass keep the previous values. `LOOP ... INTO` assigns the whole current line to the work area in each pass.
 
 ## 🎤 Interview & Review Checkpoints
 
@@ -159,6 +178,8 @@ START-OF-SELECTION.
 
 ## 🔗 Related Chapters
 
+- [02-Data-Types](../02-Data-Types/README.md) — the types these declarations use
 - [07-Internal-Tables](../07-Internal-Tables/README.md) — field symbols and data references in depth
 - [09-Modularization](../09-Modularization/README.md) — `FORM`/`PERFORM` vs. methods
 - [10-Objects](../10-Objects/README.md) — object references
+- [21-Classic-vs-Modern-ABAP](../21-Classic-vs-Modern-ABAP/README.md) — the lifecycle labels used in this chapter
