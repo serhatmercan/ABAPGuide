@@ -148,7 +148,7 @@ REPLACE ALL OCCURRENCES OF PCRE '\s+' IN lv_text WITH ` `.
 - Confusing `CONDENSE` (trim and collapse) with `CONDENSE ... NO-GAPS` (remove every space).
 - Assuming `CP` is case-sensitive. It is not — use `=` or `find( )` when case matters.
 - Using an unescaped `*` or `+` in a `CP` pattern built from user input.
-- Declaring a variable with the obsolete `DATA lv_x(10)` length syntax instead of `TYPE c LENGTH 10`.
+- Declaring a variable with the parenthesised length `DATA lv_x(10)` instead of `TYPE c LENGTH 10`. The parenthesised form is not obsolete, but the ABAP Keyword Documentation recommends `LENGTH` for legibility.
 - Reusing an inline-declared name (`DATA(lv_x)`) in a later snippet in the same program — each name may be declared only once.
 
 ## 🎤 Interview & Review Checkpoints
