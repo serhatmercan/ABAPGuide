@@ -214,7 +214,7 @@ ENDLOOP.
 
 > ⚠️ **How `COLLECT` decides.** `COLLECT` compares the **primary table key**; the values of all other components, which must be numeric, are added up. All key components must match **exactly** (a trailing space creates a new row). In a standard table with the standard key, that key consists of all character-like and byte-like components — so a `TYPE n` component, which looks numeric, becomes part of the key rather than being summed.
 >
-> **Use `COLLECT` only with hashed tables or sorted tables with a unique key.** The ABAP Programming Guidelines say not to use it for standard tables any more: a standard table needs a temporary hash administration that other changes to the table invalidate, after which every `COLLECT` searches linearly, and its primary key is never unique. You will still meet `COLLECT` into standard tables in existing code.
+> **Use `COLLECT` only with hashed tables or sorted tables with a unique key** — [Rule 9.8](../docs/ABAP-Development-Rules.md#98-use-collect-only-with-hashed-tables-or-sorted-tables-with-a-unique-key). The ABAP Programming Guidelines say not to use it for standard tables any more: a standard table needs a temporary hash administration that other changes to the table invalidate, after which every `COLLECT` searches linearly, and its primary key is never unique. You will still meet `COLLECT` into standard tables in existing code.
 
 ## 🎯 Range Tables (`RANGES` / `SELECT-OPTIONS`)
 
@@ -279,7 +279,7 @@ SELECT matnr, mtart, meins
 - Always `SORT` + `DELETE ADJACENT DUPLICATES` a range table built via `FOR`/loop before using it in a `WHERE ... IN`, especially for large tables — duplicate ranges hurt SQL performance.
 - Prefer `LOOP ... GROUP BY ... GROUP SIZE` over manual counting loops for readability and (usually) performance — [Rule 9.4](../docs/ABAP-Development-Rules.md#94-avoid-nested-loops-over-large-tables).
 - Use `ASSIGNING`/`REFERENCE INTO` in loops that modify data; use `INTO` (a copy) only when you need a safe, independent copy — [Rule 9.5](../docs/ABAP-Development-Rules.md#95-loop-with-assigning-or-reference-into-for-large-rows-and-for-changes).
-- Use `COLLECT` only with hashed tables or sorted tables with a unique key.
+- Use `COLLECT` only with hashed tables or sorted tables with a unique key — [Rule 9.8](../docs/ABAP-Development-Rules.md#98-use-collect-only-with-hashed-tables-or-sorted-tables-with-a-unique-key).
 - Keep `WAIT UP TO` out of reusable units; it commits the database LUW.
 
 ## ⚠️ Common Mistakes

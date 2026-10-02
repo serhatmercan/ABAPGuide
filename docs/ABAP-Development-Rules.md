@@ -1846,6 +1846,26 @@ SELECT order_id, status FROM zsm_t_order
 ENDSELECT.
 ```
 
+### 9.8 Use COLLECT only with hashed tables or sorted tables with a unique key
+
+`COLLECT` relies on unique entries with respect to the primary table key and on a stable key administration. Hashed tables and sorted tables have such an administration of their own, and their key decides which line the values are added to.
+
+A standard table only gets a temporary hash administration for `COLLECT`, which other changes to the table invalidate. Every following `COLLECT` then searches linearly, and the primary key of a standard table is never unique. A sorted table with a non-unique key works correctly only as long as nothing but `COLLECT` fills it. The ABAP Programming Guidelines therefore say: only use `COLLECT` for hashed tables or sorted tables with a unique key, and not for standard tables any more.
+
+All components outside the primary key must be numeric; their values are added up. See [06-Loops](../06-Loops/README.md#-collect--aggregating-rows).
+
+```abap
+" ✅
+TYPES quantities_by_material TYPE HASHED TABLE OF zsm_s_material_quantity
+                             WITH UNIQUE KEY matnr.
+DATA quantities TYPE quantities_by_material.
+
+COLLECT VALUE zsm_s_material_quantity( matnr = item-matnr quantity = item-quantity ) INTO quantities.
+
+" ❌ standard table: temporary hash administration, linear search after other changes
+DATA quantities TYPE STANDARD TABLE OF zsm_s_material_quantity WITH DEFAULT KEY.
+```
+
 ## 10 Testing
 
 > **Lifecycle:** `CURRENT / RECOMMENDED`. ABAP Unit is the test framework for ABAP code. An ABAPGuide chapter on ABAP Unit is planned. Until it exists, these rules are the reference.
