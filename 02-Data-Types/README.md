@@ -8,27 +8,27 @@ ABAP is a strongly typed language. Before you can store a value, you must declar
 
 | Type | Description | Example |
 |---|---|---|
-| `c` | Fixed-length character | `DATA lv_char TYPE c LENGTH 10.` |
-| `n` | Numeric text (digits only, leading zeros) | `DATA lv_num TYPE n LENGTH 4.` |
-| `i` / `int4` | Integer | `DATA lv_int TYPE i.` |
-| `p` | Packed decimal | `DATA lv_amt TYPE p LENGTH 8 DECIMALS 2.` |
-| `string` | Variable-length character string | `DATA lv_str TYPE string.` |
-| `d` / `datum` | Date (`YYYYMMDD`) | `DATA lv_date TYPE d.` |
-| `t` / `tims` | Time (`HHMMSS`) | `DATA lv_time TYPE t.` |
-| `xstring` | Variable-length byte string (binary) | `DATA lv_bin TYPE xstring.` |
+| `c` | Fixed-length character | `DATA text TYPE c LENGTH 10.` |
+| `n` | Numeric text (digits only, leading zeros) | `DATA fiscal_year TYPE n LENGTH 4.` |
+| `i` / `int4` | Integer | `DATA item_count TYPE i.` |
+| `p` | Packed decimal | `DATA amount TYPE p LENGTH 8 DECIMALS 2.` |
+| `string` | Variable-length character string | `DATA description TYPE string.` |
+| `d` / `datum` | Date (`YYYYMMDD`) | `DATA posting_date TYPE d.` |
+| `t` / `tims` | Time (`HHMMSS`) | `DATA posting_time TYPE t.` |
+| `xstring` | Variable-length byte string (binary) | `DATA file_content TYPE xstring.` |
 
 ## 🧩 Structures
 
 A **structure** groups related fields together, similar to a `struct` in C or a record in other languages.
 
 ```abap
-TYPES: BEGIN OF ty_viqmel,
-         notif_no    TYPE char10,
-         notif_type  TYPE char2,
-         description TYPE char40,
-       END OF ty_viqmel.
+TYPES: BEGIN OF notification_header,
+         notification_id   TYPE char10,
+         notification_type TYPE char2,
+         description       TYPE char40,
+       END OF notification_header.
 
-DATA ls_viqmel TYPE ty_viqmel.
+DATA notification TYPE notification_header.
 ```
 
 > See [07-Internal-Tables](../07-Internal-Tables/README.md) for building tables of structures, and [08-Open-SQL](../08-Open-SQL/README.md) for reading DB tables directly into structures.
@@ -39,10 +39,10 @@ Two very common statements when working with character data read from the databa
 
 ```abap
 " Condense: Delete Space
-CONDENSE lv_data.
+CONDENSE raw_value.
 
 " Shift: Delete Beginning Zeros
-SHIFT lv_data LEFT DELETING LEADING '0'.
+SHIFT raw_value LEFT DELETING LEADING '0'.
 ```
 
 | Statement | Purpose |
@@ -56,15 +56,15 @@ ABAP performs a lot of *implicit* conversions, but it's important to know how to
 
 ```abap
 " ALPHA IN: Add leading zeros (internal format)
-DATA lv_vbeln TYPE char10.
-lv_vbeln = |{ is_data-vbeln ALPHA = IN }|.
+DATA document_number TYPE char10.
+document_number = |{ document-vbeln ALPHA = IN }|.
 
 " ALPHA OUT: Remove leading zeros (external/display format)
-lv_vbeln = |{ is_data-vbeln ALPHA = OUT }|.
+document_number = |{ document-vbeln ALPHA = OUT }|.
 
 " Explicit type conversion with CONV
-DATA(lv_data)  = CONV int4( ls_data-value ).
-DATA(ls_data)  = CORRESPONDING zsm_t_data( ls_xdata ).
+DATA(quantity) = CONV int4( entry-value ).
+DATA(entry)    = CORRESPONDING zsm_t_data( external_entry ).
 ```
 
 Conversion exits (`CONVERSION_EXIT_*`) are the classical, function-module–based way of doing the same thing and are still widely used with material numbers, dates, and other domain-specific fields — see [09-Modularization](../09-Modularization/README.md#-conversion-exits).
@@ -75,35 +75,35 @@ Conversion exits (`CONVERSION_EXIT_*`) are the classical, function-module–base
 
 **RTTS** (Runtime Type Services) is the set of `CL_ABAP_*DESCR` classes that describe a type at runtime — including DDIC types looked up by name. A common use is reading the **fixed values of a data element's domain**, so that dropdowns, value checks or OData value help stay in sync with the DDIC instead of hard-coding the domain values in the program.
 
-> 📝 **Contextual snippet** — `et_data` is assumed to be an exporting parameter of the surrounding method; the `TYPES` show its shape and the `DATA et_data` line stands in for that parameter. `ZFI_E_STATU` is a placeholder data element whose domain has fixed values.
+> 📝 **Contextual snippet** — `statuses` is assumed to be an exporting parameter of the surrounding method; the `TYPES` show its shape and the `DATA statuses` line stands in for that parameter. `ZSM_E_STATUS` is a placeholder data element whose domain has fixed values.
 
 ```abap
-TYPES: BEGIN OF ty_status,
-         statu      TYPE zfi_e_statu,
-         statu_text TYPE ddfixvalue-ddtext,
-       END OF ty_status.
-TYPES tt_status TYPE STANDARD TABLE OF ty_status WITH EMPTY KEY.
+TYPES: BEGIN OF status_value,
+         status      TYPE zsm_e_status,
+         status_text TYPE ddfixvalue-ddtext,
+       END OF status_value.
+TYPES status_values TYPE STANDARD TABLE OF status_value WITH EMPTY KEY.
 
-DATA et_data TYPE tt_status.
+DATA statuses TYPE status_values.
 
-DATA(lt_fixed_values) = CAST cl_abap_elemdescr(
-  cl_abap_typedescr=>describe_by_name( 'ZFI_E_STATU' ) )->get_ddic_fixed_values( ).
+DATA(fixed_values) = CAST cl_abap_elemdescr(
+  cl_abap_typedescr=>describe_by_name( 'ZSM_E_STATUS' ) )->get_ddic_fixed_values( ).
 
-et_data = VALUE #( FOR ls_values IN lt_fixed_values
-                   ( statu = ls_values-low statu_text = ls_values-ddtext ) ).
+statuses = VALUE #( FOR fixed_value IN fixed_values
+                    ( status = fixed_value-low status_text = fixed_value-ddtext ) ).
 ```
 
 The compact form above assumes the name is known to be a valid elementary DDIC type. When the name comes from configuration or user input, use the robust variant:
 
 ```abap
-DATA lo_type TYPE REF TO cl_abap_typedescr.
+DATA type_description TYPE REF TO cl_abap_typedescr.
 
 " describe_by_name signals an unknown name via a classic exception
 cl_abap_typedescr=>describe_by_name(
   EXPORTING
-    p_name         = 'ZFI_E_STATU'
+    p_name         = 'ZSM_E_STATUS'
   RECEIVING
-    p_descr_ref    = lo_type
+    p_descr_ref    = type_description
   EXCEPTIONS
     type_not_found = 1
     OTHERS         = 2 ).
@@ -112,18 +112,18 @@ IF sy-subrc <> 0.
 ENDIF.
 
 " Only elementary types (data elements) have domain fixed values
-IF lo_type->kind <> cl_abap_typedescr=>kind_elem.
+IF type_description->kind <> cl_abap_typedescr=>kind_elem.
   RETURN.
 ENDIF.
 
 " get_ddic_fixed_values has classic exceptions of its own
-DATA lt_status_values TYPE ddfixvalues.
+DATA fixed_values TYPE ddfixvalues.
 
-DATA(lo_elem) = CAST cl_abap_elemdescr( lo_type ).
+DATA(element_description) = CAST cl_abap_elemdescr( type_description ).
 
-lo_elem->get_ddic_fixed_values(
+element_description->get_ddic_fixed_values(
   RECEIVING
-    p_fixed_values = lt_status_values
+    p_fixed_values = fixed_values
   EXCEPTIONS
     not_found      = 1
     no_ddic_type   = 2
@@ -132,8 +132,8 @@ IF sy-subrc <> 0.
   RETURN. " no DDIC fixed values available - handle/log as appropriate
 ENDIF.
 
-et_data = VALUE #( FOR ls_status IN lt_status_values
-                   ( statu = ls_status-low statu_text = ls_status-ddtext ) ).
+statuses = VALUE #( FOR fixed_value IN fixed_values
+                    ( status = fixed_value-low status_text = fixed_value-ddtext ) ).
 ```
 
 **Common mistakes / notes**
