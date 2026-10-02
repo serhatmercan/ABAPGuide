@@ -27,7 +27,7 @@ LOOP AT lt_items INTO DATA(ls_item).
 ENDLOOP.
 ```
 
-> ⚠️ **`CHECK` is not a general-purpose guard, and its polarity catches people out.** Because it exits when the condition is *false*, a statement such as `CHECK sy-subrc <> 0.` continues only on the **error** path and abandons the block on success — usually the exact opposite of the author's intent. Use `IF` when you want to branch, and keep `CHECK` for genuinely skipping the current loop pass.
+> ⚠️ **`CHECK` is not a general-purpose guard, and its polarity catches people out.** Because it exits when the condition is *false*, a statement such as `CHECK sy-subrc <> 0.` continues only on the **error** path and abandons the block on success — usually the exact opposite of the author's intent. Use `IF` when you want to branch. In new code, use `CHECK` at most as an input check at the start of a method, prefer `IF … RETURN` even there, and in loops use `IF` with `CONTINUE` ([Rule 3.17](../docs/ABAP-Development-Rules.md#317-use-check-only-as-an-input-check-at-the-start-of-a-method-prefer-if--return)).
 
 ## 🌿 IF / ELSE and the `COND` Operator
 
@@ -93,7 +93,7 @@ DATA(lv_status) = SWITCH char10( sy-msgty
 - Relying on `#` and getting a narrower type than intended, so later branches are silently truncated.
 - Forgetting that `COND` without an `ELSE` returns the type's **initial value** when nothing matches, hiding the "no match" case.
 - Getting `CHECK`'s polarity backwards, so the block is abandoned on the success path.
-- Overusing `CHECK` deep inside nested loops — prefer an explicit `IF ... CONTINUE`/`EXIT`.
+- Using `CHECK` inside loops or anywhere other than the start of a method — use `IF ... CONTINUE` in loops and `IF ... RETURN` in methods ([Rule 3.17](../docs/ABAP-Development-Rules.md#317-use-check-only-as-an-input-check-at-the-start-of-a-method-prefer-if--return)).
 
 ## 🎤 Interview & Review Checkpoints
 
