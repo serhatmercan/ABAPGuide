@@ -10,49 +10,49 @@ ABAP offers several looping constructs: `DO`, `WHILE`, and — most importantly 
 
 ```abap
 " Bounded retry: attempt an operation that may fail transiently.
-" lo_resource->try_reserve( ) is a placeholder for whatever operation
+" resource->try_reserve( ) is a placeholder for whatever operation
 " you are retrying (a lock attempt, a queue slot, an external call).
-CONSTANTS lc_max_attempts TYPE i VALUE 3.
+CONSTANTS max_attempts TYPE i VALUE 3.
 
-DATA(lv_reserved) = abap_false.
+DATA(is_reserved) = abap_false.
 
-DO lc_max_attempts TIMES.
-  lv_reserved = lo_resource->try_reserve( iv_key = lv_key ).
+DO max_attempts TIMES.
+  is_reserved = resource->try_reserve( resource_key = resource_key ).
 
-  IF lv_reserved = abap_true.
+  IF is_reserved = abap_true.
     EXIT.                                   " success — stop retrying
   ENDIF.
 
   WAIT UP TO 1 SECONDS.                     " back off before the next attempt
 ENDDO.
 
-IF lv_reserved = abap_false.
+IF is_reserved = abap_false.
   " all attempts exhausted — handle as a business error, do not continue silently
 ENDIF.
 ```
 
-> 🧠 **Retry pattern notes.** Always bound the number of attempts (`lc_max_attempts`), always `EXIT` on success, and always handle the "all attempts failed" case explicitly. `sy-index` holds the current iteration number inside `DO`, which is useful for logging the attempt count.
+> 🧠 **Retry pattern notes.** Always bound the number of attempts (`max_attempts`), always `EXIT` on success, and always handle the "all attempts failed" case explicitly. `sy-index` holds the current iteration number inside `DO`, which is useful for logging the attempt count.
 
 > ⚠️ **Do not use a retry loop to write directly to SAP standard application tables.** Directly updating SAP standard application tables with `UPDATE` / `MODIFY` / `DELETE` bypasses the application's business logic, validations and status handling, and should not be presented as a normal extension technique. Prefer the supported API or business interface appropriate to the target object — see [15-BAPIs](../15-BAPIs/README.md). Direct DML in this guide is always shown against **custom (Z) tables** you own.
 
 ## 🔁 LOOP AT — the Workhorse
 
 ```abap
-LOOP AT lt_data ASSIGNING FIELD-SYMBOL(<fs_data>) WHERE value IS NOT INITIAL.
-  CASE <fs_data>-value.
+LOOP AT entries ASSIGNING FIELD-SYMBOL(<entry>) WHERE value IS NOT INITIAL.
+  CASE <entry>-value.
     WHEN '03'.
-      CLEAR <fs_data>.
+      CLEAR <entry>.
   ENDCASE.
 ENDLOOP.
 
 " Loop with a range of indexes
-LOOP AT lt_data REFERENCE INTO DATA(lr_data) FROM 1 TO ls_attribute-size.
-  APPEND VALUE #( name = lr_data->name ) TO lt_tags.
-  CLEAR lr_data->name.
+LOOP AT entries REFERENCE INTO DATA(entry_ref) FROM 1 TO attribute-size.
+  APPEND VALUE #( name = entry_ref->name ) TO tags.
+  CLEAR entry_ref->name.
 ENDLOOP.
 ```
 
-> ✅ **Tip:** Prefer `ASSIGNING FIELD-SYMBOL(<fs>)` or `REFERENCE INTO` over `INTO ls_data` when you plan to **modify** the current row — it avoids an extra `MODIFY` statement and is more performant since no copy is made.
+> ✅ **Tip:** Prefer `ASSIGNING FIELD-SYMBOL(<line>)` or `REFERENCE INTO` over `INTO line` when you plan to **modify** the current row — it avoids an extra `MODIFY` statement and is more performant since no copy is made.
 
 ### Control Breaks (`AT NEW` / `AT END OF`)
 
@@ -62,17 +62,17 @@ ENDLOOP.
 " Classic control-break processing.
 " Prerequisites: the table must be SORTED by the control field, and the
 " LOOP must use INTO a work area.
-SORT lt_orders BY plant order_no.
+SORT orders BY plant order_no.
 
-LOOP AT lt_orders INTO DATA(ls_order).
+LOOP AT orders INTO DATA(order).
   AT NEW plant.
-    WRITE: / 'Plant:', ls_order-plant.
+    WRITE: / 'Plant:', order-plant.
   ENDAT.
 
-  WRITE: / ls_order-order_no, ls_order-quantity.
+  WRITE: / order-order_no, order-quantity.
 
   AT END OF plant.
-    WRITE: / 'Subtotal for plant', ls_order-plant.
+    WRITE: / 'Subtotal for plant', order-plant.
   ENDAT.
 ENDLOOP.
 ```
@@ -90,24 +90,24 @@ ENDLOOP.
 Modern ABAP allows grouping directly in a `LOOP`, replacing the classical "control break" (`AT NEW` / `AT END OF`) pattern for many use cases:
 
 ```abap
-DATA(lt_group_data) = VALUE spfli_tab( ).
+DATA(group_members) = VALUE spfli_tab( ).
 
 SELECT * FROM spfli
-  INTO TABLE @DATA(lt_data).
+  INTO TABLE @DATA(flights).
 
-LOOP AT lt_data INTO DATA(ls_data)
-     GROUP BY ( carrier   = ls_data-carrid
-                city_from = ls_data-cityfrom ) ASCENDING
-     ASSIGNING FIELD-SYMBOL(<fs_data>).
+LOOP AT flights INTO DATA(flight)
+     GROUP BY ( carrier   = flight-carrid
+                city_from = flight-cityfrom ) ASCENDING
+     ASSIGNING FIELD-SYMBOL(<flight_group>).
 
-  CLEAR lt_group_data.
+  CLEAR group_members.
 
-  LOOP AT GROUP <fs_data> ASSIGNING FIELD-SYMBOL(<fsg_data>).
-    lt_group_data = VALUE #( BASE lt_group_data
-                             ( <fsg_data> ) ).
+  LOOP AT GROUP <flight_group> ASSIGNING FIELD-SYMBOL(<member>).
+    group_members = VALUE #( BASE group_members
+                             ( <member> ) ).
   ENDLOOP.
 
-  cl_demo_output=>write( lt_group_data ).
+  cl_demo_output=>write( group_members ).
 ENDLOOP.
 
 cl_demo_output=>display( ).
@@ -117,35 +117,35 @@ Counting members per group and building a display text is a very common reportin
 
 ```abap
 " Counting per group with a nested LOOP ... TRANSPORTING NO FIELDS
-LOOP AT lt_container_types INTO DATA(ls_container_type) GROUP BY ( container_type = ls_container_type-container_type ).
-  CLEAR lv_container_type_count.
+LOOP AT containers INTO DATA(container) GROUP BY ( container_type = container-container_type ).
+  CLEAR container_count.
 
-  LOOP AT lt_container_types TRANSPORTING NO FIELDS WHERE container_type = ls_container_type-container_type.
-    lv_container_type_count += 1.
+  LOOP AT containers TRANSPORTING NO FIELDS WHERE container_type = container-container_type.
+    container_count += 1.
   ENDLOOP.
 
-  READ TABLE lt_cont_type_txt INTO DATA(ls_cont_type_txt) WITH KEY domvalue_l = ls_container_type-container_type.
+  READ TABLE container_type_texts INTO DATA(container_type_text) WITH KEY domvalue_l = container-container_type.
   IF sy-subrc = 0.
-    ls_data-container_type_txt = |{ lv_container_type_count }*{ ls_cont_type_txt-ddtext },{ ls_data-container_type_txt }|.
+    summary-container_types_text = |{ container_count }*{ container_type_text-ddtext },{ summary-container_types_text }|.
   ENDIF.
 ENDLOOP.
 
 " Cleaner alternative using the built-in GROUP SIZE
-DATA lt_parts TYPE TABLE OF string.
+DATA parts TYPE TABLE OF string.
 
-LOOP AT lt_container_types INTO DATA(ls_container_type)
-     GROUP BY ( container_type = ls_container_type-container_type
+LOOP AT containers INTO DATA(container)
+     GROUP BY ( container_type = container-container_type
                 size           = GROUP SIZE )
-     ASCENDING WITHOUT MEMBERS INTO DATA(ls_group).
+     ASCENDING WITHOUT MEMBERS INTO DATA(container_group).
 
-  READ TABLE lt_cont_type_txt INTO DATA(ls_cont_type_txt) WITH KEY domvalue_l = ls_group-container_type.
+  READ TABLE container_type_texts INTO DATA(container_type_text) WITH KEY domvalue_l = container_group-container_type.
   IF sy-subrc = 0.
-    APPEND |{ ls_group-size }*{ ls_cont_type_txt-ddtext }| TO lt_parts.
+    APPEND |{ container_group-size }*{ container_type_text-ddtext }| TO parts.
   ENDIF.
 ENDLOOP.
 
-ls_data-container_type_txt = concat_lines_of( table = lt_parts
-                                              sep   = `, ` ).
+summary-container_types_text = concat_lines_of( table = parts
+                                                sep   = `, ` ).
 ```
 
 > 💡 `GROUP SIZE` (second example) directly returns the number of members in each group — no manual counting loop needed. Prefer it over the manual `TRANSPORTING NO FIELDS` counting pattern.
@@ -158,39 +158,39 @@ ls_data-container_type_txt = concat_lines_of( table = lt_parts
 
 ```abap
 " TYPES defines a type; DATA defines a data object. TYPE TABLE OF needs a type.
-TYPES: BEGIN OF ty_collect,
+TYPES: BEGIN OF counter_line,
          key   TYPE c LENGTH 10,   " character-like -> part of the key
          group TYPE n LENGTH 2,    " numeric TEXT (n) is character-like -> ALSO part of the key
          count TYPE i,             " numeric (i) -> summed
-       END OF ty_collect.
+       END OF counter_line.
 
-DATA lt_table TYPE TABLE OF ty_collect.
+DATA counters TYPE TABLE OF counter_line.
 
-DATA(ls_table) = VALUE ty_collect( key   = 'First'
-                                   group = '20'
-                                   count = 30 ).
-COLLECT ls_table INTO lt_table.
+DATA(counter) = VALUE counter_line( key   = 'First'
+                                    group = '20'
+                                    count = 30 ).
+COLLECT counter INTO counters.
 
-ls_table = VALUE #( key   = 'First'
-                    group = '20'
-                    count = 15 ).
-COLLECT ls_table INTO lt_table. " same key + group -> count becomes 45
+counter = VALUE #( key   = 'First'
+                   group = '20'
+                   count = 15 ).
+COLLECT counter INTO counters. " same key + group -> count becomes 45
 
-ls_table = VALUE #( key   = 'Second'
-                    group = '20'
-                    count = 15 ).
-COLLECT ls_table INTO lt_table. " new row, key = 'Second'
+counter = VALUE #( key   = 'Second'
+                   group = '20'
+                   count = 15 ).
+COLLECT counter INTO counters. " new row, key = 'Second'
 ```
 
 A very common real-world pattern: summing delivery item quantities per material inside a loop.
 
 ```abap
-DATA lt_data TYPE TABLE OF zsm_s_test.
+DATA material_counts TYPE TABLE OF zsm_s_material_count.
 
-LOOP AT it_lips INTO DATA(ls_lips).
-  DATA(ls_data_line) = VALUE zsm_s_test( matnr = ls_lips-matnr
-                                         item  = 1 ).
-  COLLECT ls_data_line INTO lt_data.
+LOOP AT delivery_items INTO DATA(delivery_item).
+  DATA(material_count) = VALUE zsm_s_material_count( matnr = delivery_item-matnr
+                                                     item  = 1 ).
+  COLLECT material_count INTO material_counts.
 ENDLOOP.
 ```
 
@@ -204,44 +204,44 @@ A range table (`sign`, `option`, `low`, `high`) is the classic way to build dyna
 
 ```abap
 " Simple range table type
-DATA lr_charg TYPE RANGE OF lqua-charg.
+DATA batch_range TYPE RANGE OF lqua-charg.
 
 " Custom range types
-TYPES: ty_tt_mncod TYPE RANGE OF qmsm-mncod,
-       ty_tt_objnr TYPE RANGE OF qmsm-objnr.
+TYPES: activity_code_range TYPE RANGE OF qmsm-mncod,
+       object_number_range TYPE RANGE OF qmsm-objnr.
 
-DATA(lr_mncod) = VALUE ty_tt_mncod( sign = 'I' option = 'EQ' ( low = '1000' ) ( low = '1001' ) ( low = '1002' ) ).
-DATA(lr_objnr) = VALUE ty_tt_objnr( FOR ls_jest IN lt_jest ( sign = 'I' option = 'EQ' low = ls_jest-objnr ) ).
+DATA(activity_codes) = VALUE activity_code_range( sign = 'I' option = 'EQ' ( low = '1000' ) ( low = '1001' ) ( low = '1002' ) ).
+DATA(object_numbers) = VALUE object_number_range( FOR object_status IN object_statuses ( sign = 'I' option = 'EQ' low = object_status-objnr ) ).
 
 " Appending to a range table
-APPEND VALUE #( sign = 'I' option = 'EQ' low = iv_data high = iv_data ) TO lr_charg.
+APPEND VALUE #( sign = 'I' option = 'EQ' low = batch high = batch ) TO batch_range.
 
 " Single-value declaration
-lr_charg = VALUE #( ( sign = 'I' option = 'EQ' low = iv_data ) ).
+batch_range = VALUE #( ( sign = 'I' option = 'EQ' low = batch ) ).
 
 " Multi-value declaration (common header + varying LOW)
-lr_charg = VALUE #(  sign = 'I' option = 'EQ' ( low = iv_data1 ) ( low = iv_data2 ) ).
+batch_range = VALUE #(  sign = 'I' option = 'EQ' ( low = first_batch ) ( low = second_batch ) ).
 
 " Building a range from an internal table with FOR
-DATA(lr_matnr) = VALUE range_t_matnr( FOR ls_data IN lt_data ( low = ls_data-matnr sign = 'I' option = 'EQ' )
-                                                             ( low = ls_data-value sign = 'I' option = 'EQ' ) ).
+DATA(material_range) = VALUE range_t_matnr( FOR material IN materials ( low = material-matnr sign = 'I' option = 'EQ' )
+                                                                       ( low = material-value sign = 'I' option = 'EQ' ) ).
 
 " Building a range with SORT + removing duplicates
-DATA lr_ref_key TYPE RANGE OF bkpf-awkey.
+DATA reference_keys TYPE RANGE OF bkpf-awkey.
 
-lr_ref_key  = VALUE #( FOR ls_alv IN ct_alv ( sign = 'I' option = 'EQ' low = ls_alv-vbeln_vf ) ).
+reference_keys = VALUE #( FOR alv_line IN alv_lines ( sign = 'I' option = 'EQ' low = alv_line-vbeln_vf ) ).
 
-SORT lr_ref_key ASCENDING BY low.
-DELETE ADJACENT DUPLICATES FROM lr_ref_key COMPARING low.
+SORT reference_keys ASCENDING BY low.
+DELETE ADJACENT DUPLICATES FROM reference_keys COMPARING low.
 
 " Building a range directly from a SELECT
-DATA lr_aufnr TYPE RANGE OF aufk-aufnr.
+DATA order_range TYPE RANGE OF aufk-aufnr.
 
 SELECT 'I'   AS sign,
        'EQ'  AS option,
        aufnr AS low
   FROM zsm_t_aufnr
-  INTO CORRESPONDING FIELDS OF TABLE @lr_aufnr.
+  INTO CORRESPONDING FIELDS OF TABLE @order_range.
 ```
 
 > ⚠️ **VERSION-DEPENDENT.** Literals in the SELECT list and internal tables as ABAP SQL data sources were introduced progressively across the 7.4x/7.5x releases. Check the ABAP Keyword Documentation for your target release before relying on them. `INTO CORRESPONDING FIELDS OF TABLE` is used here because the range structure has a `high` component that the SELECT list does not supply.
@@ -251,8 +251,8 @@ Use the resulting range table in a `WHERE` clause:
 ```abap
 SELECT matnr, mtart, meins
   FROM mara
-  WHERE matnr IN @lr_matnr
-  INTO TABLE @DATA(lt_mara).
+  WHERE matnr IN @material_range
+  INTO TABLE @DATA(material_rows).
 ```
 
 ## ✅ Best Practices
