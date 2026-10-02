@@ -190,11 +190,11 @@ DATA it_itab TYPE tt_row.
 
 " Variant 1 - basic: compare a component against a value.
 " Note there are no parentheses around the WHERE condition.
-DATA(lt_by_value) = FILTER #( it_itab WHERE ernam = 'USER01' ).
+DATA(lt_by_value) = FILTER #( it_itab USING KEY by_ernam WHERE ernam = 'USER01' ).
 
 " Variant 1 with an explicit key, and the inverted form
 DATA(lt_keyed)  = FILTER #( it_itab USING KEY by_ernam WHERE ernam = 'USER01' ).
-DATA(lt_except) = FILTER #( it_itab EXCEPT WHERE ernam = 'USER01' ).
+DATA(lt_except) = FILTER #( it_itab EXCEPT USING KEY by_ernam WHERE ernam = 'USER01' ).
 
 " Variant 2 - filter table: keep the rows whose component appears in a
 " second table. The right-hand side of WHERE refers to the FILTER TABLE,
