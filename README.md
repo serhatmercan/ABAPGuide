@@ -115,13 +115,26 @@ Corrections and additions are welcome — particularly anything that fixes a tec
 3. For anything version-sensitive, cite the ABAP Keyword Documentation rather than asserting a release number.
 4. Open a pull request describing the change.
 
-## 📄 License
+## 🔗 Related Guides
 
-Licensed under the [MIT License](LICENSE) — free to use for learning, teaching and reference.
+| Guide | Focus |
+|---|---|
+| **ABAPGuide** (this repository) | ABAP language and techniques, classic to modern |
+| [CDSGuide](https://github.com/serhatmercan/CDSGuide) | ABAP CDS, structured route through both generations |
+| [CDS-Cookbook](https://github.com/serhatmercan/CDS-Cookbook) | CDS and AMDP pattern library |
+| [GWGuide](https://github.com/serhatmercan/GWGuide) | SAP Gateway: SEGW and OData V2 |
+| [UIGuide](https://github.com/serhatmercan/UIGuide) | SAPUI5 and Fiori control and pattern reference |
+| [JSGuide](https://github.com/serhatmercan/JSGuide) | Plain JavaScript and browser APIs |
+| [PYGuide](https://github.com/serhatmercan/PYGuide) | Python reference with verified outputs |
 
 ## 👤 Author
 
-**Serhat Mercan** — SAP Technical Lead · Enterprise SAP Engineering · ABAP / ABAP Cloud · SAP BTP
+**Serhat Mercan** — SAP BTP & AI Technical Lead | Generative AI for SAP | ABAP & SAP Fiori/UI5
 
-- GitHub: [github.com/serhatmercan](https://github.com/serhatmercan)
-- LinkedIn: [linkedin.com/in/serhat-mercan](https://www.linkedin.com/in/serhat-mercan/)
+- LinkedIn: [serhat-mercan](https://www.linkedin.com/in/serhat-mercan/)
+- E-mail: serhatmercan94@gmail.com
+- GitHub: [serhatmercan](https://github.com/serhatmercan)
+
+## 📄 License
+
+Licensed under the [MIT License](LICENSE) — free to use for learning, teaching and reference.
