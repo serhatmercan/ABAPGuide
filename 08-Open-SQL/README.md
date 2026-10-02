@@ -14,9 +14,11 @@ The statements below are an **independent cookbook** — a catalogue of forms, n
 
 > ⚠️ All DML examples in this guide target **custom (Z) tables that you own**. Do not apply them to SAP standard application tables — that bypasses the application's business logic and validations. Use the supported API or business interface instead (see [15-BAPIs](../15-BAPIs/README.md)).
 
+> 📝 **Contextual snippet** — assumes a custom table `zsm_t_entry`, the variables `customer`, `request_count` and `approval_id`, and a structure `ticket`.
+
 ```abap
 " Internal table used as the source/target for the examples below
-DATA entries TYPE TABLE OF zsm_t_entry.
+DATA entries TYPE STANDARD TABLE OF zsm_t_entry WITH EMPTY KEY.
 DATA entry   TYPE zsm_t_entry.
 
 " INSERT - from an internal table (bulk insert)
@@ -62,7 +64,7 @@ DELETE FROM zsm_t_entry WHERE vbeln = entry-vbeln.
 DELETE zsm_t_entry FROM TABLE entries.
 ```
 
-> ⚠️ **Qualify mass `UPDATE` and `DELETE` statements.** A `DELETE FROM ... WHERE` on a non-key, non-selective column can remove far more rows than intended, and there is no confirmation prompt. Filter by the key where possible, and know the expected row count before you run it. `sy-dbcnt` holds the number of rows actually changed — check it.
+> ⚠️ **Qualify mass `UPDATE` and `DELETE` statements.** A `DELETE FROM ... WHERE` on a non-key, non-selective column can remove far more rows than intended, and there is no confirmation prompt. Filter by the key where possible, and know the expected row count before you run it. `sy-dbcnt` holds the number of rows actually changed — check it ([Rule 7.15](../docs/ABAP-Development-Rules.md#715-qualify-mass-update-and-delete-with-where-and-check-sy-dbcnt)).
 
 > 💡 **`UPDATE ... FROM @( VALUE #( ... ) )`** uses a *host expression* to build the work area inline. This is valid current ABAP SQL and avoids an intermediate variable. **VERSION-DEPENDENT** — host expressions require a sufficiently recent release; verify against the ABAP Keyword Documentation for your target system.
 
@@ -72,9 +74,11 @@ This is the single most important concept in this chapter, and the one most ofte
 
 ### The rule
 
-**The transaction boundary belongs to the top-level caller** — the report, the job step, the OData/RAP request handler, the orchestrating application. A reusable unit (a method, a function module, a BAdI implementation, a helper class) **must not decide the caller's transaction boundary**.
+**The transaction boundary belongs to the top-level caller** ([Rule 7.10](../docs/ABAP-Development-Rules.md#710-let-the-top-level-caller-own-the-transaction-reusable-units-never-commit-work)) — the report, the job step, the OData/RAP request handler, the orchestrating application. A reusable unit (a method, a function module, a BAdI implementation, a helper class) **must not decide the caller's transaction boundary**.
 
 `COMMIT WORK` does not commit "your" changes. It closes the **current SAP LUW** and commits *everything* pending in it, including work done by callers and by other components you know nothing about. A commit buried inside a reusable method is how half-written business documents are produced.
+
+> 📝 **Contextual snippet** — `save_entries` is assumed to have `IMPORTING entries` and `RETURNING VALUE(result) TYPE i`; the report assumes the tables `entries` and `log_entries`.
 
 ```abap
 " ✅ Reusable unit: performs its DML, reports what happened, commits nothing.
@@ -96,6 +100,7 @@ START-OF-SELECTION.
 
       COMMIT WORK.                " one commit, at the boundary that owns the work
 
+    " cx_root only here, at the outermost boundary (Rule 6.6)
     CATCH cx_root INTO DATA(error).
       ROLLBACK WORK.              " discard the entire unit of work
       MESSAGE error->get_text( ) TYPE 'E'.
@@ -107,7 +112,7 @@ START-OF-SELECTION.
 | Statement | What it does | When to use it |
 |---|---|---|
 | `COMMIT WORK` | Ends the current SAP LUW. Registered update-task work is handed to the update process **asynchronously**; control returns immediately. | The normal case. |
-| `COMMIT WORK AND WAIT` | As above, but **waits** until the synchronous part of update processing has finished before continuing. | Only when the *same* program must immediately re-read what it just wrote, or must know the update succeeded before proceeding. |
+| `COMMIT WORK AND WAIT` | As above, but **waits** until the update work process has executed the high-priority update function modules; `sy-subrc` then tells whether the update succeeded. | Only when the *same* program must immediately re-read what it just wrote, or must know the update succeeded before proceeding — [Rule 7.14](../docs/ABAP-Development-Rules.md#714-use-commit-work-and-wait-only-when-the-next-step-depends-on-the-update). |
 | `ROLLBACK WORK` | Discards all uncommitted work in the current SAP LUW. | Error handling at the transaction boundary. |
 
 ### Update task, briefly
@@ -120,7 +125,7 @@ Rather than writing to the database directly, an application can register work w
 
 Database locks alone are not sufficient for a dialog transaction that spans several screens: the database LUW ends at each screen change, but the *business* transaction does not. SAP therefore provides a separate **enqueue** mechanism. A lock object defined in the Data Dictionary generates a matching pair of `ENQUEUE_*` / `DEQUEUE_*` function modules for the object being protected.
 
-The pattern is: acquire the lock before reading data you intend to change, release it after the commit or rollback, and handle the "already locked by another user" case as a business message rather than a dump. Lock objects and their generated function modules are specific to your data model, so no name is shown here.
+The pattern is: acquire the lock before reading data you intend to change, release it after the commit or rollback, and handle the "already locked by another user" case as a business message rather than a dump. Lock objects and their generated function modules are specific to your data model, so no name is shown here — see [Rule 7.12](../docs/ABAP-Development-Rules.md#712-protect-business-transactions-with-enqueue-locks) for an example with a placeholder lock object.
 
 ### Common mistakes
 
@@ -131,6 +136,8 @@ The pattern is: acquire the lock before reading data you intend to change, relea
 - **Calling `COMMIT WORK` after BAPIs.** BAPIs have their own protocol — use `BAPI_TRANSACTION_COMMIT` / `BAPI_TRANSACTION_ROLLBACK`. See [15-BAPIs](../15-BAPIs/README.md#-commit--rollback).
 
 ## 🔍 SELECT — Single Row / All Rows
+
+> 📝 **Contextual snippet** — assumes the variables `material` and `position_id`, the selection-screen fields `s_fkdat` and `p_vbeln` (selection-screen names keep their short form), and a custom table `zsm_t_position`.
 
 ```abap
 " SELECT SINGLE
@@ -153,16 +160,19 @@ SELECT vbeln, fkart, netwr, waerk
   WHERE fkdat IN @s_fkdat
   INTO TABLE @DATA(billing_documents).
 
-" SELECT MAX (aggregate, single value)
+" SELECT MAX (aggregate, single value) - fine for reporting, but never derive
+" a new key from it (see Writing Log Records below)
 SELECT MAX( posnr ) AS max_posnr
   FROM lips
   WHERE vbeln = @p_vbeln
   INTO @DATA(max_item_number).
 ```
 
-> ⚠️ **Strict ABAP SQL clause order.** As soon as a statement uses `@` host-variable escaping (or a comma-separated field list), the strict syntax rules apply and **`INTO` must be the last clause** — after `FROM`, `WHERE`, `GROUP BY`, `ORDER BY` and `UP TO n ROWS`. Several older code bases put `INTO` directly after the field list; that form is only tolerated in the obsolete non-strict syntax.
+> ⚠️ **Strict ABAP SQL and clause order.** Escaping host variables with `@` and comma-separated field lists switch on the strict syntax check; host variables without `@` are obsolete. Writing `INTO` as the **final clause** — after `FROM`, `WHERE`, `GROUP BY`, `HAVING`, `ORDER BY` and `UP TO n ROWS` — is also part of the strict syntax. This guide always writes `INTO` last — [Rule 7.1](../docs/ABAP-Development-Rules.md#71-write-strict-abap-sql-a-comma-separated-field-list--host-variables-into-last).
 
 ## 🔗 Joins
+
+> 📝 **Contextual snippet** — assumes the variables `material`, `order_type`, `company_code`, `fiscal_year` and `ledger`, the ranges `billing_document_range` and `business_area_range`, and an internal table `gl_accounts`.
 
 ```abap
 " LEFT OUTER JOIN
@@ -170,7 +180,8 @@ SELECT SINGLE mara~matnr,
               makt~maktx
   FROM mara
          LEFT JOIN
-           makt ON makt~matnr = mara~matnr
+           makt ON  makt~matnr = mara~matnr
+                AND makt~spras = @sy-langu
   WHERE mara~matnr = @material
   INTO @DATA(material_text).
 
@@ -183,7 +194,7 @@ SELECT a~posnr,
          INNER JOIN
            vbak AS b ON a~vbeln = b~vbeln
   WHERE a~abgru = @space
-    AND b~auart = 'ZSTD'
+    AND b~auart = @order_type
   GROUP BY a~posnr
   INTO TABLE @DATA(latest_orders).
 
@@ -197,8 +208,8 @@ SELECT mara~*,
   INTO TABLE @DATA(materials_with_profit_center).
 
 " A classic multi-table join
-" NOTE: no MANDT predicate - ABAP SQL handles the client implicitly. Naming the
-" client column without CLIENT SPECIFIED / USING CLIENT is rejected.
+" NOTE: no MANDT predicate - ABAP SQL handles the client implicitly, and the
+" client column is not specified in the WHERE condition.
 SELECT vbrk~vbeln,
        vbrp~posnr,
        vbrp~matnr,
@@ -217,19 +228,21 @@ SELECT a~rbukrs, a~gjahr, a~belnr
          INNER JOIN
            @gl_accounts AS b ON b~saknr = a~racct
   WHERE a~rbukrs  = @company_code
-    AND a~rldnr   = '0L'
+    AND a~rldnr   = @ledger
     AND a~gjahr   = @fiscal_year
     AND a~rbusa  IN @business_area_range
   INTO TABLE @DATA(journal_entries).
 ```
 
-> ⚠️ **VERSION-DEPENDENT:** using an internal table as an ABAP SQL data source (`FROM @itab AS alias`) was introduced in the 7.5x generation. Verify support on your target release before relying on it.
+> ⚠️ **VERSION-DEPENDENT: internal tables as data source (`FROM @itab AS alias`).** Not available in every release. Check the [ABAP Keyword Documentation](https://help.sap.com/doc/abapdocu_latest_index_htm/latest/en-US/index.htm) for your target system.
 
-> 💡 **Client handling.** ABAP SQL restricts client-dependent access to the current client automatically. Do **not** add `mandt = @sy-mandt` to a `WHERE` clause and do not select `mandt` in a field list — both conflict with the implicit handling. Cross-client access requires the explicit `CLIENT SPECIFIED` / `USING CLIENT` addition and is rarely correct in application code.
+> 💡 **Client handling.** ABAP SQL restricts client-dependent access to the current client automatically. Do **not** add `mandt = @sy-mandt` to a `WHERE` clause and do not select `mandt` in a field list — both conflict with the implicit handling. Cross-client access requires `USING CLIENT` or `USING [ALL] CLIENTS [IN]` and is rarely correct in application code; the older `CLIENT SPECIFIED` is obsolete — [Rule 7.8](../docs/ABAP-Development-Rules.md#78-let-abap-sql-handle-the-client).
 
-> ⚠️ **VERSION-DEPENDENT: `WITH PRIVILEGED ACCESS`.** When ABAP SQL reads a CDS entity, that entity's CDS access control is applied implicitly. Writing `WITH PRIVILEGED ACCESS` directly after the data source (before `AS alias`), e.g. `FROM i_purchaseorderapi01 WITH PRIVILEGED ACCESS AS po`, switches it off for that source only. The program then owns the authorization check. Database tables and classic views have no CDS access control, so the addition has no effect on them. See [CDSGuide — Bypassing Access Control](https://github.com/serhatmercan/CDSGuide/blob/master/09-Security/AccessControl.md#bypassing-access-control-with-privileged-access) for details.
+> ⚠️ **VERSION-DEPENDENT: `WITH PRIVILEGED ACCESS`.** When ABAP SQL reads a CDS entity, that entity's CDS access control is applied implicitly. Writing `WITH PRIVILEGED ACCESS` directly after the data source (before `AS alias`), e.g. `FROM i_purchaseorderapi01 WITH PRIVILEGED ACCESS AS po`, switches it off for that source only. The program then owns the authorization check, and a comment at the statement must say why the restriction does not apply — [Rule 8.3](../docs/ABAP-Development-Rules.md#83-use-with-privileged-access-only-with-a-written-justification). For DDIC database tables and DDIC views the addition is currently ignored, because they have no CDS access control. See [CDSGuide — Bypassing Access Control](https://github.com/serhatmercan/CDSGuide/blob/master/09-Security/AccessControl.md#bypassing-access-control-with-privileged-access) for details.
 
 ## 🧮 Calculations, CASE, and Functions in SELECT
+
+> 📝 **Contextual snippet** — assumes the variable `driver_id` and the internal tables `notifications` and `delivery_references`.
 
 ```abap
 " CASE expression in the SELECT list
@@ -270,19 +283,20 @@ SELECT DISTINCT dlv~parent_key,
   INTO TABLE @DATA(delivery_keys).
 ```
 
-> ⚠️ **VERSION-DEPENDENT.** SQL expressions in the field list — `CASE`, arithmetic, `abs( )`, `concat_with_space( )`, `dats_days_between( )`, `right( )` — were introduced progressively across the 7.4x and 7.5x releases, not all at once. Check each function in the ABAP Keyword Documentation against your target release. Expressions in the field list generally need an `AS` alias.
+> ⚠️ **VERSION-DEPENDENT: SQL expressions in the field list.** `CASE`, arithmetic, `abs( )`, `concat_with_space( )`, `dats_days_between( )` and `right( )` did not all become available at the same time. Check each function in the [ABAP Keyword Documentation](https://help.sap.com/doc/abapdocu_latest_index_htm/latest/en-US/index.htm) against your target release. Expressions in the field list generally need an `AS` alias.
 
 ## 🔢 COUNT, DISTINCT, GROUP BY, ORDER BY
 
+> 📝 **Contextual snippet** — assumes the variables it compares against (`plant`, `material`, `customer`, `appointment_date`, `document_code`), the constants `credit_segment_domestic` and `credit_segment_overseas`, a range `customer_range`, and an internal table `invoice_lines`.
+
 ```abap
-" COUNT(*)
+" COUNT( * ) when you need the number - for an existence test, use the
+" SELECT SINGLE @abap_true pattern below (Rule 7.6)
 SELECT COUNT(*) FROM t001w
   WHERE werks = @plant
   INTO @DATA(plant_count).
-IF plant_count = 0.
-ENDIF.
 
-" Existence check pattern: SELECT SINGLE 1 (cheaper than COUNT for an existence test)
+" Existence check pattern: SELECT SINGLE @abap_true (cheaper than COUNT for an existence test)
 DATA(document_categories) = VALUE rseloption( sign   = 'I'
                                               option = 'EQ'
                                               ( low = 'K' )
@@ -417,6 +431,8 @@ SELECT FROM i_purchaseorderitemapi01
 
 ## 🔤 LIKE, EXISTS / NOT EXISTS
 
+> 📝 **Contextual snippet** — assumes the variables `search_text`, `plant`, `material` and `sales_org`, the ranges `order_range` and `material_range`, a custom table `zsm_t_exclusion`, and a customer-defined append field `zz_driver_id` on `VBAK`.
+
 ```abap
 " LIKE with wildcard characters (ABAP wildcard '*' converted to SQL '%')
 " Build the pattern in a SEPARATE, long-enough variable - never concatenate
@@ -463,7 +479,7 @@ SELECT DISTINCT vk~vbeln,
          INNER JOIN
            vbap AS vp ON vp~vbeln = vk~vbeln
              LEFT OUTER JOIN
-               oigd ON oigd~perscode = vk~zz1_driverid_sdh
+               oigd ON oigd~perscode = vk~zz_driver_id
   WHERE     vk~vbeln IN @order_range
     AND     vp~matnr IN @material_range
     AND NOT EXISTS ( SELECT vkorg FROM zsm_t_exclusion
@@ -474,7 +490,7 @@ SELECT DISTINCT vk~vbeln,
   INTO TABLE @DATA(open_orders).
 ```
 
-> ⚠️ **A `WHERE` predicate on the right-hand table silently turns a `LEFT OUTER JOIN` into an inner join.** When no matching text row exists, the outer join supplies `NULL` for `oigvt~language`; a `WHERE oigvt~language = @sy-langu` then filters that row out — so the vehicles you were specifically trying to keep disappear. Restrictions on the **optional** side of an outer join belong in the `ON` clause, as shown above. This is one of the most common wrong-results bugs in production ABAP, and it never raises an error.
+> ⚠️ **A `WHERE` predicate on the right-hand table silently turns a `LEFT OUTER JOIN` into an inner join.** When no matching text row exists, the outer join supplies `NULL` for `oigvt~language`; a `WHERE oigvt~language = @sy-langu` then filters that row out — so the vehicles you were specifically trying to keep disappear. Restrictions on the **optional** side of an outer join belong in the `ON` clause, as shown above — [Rule 7.13](../docs/ABAP-Development-Rules.md#713-restrict-the-optional-side-of-an-outer-join-in-the-on-condition-not-in-where). This is one of the most common wrong-results bugs in production ABAP, and it never raises an error.
 
 > 💡 Do not select `mandt` in a subquery just to have a column — pick a real business column (or use `SELECT @abap_true`). See the client-handling note above.
 
@@ -500,7 +516,9 @@ INTO TABLE @DATA(distinct_names).
 
 ## 🐢 FOR ALL ENTRIES IN
 
-`FOR ALL ENTRIES` is the classical way to "join" a driver internal table against the database when a real `JOIN`/subquery isn't possible or practical.
+`FOR ALL ENTRIES` is the classical way to "join" a driver internal table against the database when a real `JOIN`/subquery isn't possible or practical — [Rule 7.4](../docs/ABAP-Development-Rules.md#74-use-for-all-entries-only-with-a-non-empty-de-duplicated-driver-table).
+
+> 📝 **Contextual snippet** — assumes an internal table `order_items` with the components `vbeln` and `posnr`.
 
 ```abap
 IF order_items IS NOT INITIAL.
@@ -519,8 +537,10 @@ IF order_items IS NOT INITIAL.
       FOR ALL ENTRIES IN @driver_items
       WHERE vbfa~vbeln = @driver_items-vbeln
         AND vbfa~posnn = @driver_items-posnr
-      ORDER BY vbfa~vbeln, vbfa~posnn
       INTO TABLE @DATA(document_flow).
+
+    " ORDER BY is not possible here (see rule 5 below) - sort in ABAP
+    SORT document_flow BY vbeln posnn.
   ENDIF.
 ENDIF.
 ```
@@ -530,13 +550,15 @@ ENDIF.
 > 2. **Sort and remove duplicates** from the driver table first — duplicate driver rows cause redundant database work.
 > 3. **`FOR ALL ENTRIES` applies an implicit `DISTINCT`.** Duplicate rows are removed from the result set automatically. If two source rows are legitimately identical in the selected columns, one of them silently disappears — so always select enough key columns to keep the rows distinguishable. This is the rule most often discovered the hard way, via wrong totals.
 > 4. **The driver column must be type-compatible** with the database column it is compared against.
-> 5. The database interface **splits the driver table into packages**, issuing several statements. `UP TO n ROWS`, aggregate functions and `ORDER BY` therefore do not behave the way a single statement would — sort the result in ABAP if the ordering matters.
->
-> **Do not use `ORDER BY PRIMARY KEY` here.** It requires the result set to contain the complete primary key of the table, which a projection like the one above does not. Use an explicit `ORDER BY` on the selected columns instead.
+> 5. **Restrictions on the other clauses.** According to the ABAP Keyword Documentation, `ORDER BY` can only be used as `ORDER BY PRIMARY KEY`, for a single table or view, and only when all primary key columns are in the result. Aggregate expressions other than `COUNT( * )` are not allowed, and `GROUP BY` has no effect. `UP TO`, `OFFSET` and `PACKAGE SIZE` apply only to the rows passed to ABAP after duplicates are removed. Sort the result in ABAP if the ordering matters, as above.
 
 > 💡 Only join tables you actually read from. An earlier version of this example selected `vbak~auart` without joining `VBAK` — a syntax error. If you need header data as well, either add an explicit `INNER JOIN` (note that combining `JOIN` with `FOR ALL ENTRIES` has its own restrictions) or read it in a second statement.
 
 ## 🏗️ Building Range Tables from a SELECT
+
+> 📝 **Contextual snippet** — assumes a structure `input` with the table component `tag_names` and the component `plant`, a custom table `zsm_t_tag`, and a proxy structure `proxy_response` whose component names are generated and kept ([Rule 2.4](../docs/ABAP-Development-Rules.md#24-keep-names-that-are-fixed-by-a-signature-you-do-not-own)).
+
+> ⚠️ **VERSION-DEPENDENT: literals and internal tables in the SELECT.** Check the [ABAP Keyword Documentation](https://help.sap.com/doc/abapdocu_latest_index_htm/latest/en-US/index.htm) for your target release.
 
 ```abap
 DATA plant_range TYPE RANGE OF werks_d.
@@ -591,12 +613,14 @@ SELECT DISTINCT (field_name)
   INTO CORRESPONDING FIELDS OF TABLE @<result_table>.
 ```
 > ⚠️ **Two separate risks, and you must address both.**
-> 1. **Injection.** Dynamic table/field/condition tokens must come from trusted, validated sources — never build them from unvalidated user input.
+> 1. **Injection.** Dynamic table/field/condition tokens must come from trusted, validated sources — never build them from unvalidated user input. Check names with `cl_abap_dyn_prg` and keep values as host variables inside the token, as above — [Rule 8.4](../docs/ABAP-Development-Rules.md#84-build-dynamic-sql-and-other-dynamic-tokens-only-from-validated-input).
 > 2. **Authorization.** A dynamic `SELECT` performs **no** implicit authorization check. Verifying that a table exists in the Data Dictionary proves existence, not access rights. See [11-Classical-Reports](../11-Classical-Reports/README.md#-dynamic-reports--building-tables-and-field-catalogs-at-runtime) for the generic table-access authorization check.
 >
 > Dynamic `SELECT` over arbitrary Dictionary tables is also restricted in ABAP Cloud — see [21-Classic-vs-Modern-ABAP](../21-Classic-vs-Modern-ABAP/README.md).
 
 ## 🧭 Other Frequently Used WHERE Patterns
+
+> 📝 **Contextual snippet** — assumes the variables `task_number`, `notification_number`, `first_type` and `last_type`.
 
 ```abap
 " Host expression as a constant column in the SELECT list (VERSION-DEPENDENT)
@@ -609,7 +633,7 @@ SELECT SINGLE v1~qmnum,
 
 " The fragments below are WHERE-clause forms, not complete statements.
 " BETWEEN
-"   WHERE mara~mtart BETWEEN 'ZSTD' AND 'ZFIN'
+"   WHERE mara~mtart BETWEEN @first_type AND @last_type
 " Value list
 "   WHERE vbfa~vbtyp_v IN ( 'C', 'L', 'K', 'I', 'H' )
 " Multiple LIKE conditions
@@ -620,23 +644,59 @@ SELECT SINGLE v1~qmnum,
 
 > 💡 **`ORDER BY PRIMARY KEY`** is only permitted when the result set contains the table's complete primary key — it is not a general-purpose "stable sort". For a projection, list the columns explicitly: `ORDER BY vbeln, posnr`.
 
+## 🧾 Writing Log Records
+
+A custom log table needs a unique key for each entry. Two patterns that look harmless cause most of the problems:
+
+- **Reading the highest key and adding one.** Two sessions that run at the same time read the same maximum and write the same key; one insert fails or overwrites the other.
+- **Committing inside the logging method.** The commit closes the caller's SAP LUW as well ([Rule 7.10](../docs/ABAP-Development-Rules.md#710-let-the-top-level-caller-own-the-transaction-reusable-units-never-commit-work)); with `AND WAIT` it also makes every log call wait for the update ([Rule 7.14](../docs/ABAP-Development-Rules.md#714-use-commit-work-and-wait-only-when-the-next-step-depends-on-the-update)).
+
+> 📝 **Contextual snippet** — assumes a custom table `zsm_t_log` with the key field `log_id` and the field `message`, and a method parameter `message`. **[verify: the method `cl_system_uuid=>create_uuid_x16_static` and the exception it raises, in your system]**
+
+```abap
+" ❌ race condition on the key, and a commit inside a reusable method
+METHOD write_log.
+  SELECT MAX( log_id ) FROM zsm_t_log INTO @DATA(last_log_id).
+  DATA(log_entry) = VALUE zsm_t_log( log_id  = last_log_id + 1
+                                     message = message ).
+  INSERT zsm_t_log FROM @log_entry.
+  COMMIT WORK AND WAIT.
+ENDMETHOD.
+```
+
+```abap
+" ✅ unique key without reading the table; the caller owns the transaction
+METHOD write_log.
+  DATA(log_entry) = VALUE zsm_t_log( log_id  = cl_system_uuid=>create_uuid_x16_static( )
+                                     message = message ).
+  INSERT zsm_t_log FROM @log_entry.
+ENDMETHOD.
+```
+
+Where the key must be a readable running number, draw it from a number range object instead of reading the table.
+
 ## ✅ Best Practices
 
-- Select only the fields you need — avoid `SELECT *` in production code, especially inside loops.
-- Always qualify `SELECT SINGLE` with a `WHERE` on the full key. Without one you get an arbitrary row.
-- Always check `IF driver_items IS NOT INITIAL` before `FOR ALL ENTRIES`, and de-duplicate the driver table first.
-- Use `SELECT SINGLE @abap_true ... INTO @DATA(...)` + `xsdbool( sy-subrc = 0 )` for existence checks instead of `COUNT(*)` when you don't need the exact count.
-- Prefer joins and subqueries over `FOR ALL ENTRIES` when possible — they push more work to the database and avoid the pitfalls above.
-- Put restrictions on the optional side of an outer join in the `ON` clause, not in `WHERE`.
-- **Let the transaction owner commit.** Reusable code performs its DML and reports the outcome; the top-level caller decides between `COMMIT WORK` and `ROLLBACK WORK`. Reserve `AND WAIT` for the case where the same program must immediately re-read what it wrote.
-- Check `sy-dbcnt` after a mass `UPDATE`/`DELETE` to confirm the number of rows actually affected.
+- Write strict ABAP SQL with `@` host variables and `INTO` last — [Rule 7.1](../docs/ABAP-Development-Rules.md#71-write-strict-abap-sql-a-comma-separated-field-list--host-variables-into-last).
+- Select only the fields you need — avoid `SELECT *` in production code, especially inside loops — [Rule 7.7](../docs/ABAP-Development-Rules.md#77-list-the-fields-you-need-instead-of-select-).
+- Always qualify `SELECT SINGLE` with a `WHERE` on the full key. Without one you get an arbitrary row — [Rule 7.5](../docs/ABAP-Development-Rules.md#75-use-select-single-only-with-the-full-primary-key).
+- Always check `IF driver_items IS NOT INITIAL` before `FOR ALL ENTRIES`, and de-duplicate the driver table first — [Rule 7.4](../docs/ABAP-Development-Rules.md#74-use-for-all-entries-only-with-a-non-empty-de-duplicated-driver-table).
+- Use `SELECT SINGLE @abap_true ... INTO @DATA(...)` + `xsdbool( sy-subrc = 0 )` for existence checks instead of `COUNT(*)` when you don't need the exact count — [Rule 7.6](../docs/ABAP-Development-Rules.md#76-check-existence-with-select-single-abap_true).
+- Prefer joins and subqueries over `FOR ALL ENTRIES` or a `SELECT` in a loop — [Rule 7.3](../docs/ABAP-Development-Rules.md#73-do-not-select-inside-a-loop).
+- Put restrictions on the optional side of an outer join in the `ON` clause, not in `WHERE` — [Rule 7.13](../docs/ABAP-Development-Rules.md#713-restrict-the-optional-side-of-an-outer-join-in-the-on-condition-not-in-where).
+- Let ABAP SQL handle the client — [Rule 7.8](../docs/ABAP-Development-Rules.md#78-let-abap-sql-handle-the-client) — and write only to your own tables — [Rule 7.9](../docs/ABAP-Development-Rules.md#79-write-only-to-your-own-tables-change-sap-standard-data-through-bapis-or-released-apis).
+- **Let the transaction owner commit.** Reusable code performs its DML and reports the outcome; the top-level caller decides between `COMMIT WORK` and `ROLLBACK WORK`. Reserve `AND WAIT` for the case where the same program must immediately re-read what it wrote — [Rule 7.10](../docs/ABAP-Development-Rules.md#710-let-the-top-level-caller-own-the-transaction-reusable-units-never-commit-work) and [Rule 7.14](../docs/ABAP-Development-Rules.md#714-use-commit-work-and-wait-only-when-the-next-step-depends-on-the-update).
+- Check `sy-dbcnt` after a mass `UPDATE`/`DELETE` to confirm the number of rows actually affected — [Rule 7.15](../docs/ABAP-Development-Rules.md#715-qualify-mass-update-and-delete-with-where-and-check-sy-dbcnt).
+- Justify every `WITH PRIVILEGED ACCESS` in a comment, and validate every dynamic token — [Rule 8.3](../docs/ABAP-Development-Rules.md#83-use-with-privileged-access-only-with-a-written-justification) and [Rule 8.4](../docs/ABAP-Development-Rules.md#84-build-dynamic-sql-and-other-dynamic-tokens-only-from-validated-input).
 
 ## ⚠️ Common Mistakes
 
 - Running `FOR ALL ENTRIES` with an **empty driver table** — silently selects everything.
 - Forgetting the implicit `DISTINCT` that `FOR ALL ENTRIES` applies, and losing rows from the result.
 - Filtering the optional side of a `LEFT OUTER JOIN` in the `WHERE` clause, turning it into an inner join.
-- Placing `INTO` before `WHERE` / `UP TO n ROWS` in strict ABAP SQL syntax.
+- Placing `INTO` in different positions across a program — write it as the final clause.
+- Adding `ORDER BY` with columns to a `FOR ALL ENTRIES` select — only `ORDER BY PRIMARY KEY` is possible there; sort in ABAP.
+- Deriving a new key from `SELECT MAX( … ) + 1` — concurrent sessions get the same value.
 - Referring to the client column (`mandt`) explicitly instead of letting ABAP SQL handle it.
 - Using `SELECT ... ENDSELECT` loops (row-by-row round trips) instead of a single `SELECT ... INTO TABLE`.
 - **Committing inside reusable code**, taking a transaction decision that belongs to the caller.
@@ -653,9 +713,10 @@ SELECT SINGLE v1~qmnum,
 ## 🔗 Related Chapters
 
 - [06-Loops](../06-Loops/README.md) — range tables used in `WHERE ... IN`
-- [07-Internal-Tables](../07-Internal-Tables/README.md)
+- [07-Internal-Tables](../07-Internal-Tables/README.md) — internal tables as targets and as data sources
 - [15-BAPIs](../15-BAPIs/README.md) — transaction control for BAPI calls
-- [19-Performance](../19-Performance/README.md)
+- [19-Performance](../19-Performance/README.md) — SQL trace and database access patterns
+- [20-Best-Practices](../20-Best-Practices/README.md) — the data-access items of the review checklist
 - [21-Classic-vs-Modern-ABAP](../21-Classic-vs-Modern-ABAP/README.md) — lifecycle context
 
 ## 🖥️ Related Transaction Codes
