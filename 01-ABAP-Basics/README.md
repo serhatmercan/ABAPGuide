@@ -26,20 +26,20 @@ Every ABAP program (report, class pool, or function pool) is built from a set of
 "----------------------------------------------------------------------
 CLASS lcl_main DEFINITION DEFERRED.
 
-DATA go_container     TYPE REF TO cl_gui_custom_container.
-DATA go_document      TYPE REF TO cl_dd_document.
-DATA go_main          TYPE REF TO lcl_main.
-DATA go_grid          TYPE REF TO cl_gui_alv_grid.
-DATA go_splitter      TYPE REF TO cl_gui_splitter_container.
-DATA go_subcontainer1 TYPE REF TO cl_gui_container.
-DATA go_subcontainer2 TYPE REF TO cl_gui_container.
-DATA gt_out           TYPE TABLE OF zsm_s_delivery.
+DATA custom_container TYPE REF TO cl_gui_custom_container.
+DATA header_document  TYPE REF TO cl_dd_document.
+DATA main             TYPE REF TO lcl_main.
+DATA grid             TYPE REF TO cl_gui_alv_grid.
+DATA splitter         TYPE REF TO cl_gui_splitter_container.
+DATA header_container TYPE REF TO cl_gui_container.
+DATA grid_container   TYPE REF TO cl_gui_container.
+DATA deliveries       TYPE TABLE OF zsm_s_delivery.
 
 INITIALIZATION.
-  go_main = NEW #( ).
+  main = NEW #( ).
 
 START-OF-SELECTION.
-  go_main->start_of_selection( ).
+  main->start_of_selection( ).
 ```
 
 > 📝 **Note:** `CLASS lcl_main DEFINITION DEFERRED.` is used so that the class name can be referenced (e.g., in `TYPE REF TO`) **before** its full definition appears later in the program — a common forward-declaration pattern in local classes.
