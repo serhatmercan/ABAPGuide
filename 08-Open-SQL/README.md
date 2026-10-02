@@ -575,9 +575,10 @@ DATA lr_result    TYPE REF TO data.
 
 FIELD-SYMBOLS <lt_result> TYPE STANDARD TABLE.
 
-" In a DYNAMIC condition the ABAP data object is named directly,
-" WITHOUT the @ host-variable escape used in static ABAP SQL.
-lt_condition = VALUE #( ( |{ lv_fieldname } IN lr_values| ) ).
+" In a DYNAMIC condition the ABAP data object is written with the same
+" @ host-variable escape as in static ABAP SQL, as in the examples of the
+" ABAP Keyword Documentation.
+lt_condition = VALUE #( ( |{ lv_fieldname } IN @lr_values| ) ).
 
 " The target must be created dynamically too, because its type is not
 " known until runtime.
