@@ -1,6 +1,6 @@
 # ABAP Development Rules
 
-> 📝 **Status:** adopted; 4 statements still to be verified, marked **[verify]**.
+> 📝 **Status:** adopted; 6 statements still to be verified, marked **[verify]**.
 
 ## 0 Purpose and Status
 
@@ -472,6 +472,87 @@ Obsolete statements remain only for compatibility. They have better replacements
 > 📝 The length in parentheses (`DATA text(10) TYPE c`) is **not** classified as obsolete. The ABAP Keyword Documentation recommends `LENGTH` for legibility, so write `DATA text TYPE c LENGTH 10`. Only length specifications for the fixed-length types `d`, `f`, `i` and `t` are listed as obsolete.
 
 This table lists typical cases only. For the full list, see the obsolete language elements section of the [ABAP Keyword Documentation](https://help.sap.com/doc/abapdocu_latest_index_htm/latest/en-US/index.htm), and do not label a construct obsolete unless the documentation does.
+
+### 3.17 Use CHECK only as an input check at the start of a method; prefer IF … RETURN
+
+`CHECK` behaves differently depending on where it stands. Inside a loop, it ends only the current loop pass. Outside a loop, it leaves the whole processing block. A reader has to know which case applies, and the keyword does not say what happens when the condition is false.
+
+Clean ABAP records that there is no consensus on `CHECK` versus `RETURN` at the start of a method, and finds the long form easier to understand. It also advises against `CHECK` anywhere other than the initialization section of a method. In loops, it recommends `IF` with `CONTINUE`, because `CONTINUE` can only mean the loop.
+
+> 📝 The ABAP Programming Guidelines allow `CHECK` at the start of a procedure. The keyword documentation for `CHECK` in loops recommends using `CHECK` inside loops only. Clean ABAP notes that its loop rule contradicts this. This is a style choice, not a fact about the language, so this rule follows Clean ABAP.
+
+Before returning early, consider whether returning nothing is the right result. Clean ABAP points out that a method should usually fill its result or raise an exception (6.1).
+
+```abap
+" ✅
+METHOD read_open_orders.
+  IF customer_ids IS INITIAL.
+    RETURN.
+  ENDIF.
+  ...
+ENDMETHOD.
+
+LOOP AT orders INTO DATA(order).
+  IF order-status <> status_open.
+    CONTINUE.
+  ENDIF.
+  ...
+ENDLOOP.
+
+" ❌ ends only the current loop pass; readers expect it to leave the method
+LOOP AT orders INTO DATA(order).
+  CHECK order-status = status_open.
+  ...
+ENDLOOP.
+```
+
+### 3.18 Check references with IS BOUND and field symbols with IS ASSIGNED where they can be empty
+
+Access through an empty reference or field symbol ends the program. The ABAP Keyword Documentation describes these cases:
+
+- Dereferencing a data reference that contains the null reference raises the uncatchable exception `DATREF_NOT_ASSIGNED`.
+- Accessing an attribute through an object reference that contains the null reference raises the uncatchable exception `OBJECTS_OBJREF_NOT_ASSIGNED`.
+- Calling an instance method through such a reference raises the catchable exception `CX_SY_REF_IS_INITIAL`.
+- A field symbol must have a memory area assigned before it is used as an operand; otherwise an exception is raised.
+
+`IS BOUND` is true only if a reference can be dereferenced or points to an object. It therefore also detects a data reference to a table line that has since been deleted. `IS ASSIGNED` is true if a memory area is assigned to the field symbol. After `ASSIGN`, check `sy-subrc` instead (see the note in 3.13).
+
+Check only where the reference or field symbol can actually be empty, for example a lazily created object or a reference passed in as optional. A dependency stored by the constructor (5.4, 5.12) needs no check at every use. This is a team rule.
+
+```abap
+" ✅ the cache is created on first use
+IF order_cache IS NOT BOUND.
+  order_cache = NEW zcl_zsm_order_cache( ).
+ENDIF.
+
+IF order_ref IS BOUND.
+  DATA(order) = order_ref->*.
+ENDIF.
+
+" ❌ if order_ref is initial, the dereference raises an uncatchable exception
+DATA(order) = order_ref->*.
+```
+
+### 3.19 Do not write macros; use methods or expressions
+
+A macro has no context of its own and cannot be executed step by step in the ABAP Debugger. Errors in larger macros are therefore very hard to analyze.
+
+The ABAP Programming Guidelines allow macros only in exceptional cases, and recommend methods or expressions instead. Many typical macros only fill internal tables, and a `VALUE` expression (3.4) replaces them. The guidelines also say that no new macros should be defined in type pools or in the table `TRMAC`. Macros are not classified as obsolete.
+
+This rule is stricter than the guidelines: new code contains no macros. Existing macros are replaced when the code around them is changed (0.2). Clean ABAP has no section on macros. This is a team rule.
+
+```abap
+" ✅
+DATA(items) = VALUE zsm_tt_item( ( item_no = 10 quantity = 2 )
+                                 ( item_no = 20 quantity = 5 ) ).
+
+" ❌
+DEFINE add_item.
+  APPEND VALUE #( item_no = &1 quantity = &2 ) TO items.
+END-OF-DEFINITION.
+add_item 10 2.
+add_item 20 5.
+```
 
 ---
 
@@ -1324,6 +1405,95 @@ IF sy-subrc <> 0.
 ENDIF.
 ```
 
+### 7.13 Restrict the optional side of an outer join in the ON condition, not in WHERE
+
+For each row of the left side, a `LEFT OUTER JOIN` returns at least one result row. Where no row of the right side matches, the columns of the right side contain null values.
+
+According to the ABAP Keyword Documentation, every relational expression except `IS [NOT] NULL` has an unknown result when an operand is the null value. A comparison with a right-side column in the `WHERE` condition therefore removes exactly those rows the outer join added, and the result is the same as an inner join.
+
+- Put restrictions on the optional side into the `ON` condition.
+- In `WHERE`, test the optional side only with `IS NULL` or `IS NOT NULL`, and only when that is the intent, for example to find orders without items.
+
+This is a team rule.
+
+> ⚠️ **VERSION-DEPENDENT: comparisons in ON conditions.** Which operands an `ON` condition may contain, for example host variables or columns of the left side only, depends on the release and the strict mode of the syntax check. Check the [ABAP Keyword Documentation](https://help.sap.com/doc/abapdocu_latest_index_htm/latest/en-US/index.htm).
+
+```abap
+" ✅ every order of the customer, with its open items where there are any
+SELECT header~order_id, item~item_no
+  FROM zsm_t_order AS header
+  LEFT OUTER JOIN zsm_t_order_item AS item
+    ON  item~order_id = header~order_id
+    AND item~status   = @status_open
+  WHERE header~customer_id = @customer_id
+  INTO TABLE @DATA(order_items).
+
+" ❌ orders without an open item disappear: the result is that of an inner join
+SELECT header~order_id, item~item_no
+  FROM zsm_t_order AS header
+  LEFT OUTER JOIN zsm_t_order_item AS item
+    ON item~order_id = header~order_id
+  WHERE header~customer_id = @customer_id
+    AND item~status        = @status_open
+  INTO TABLE @DATA(order_items).
+```
+
+### 7.14 Use COMMIT WORK AND WAIT only when the next step depends on the update
+
+The ABAP Keyword Documentation describes the difference:
+
+- Without `AND WAIT`, the update is asynchronous. The program continues immediately after `COMMIT WORK`, and `sy-subrc` is always 0.
+- With `AND WAIT`, the program continues only after the update work process has executed the high-priority update function modules. `sy-subrc` is 0 if the update succeeded and 4 if it failed.
+
+Waiting costs the user time, so it needs a reason:
+
+- the next statement reads the data the update writes;
+- the program must react when the update fails.
+
+In both cases, evaluate `sy-subrc`. Otherwise, commit without waiting. The decision belongs to the transaction owner (7.10).
+
+The same applies to the `WAIT` parameter of `BAPI_TRANSACTION_COMMIT` (7.11). **[verify: that `BAPI_TRANSACTION_COMMIT` with `WAIT` set executes `COMMIT WORK AND WAIT`]**
+
+This is a team rule.
+
+```abap
+" ✅ the next step reads the order the update writes
+COMMIT WORK AND WAIT.
+IF sy-subrc <> 0.
+  RAISE EXCEPTION TYPE zcx_zsm_order_not_saved
+    MESSAGE e012(zsm_msg) WITH order_id.
+ENDIF.
+DATA(saved_order) = order_repository->read( order_id ).
+
+" ❌ nothing after the commit depends on the update; the user waits for nothing
+COMMIT WORK AND WAIT.
+MESSAGE s013(zsm_msg) WITH order_id.
+```
+
+### 7.15 Qualify mass UPDATE and DELETE with WHERE, and check sy-dbcnt
+
+According to the ABAP Keyword Documentation, `UPDATE … SET` without a `WHERE` condition changes all rows of the target, in a client-dependent table all rows of the current client. `DELETE FROM` without a condition deletes all rows. Both statements set `sy-dbcnt` to the number of rows changed or deleted.
+
+- Every mass `UPDATE` and `DELETE` carries a `WHERE` condition that restricts it to the intended rows.
+- Compare `sy-dbcnt` with the expected number where it is known, and treat a mismatch as an error before the transaction owner commits (7.10).
+- Mass changes apply only to your own tables (7.9).
+
+This is a team rule.
+
+```abap
+" ✅
+UPDATE zsm_t_order SET status = @status_cancelled
+  WHERE customer_id = @customer_id
+    AND status      = @status_open.
+IF sy-dbcnt <> lines( open_orders ).
+  RAISE EXCEPTION TYPE zcx_zsm_order_not_saved
+    MESSAGE e014(zsm_msg) WITH customer_id.
+ENDIF.
+
+" ❌ no WHERE: every order of the client is cancelled
+UPDATE zsm_t_order SET status = @status_cancelled.
+```
+
 ---
 
 ## 8 Security
@@ -1500,6 +1670,58 @@ log->add_text( |Payment for order { order_id } rejected| ).
 
 " ❌
 log->add_text( |Payment rejected: IBAN { payment-iban }, token { api_token }| ).
+```
+
+### 8.9 Call transactions WITH AUTHORITY-CHECK
+
+The ABAP Keyword Documentation describes the additions `WITH AUTHORITY-CHECK` and `WITHOUT AUTHORITY-CHECK` of `CALL TRANSACTION`:
+
+- **`WITH AUTHORITY-CHECK`** checks the current user's authorization before the call. The check uses the authorization object `S_TCODE` and any authorization object entered in the definition of the transaction code (transaction `SE93`). Missing authorization raises the catchable exception `CX_SY_AUTHORIZATION_ERROR`. The documentation calls this the recommended way to check authorization. It replaces earlier checks with `AUTHORITY-CHECK`, the function module `AUTHORITY_CHECK_TCODE`, or the table `TCDCOUPLES`.
+- **`WITHOUT AUTHORITY-CHECK`** states that no check is necessary, and suppresses the corresponding message of the extended program check.
+- **No addition:** the documentation classifies `CALL TRANSACTION` without one of the two additions as obsolete (3.16).
+
+Write `WITH AUTHORITY-CHECK` by default. Use `WITHOUT AUTHORITY-CHECK` only with a comment at the statement that explains why the check is not needed. This is a team rule.
+
+> ⚠️ **VERSION-DEPENDENT: `WITH|WITHOUT AUTHORITY-CHECK`.** Availability of the additions depends on the release. Check the [ABAP Keyword Documentation](https://help.sap.com/doc/abapdocu_latest_index_htm/latest/en-US/index.htm).
+
+```abap
+" ✅
+TRY.
+    CALL TRANSACTION 'ZSM_ORDER' WITH AUTHORITY-CHECK.
+  CATCH cx_sy_authorization_error INTO DATA(authorization_error).
+    MESSAGE authorization_error TYPE 'E'.
+ENDTRY.
+
+" ❌ obsolete form; whether the user's authorization matters is not stated
+CALL TRANSACTION 'ZSM_ORDER'.
+```
+
+### 8.10 Check business authorizations at every RFC entry point
+
+A remote-enabled function module can be called from another system or program. A check in the caller's UI is not part of that path.
+
+According to the ABAP Keyword Documentation, an automatic authorization check runs for remote calls only if the profile parameter `auth/rfc_authority_check` is set to 1. That check decides whether the function module may be called at all. It says nothing about the business data the function module reads or changes. **[verify: that the automatic check uses the authorization object `S_RFC`]**
+
+- The RFC function module, or the class it delegates to (5.1), checks the business authorizations itself, before it reads or changes data (8.1).
+- A failed check is reported through the function module's classic exceptions or its return table. RFC supports only classic exceptions (6.1).
+
+This is a team rule.
+
+```abap
+" ✅ the class behind the RFC function module checks before it reads
+METHOD read_for_customer.
+  " >>> Authorization check for the customer's sales organization belongs here (8.2).
+  SELECT order_id, status FROM zsm_t_order
+    WHERE customer_id = @customer_id
+    INTO TABLE @result.
+ENDMETHOD.
+
+" ❌ the RFC function module relies on a check in the calling UI
+FUNCTION zsm_fm_read_orders.
+  SELECT order_id, status FROM zsm_t_order
+    WHERE customer_id = @customer_id
+    INTO TABLE @orders.
+ENDFUNCTION.
 ```
 
 ---
@@ -2052,10 +2274,11 @@ These rules have no Clean ABAP counterpart, or they decide a point that Clean AB
 | Area | Rules |
 |---|---|
 | Language version | 1.3 |
-| Modern syntax | 3.8, 3.9 |
+| Modern syntax | 3.8, 3.9, 3.18, 3.19 |
 | Classes and methods | 5.12 |
 | Error handling | 6.2 (one abstract root per category), 6.6, 6.7, 6.11 |
-| Security | 8.2, 8.3 |
+| Database access and SAP LUW | 7.13, 7.14, 7.15 |
+| Security | 8.2, 8.3, 8.9, 8.10 |
 | Performance | 9.1 |
 | Testing | 10.1, 10.2 (default risk level and duration), 10.10 |
 | Comments | 11.5 (reason for each pragma), 11.6 |
