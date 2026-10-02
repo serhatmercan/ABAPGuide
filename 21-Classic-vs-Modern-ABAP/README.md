@@ -112,6 +112,7 @@ Superseded, but preserved in this guide because you will meet all of it. Knowing
 | **User exits (`USEREXIT_*`)** | BAdIs, enhancement points | You edit a delivered include, so it carries modification-like upgrade cost. | — |
 | **Customer exits (SMOD/CMOD)** | BAdIs | One active project per enhancement; procedural; no filtering. | — |
 | **Modifications (access key)** | Any of the above | Every upgrade becomes an adjustment project. | — |
+| **Reading domain fixed values from `DD07L`/`DD07T` or with `DD_DOMVALUES_GET`** | RTTS (`get_ddic_fixed_values`) | RTTS reads the fixed values through the data element's own type description, without a table read or a function module call. | — |
 | **OLE automation (`ole2_object`)** | Server-side file generation | Requires SAP GUI for Windows on the user's desktop; fails in background jobs and over RFC. | — |
 | **`SELECT ... ENDSELECT`** row by row | `SELECT ... INTO TABLE` | Row-by-row round trips to the database. `PACKAGE SIZE` with `ENDSELECT` for very large volumes remains accepted. | 9.7 |
 
