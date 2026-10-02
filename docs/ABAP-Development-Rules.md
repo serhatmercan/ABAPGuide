@@ -22,7 +22,7 @@ A shared rule set keeps code consistent when readers move between guides. The ru
 
 Existing code is not rewritten just to comply. It is aligned when it is next changed, or in the planned pass for each guide.
 
-> 📝 These rules govern *how* code is written. They do not widen a guide's scope. ABAPGuide still leaves out RAP, CDS, AMDP and ABAP Cloud beyond [Chapter 21](../21-Classic-vs-Modern-ABAP/README.md#6-scope-boundary), even though some sections here mention those topics.
+> 📝 These rules govern *how* code is written. They do not widen a guide's scope. ABAPGuide still leaves out RAP, CDS, AMDP and ABAP Cloud beyond [Chapter 21](../21-Classic-vs-Modern-ABAP/README.md#-scope-boundary), even though some sections here mention those topics.
 
 ### 0.3 Record every deviation from Clean ABAP in section 14
 
@@ -46,7 +46,7 @@ Rule examples are kept to the minimum that shows the point.
 
 ## 1 Language Version
 
-> **Lifecycle:** `ABAP CLOUD / MODERN CONTEXT`. ABAP language versions decide which statements and which APIs a development object may use. For the on-premise vs cloud split, see [21-Classic-vs-Modern-ABAP](../21-Classic-vs-Modern-ABAP/README.md#4-what-changes-under-abap-cloud).
+> **Lifecycle:** `ABAP CLOUD / MODERN CONTEXT`. ABAP language versions decide which statements and which APIs a development object may use. For the on-premise vs cloud split, see [21-Classic-vs-Modern-ABAP](../21-Classic-vs-Modern-ABAP/README.md#-what-changes-under-abap-cloud).
 
 ### 1.1 Know the language version of every object you change
 
@@ -459,7 +459,7 @@ CALL METHOD validator->is_valid
 
 Obsolete statements remain only for compatibility. They have better replacements, and many of them are not available in restricted language versions. Clean ABAP also recommends avoiding obsolete language elements.
 
-> **Lifecycle:** `LEGACY / HISTORICAL REFERENCE`. The constructs below may appear in examples only with this label and paired with the replacement. See [21-Classic-vs-Modern-ABAP](../21-Classic-vs-Modern-ABAP/README.md#3-legacy--historical-reference).
+> **Lifecycle:** `LEGACY / HISTORICAL REFERENCE`. The constructs below may appear in examples only with this label and paired with the replacement. See [21-Classic-vs-Modern-ABAP](../21-Classic-vs-Modern-ABAP/README.md#-legacy--historical-reference).
 
 | Obsolete construct (typical examples) | Write instead |
 |---|---|
@@ -1824,7 +1824,7 @@ Each pass of the loop fetches from the database cursor, and the loop body runs w
 
 For volumes too large to hold in memory, `PACKAGE SIZE` with `ENDSELECT` processes the data in blocks, and that use is accepted. See [19-Performance](../19-Performance/README.md).
 
-> **Lifecycle:** `LEGACY / HISTORICAL REFERENCE`. Row-by-row `SELECT … ENDSELECT` is listed in [21-Classic-vs-Modern-ABAP](../21-Classic-vs-Modern-ABAP/README.md#3-legacy--historical-reference) with `SELECT … INTO TABLE` as the replacement.
+> **Lifecycle:** `LEGACY / HISTORICAL REFERENCE`. Row-by-row `SELECT … ENDSELECT` is listed in [21-Classic-vs-Modern-ABAP](../21-Classic-vs-Modern-ABAP/README.md#-legacy--historical-reference) with `SELECT … INTO TABLE` as the replacement.
 
 ```abap
 " ✅

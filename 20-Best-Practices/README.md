@@ -34,7 +34,7 @@ DATA(lv_flag) = xsdbool( gt_data IS NOT INITIAL ).
 
 ## 🕰️ Reading Classic Prefix Notation
 
-> **Lifecycle:** `CLASSIC BUT STILL RELEVANT`. Prefixes such as `lv_`, `lt_` and `iv_` are everywhere in existing code, so readers must be able to read them. New code does not use them ([Rule 2.1](../docs/ABAP-Development-Rules.md#21-use-descriptive-snake_case-names-without-type-or-scope-prefixes)); see [21-Classic-vs-Modern-ABAP](../21-Classic-vs-Modern-ABAP/README.md#2-classic-but-still-relevant).
+> **Lifecycle:** `CLASSIC BUT STILL RELEVANT`. Prefixes such as `lv_`, `lt_` and `iv_` are everywhere in existing code, so readers must be able to read them. New code does not use them ([Rule 2.1](../docs/ABAP-Development-Rules.md#21-use-descriptive-snake_case-names-without-type-or-scope-prefixes)); see [21-Classic-vs-Modern-ABAP](../21-Classic-vs-Modern-ABAP/README.md#-classic-but-still-relevant).
 
 | Prefix | Meaning | Classic example | Clean ABAP name |
 |---|---|---|---|
@@ -137,7 +137,7 @@ CLASS zcl_zsm_order_overview DEFINITION PUBLIC FINAL CREATE PUBLIC.
 
 Refactoring changes the structure, not the behaviour. A typical candidate is a subroutine that reads data with a `SELECT` inside a loop.
 
-> **Lifecycle:** `LEGACY / HISTORICAL REFERENCE`. Subroutines (`FORM` / `PERFORM`) are obsolete; methods replace them ([Rule 3.16](../docs/ABAP-Development-Rules.md#316-do-not-write-statements-the-abap-keyword-documentation-classifies-as-obsolete)). See [21-Classic-vs-Modern-ABAP](../21-Classic-vs-Modern-ABAP/README.md#3-legacy--historical-reference).
+> **Lifecycle:** `LEGACY / HISTORICAL REFERENCE`. Subroutines (`FORM` / `PERFORM`) are obsolete; methods replace them ([Rule 3.16](../docs/ABAP-Development-Rules.md#316-do-not-write-statements-the-abap-keyword-documentation-classifies-as-obsolete)). See [21-Classic-vs-Modern-ABAP](../21-Classic-vs-Modern-ABAP/README.md#-legacy--historical-reference).
 
 > 📝 **Contextual snippet** — assumes the custom tables `zsm_t_order` and `zsm_t_order_item`, the table types `zsm_tt_order` and `zsm_tt_item` (with `order_id`, `item_no` and `quantity`) and the data element `zsm_e_customer_id`.
 
@@ -208,7 +208,7 @@ What to leave alone:
 
 - This chapter summarises; the reasoning, the examples and the Clean ABAP deviations are in the [rules document](../docs/ABAP-Development-Rules.md).
 - A dedicated ABAP Unit chapter is planned. Until it exists, [section 10 of the rules](../docs/ABAP-Development-Rules.md#10-testing) is the reference.
-- RAP, CDS beyond ABAP SQL reads, AMDP and ABAP Cloud are outside this guide — see [21-Classic-vs-Modern-ABAP](../21-Classic-vs-Modern-ABAP/README.md#6-scope-boundary).
+- RAP, CDS beyond ABAP SQL reads, AMDP and ABAP Cloud are outside this guide — see [21-Classic-vs-Modern-ABAP](../21-Classic-vs-Modern-ABAP/README.md#-scope-boundary).
 
 ## ✅ Best Practices
 

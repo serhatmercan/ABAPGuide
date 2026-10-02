@@ -63,7 +63,7 @@ ENDIF.
 
 ## 🧭 Scope Note
 
-This chapter covers **ABAP-side** performance: internal tables, memory, and how you write your database access. It does **not** cover the code-pushdown toolset — CDS view entities, AMDP, and HANA-specific optimisation — which is a substantial topic in its own right and outside this guide's scope (see [21-Classic-vs-Modern-ABAP](../21-Classic-vs-Modern-ABAP/README.md#6-scope-boundary)). The principle that matters here is the general one above: let the database do the work it is good at.
+This chapter covers **ABAP-side** performance: internal tables, memory, and how you write your database access. It does **not** cover the code-pushdown toolset — CDS view entities, AMDP, and HANA-specific optimisation — which is a substantial topic in its own right and outside this guide's scope (see [21-Classic-vs-Modern-ABAP](../21-Classic-vs-Modern-ABAP/README.md#-scope-boundary)). The principle that matters here is the general one above: let the database do the work it is good at.
 
 ## ✅ Best Practices
 
