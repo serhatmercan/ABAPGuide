@@ -1,13 +1,14 @@
 # CLAUDE.md — ABAPGuide
 
-Coding rules: docs/ABAP-Development-Rules.md (planned; until it exists, follow the existing chapters).
+Coding rules: docs/ABAP-Development-Rules.md. Cite rules by number (Rule 2.6).
 
 ## Purpose and scope
 - Practical ABAP engineering reference for productive on-premise landscapes,
   classic through modern (7.40-generation expression syntax and ABAP SQL).
-- Out of scope: RAP, CDS, AMDP/code pushdown, ABAP Unit/TDD, ABAP Cloud
-  beyond the boundary in Chapter 21 "What Changes Under ABAP Cloud". Do not
-  add chapters on these; link to Chapter 21 "Scope Boundary" instead.
+- Out of scope: RAP, CDS, AMDP/code pushdown, ABAP Cloud beyond the
+  boundary in Chapter 21 "What Changes Under ABAP Cloud". Do not add
+  chapters on these; link to Chapter 21 "Scope Boundary" instead.
+- An ABAP Unit chapter is planned.
 - CDS appears in this guide only as a data source of ABAP SQL reads;
   anything beyond that links to CDSGuide
   (https://github.com/serhatmercan/CDSGuide).
@@ -48,17 +49,10 @@ Coding rules: docs/ABAP-Development-Rules.md (planned; until it exists, follow t
 - Snippets that assume surrounding declarations get
   `> 📝 **Contextual snippet** — <what is assumed>.` directly above or below.
   Self-contained programs need no label.
-- Placeholder objects use `ZSM_` plus a type infix: `zsm_t_` database
-  table only, `zsm_tt_` table type, `zsm_s_` structure, `zsm_e_` data
-  element, `zsm_r_` report, `zsm_msg` message class; classes `zcl_`,
-  exceptions `zcx_`, interfaces `zif_`.
-- ABAP naming follows SAP's Clean ABAP style guide: descriptive names
-  without type or scope prefixes (`sales_orders`, not `lt_vbak`).
-  Exceptions: names fixed by a signature you do not own (SEGW-generated
-  methods and types, BAPI and function module interfaces, inherited or
-  interface methods) stay as they are. Existing examples are migrated in
-  the planned chapter pass; legacy-labelled examples keep their construct
-  but use current naming.
+- Placeholder object names per Rule 2.6.
+- Identifiers per Rules 2.1–2.5. Existing examples are migrated in the
+  planned chapter pass; legacy-labelled examples keep their construct but
+  use current naming.
 - Chapter 20 becomes Clean ABAP first; classic prefixes are described
   there as `CLASSIC BUT STILL RELEVANT`, because readers meet them in
   existing code.
