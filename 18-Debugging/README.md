@@ -353,9 +353,7 @@ ENDCASE.
 
 ## 🐞 Debugger — Scope Note
 
-This chapter deliberately focuses on **messages, exceptions and logging**. Interactive debugging (breakpoints, watchpoints, `BREAK-POINT`, `ASSERT`, checkpoint groups in `SAAB`, debugging background and update-task processing, and the layer-aware debugger in ADT) is not covered here.
-
-> ⚠️ One point worth stating even so: **debugging in a production system is a controlled, audited activity.** Changing a variable's value in the debugger ("debug and replace") requires elevated authorization and is logged, because it bypasses every application check. Treat production debug authorization as a privileged permission, not a convenience.
+Interactive debugging, the checkpoint statements `BREAK-POINT`, `ASSERT` and `LOG-POINT`, and reading short dumps are covered in [23-Debugging-Troubleshooting](../23-Debugging-Troubleshooting/README.md).
 
 ## 🖥️ Related Transaction Codes
 
@@ -364,9 +362,6 @@ This chapter deliberately focuses on **messages, exceptions and logging**. Inter
 | SE91 | Maintain message classes |
 | SLG0 | Define application log objects/sub-objects |
 | SLG1 | Display application log |
-| SAAB | Maintain checkpoint groups (assertions, breakpoints, logging) |
-| ST22 | Analyze short dumps |
-| `/h` | OK-code (not a transaction) — activates the ABAP Debugger from any screen |
 
 ## 🔗 Related Chapters
 
@@ -374,3 +369,4 @@ This chapter deliberately focuses on **messages, exceptions and logging**. Inter
 - [15-BAPIs](../15-BAPIs/README.md) — `BAPIRET2` return handling
 - [19-Performance](../19-Performance/README.md) — runtime analysis and memory
 - [21-Classic-vs-Modern-ABAP](../21-Classic-vs-Modern-ABAP/README.md) — classic and class-based exceptions
+- [23-Debugging-Troubleshooting](../23-Debugging-Troubleshooting/README.md) — the debugger, checkpoints and short dumps
