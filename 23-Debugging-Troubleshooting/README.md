@@ -49,13 +49,18 @@ According to the ABAP Keyword Documentation, breakpoints in system programs (nam
 
 According to the ABAP Keyword Documentation, a breakpoint that you set in the ABAP Editor or in the debugger has a limited lifespan and applies to your own ABAP user. The statement `BREAK-POINT` is the other kind: it lives in the code (see the next section).
 
-The tools offer several kinds of interactive breakpoints and watchpoints:
+An interactive breakpoint has a **scope**, which decides in which sessions it applies:
+
+| Scope | Applies to |
+|---|---|
+| Session breakpoint | the current session of your user |
+| External (user) breakpoint | sessions of your user that are started from outside, such as an RFC or HTTP call |
+
+It also has a **kind**, which decides when it stops:
 
 | Kind | Stops when |
 |---|---|
 | Line breakpoint | the program reaches a line |
-| Session breakpoint | the program reaches the line in the current user session |
-| External (user) breakpoint | the program reaches the line in a session of your user that was started from outside, such as an RFC or HTTP call |
 | Statement breakpoint | a given statement is executed, for example every `CALL FUNCTION` |
 | Exception breakpoint | a given exception class is raised, wherever that happens |
 | Conditional breakpoint | the line is reached and a condition holds |
@@ -91,9 +96,9 @@ Checkpoints are statements that support testing and maintenance; they are not pa
 |---|---|---|---|
 | `BREAK-POINT` | Opens the debugger in dialog processing (see the table above for other processing) | Always active — not allowed in released code ([Rule 13.6](../docs/ABAP-Development-Rules.md#136-release-no-always-active-breakpoint-no-break-point-without-id-and-no-break-user-macro)) | not allowed |
 | `ASSERT` | Evaluates its condition; if the condition is false, the program ends with the runtime error `ASSERTION_FAILED`, or the checkpoint group's setting decides | Always active — the normal form for internal assumptions ([Rule 6.12](../docs/ABAP-Development-Rules.md#612-state-the-internal-assumptions-of-a-program-with-assert-raise-exceptions-for-situations-a-caller-or-user-can-act-on)) | allowed |
-| `LOG-POINT` | Writes an entry to the checkpoint log, which is evaluated in transaction `SAAB` | Not possible — `ID` is mandatory | not allowed |
+| `LOG-POINT` | Writes an entry to the checkpoint log, which is evaluated in transaction `SAAB` | Not possible — `ID` is mandatory. A test tool, removed before release ([Rule 13.6](../docs/ABAP-Development-Rules.md#136-release-no-always-active-breakpoint-no-break-point-without-id-and-no-break-user-macro)) | not allowed |
 
-The ABAP Keyword Documentation states that always-active breakpoints are meant only for tests, are not allowed in production programs, and that the extended program check reports `BREAK-POINT` without `ID` as an error. Of these test statements, the documentation names `ASSERT` and `BREAK-POINT` with `ID` as the ones production programs may contain, because they do not hinder the program flow; `LOG-POINT` is described on its own page as a tool for tests. `BREAK` followed by a user name is not a statement but a predefined macro; [Rule 13.6](../docs/ABAP-Development-Rules.md#136-release-no-always-active-breakpoint-no-break-point-without-id-and-no-break-user-macro) excludes it as well.
+The ABAP Keyword Documentation states that always-active breakpoints are meant only for tests, are not allowed in production programs, and that the extended program check reports `BREAK-POINT` without `ID` as an error. Of these test statements, the documentation names `ASSERT` and `BREAK-POINT` with `ID` as the ones production programs may contain, because they do not hinder the program flow; `LOG-POINT` is described on its own page as a tool for tests, so [Rule 13.6](../docs/ABAP-Development-Rules.md#136-release-no-always-active-breakpoint-no-break-point-without-id-and-no-break-user-macro) removes it before release. `BREAK` followed by a user name is not a statement but a predefined macro; [Rule 13.6](../docs/ABAP-Development-Rules.md#136-release-no-always-active-breakpoint-no-break-point-without-id-and-no-break-user-macro) excludes it as well.
 
 ### Assertions
 
@@ -150,7 +155,7 @@ With the addition `ID`, a **checkpoint group** controls a checkpoint from outsid
 - activation variants combine settings for several groups;
 - active settings are valid only for a limited time, so a forgotten activation expires.
 
-**Example E2 — activatable checkpoints.** Target: Standard ABAP only (`BREAK-POINT` and `LOG-POINT` are not allowed in ABAP for Cloud Development).
+**Example E2 — activatable checkpoints.** Target: Standard ABAP only (`BREAK-POINT` is not allowed in ABAP for Cloud Development).
 
 > 📝 **Contextual snippet** — the method `split` from E1; the checkpoint group `zsm_cp_order` exists in `SAAB`.
 
@@ -159,11 +164,6 @@ METHOD split.
   IF quantity < 1 OR package_size < 1.
     RETURN.
   ENDIF.
-
-  " Inactive until the group is set to "log"; then SAAB shows the calls
-  LOG-POINT ID zsm_cp_order
-            SUBKEY |{ package_size }|
-            FIELDS quantity package_size.
 
   DATA(full_packages) = quantity DIV package_size.
   DATA(remainder)     = quantity MOD package_size.
@@ -186,7 +186,20 @@ ENDMETHOD.
 
 > 💡 Keep an always-active `ASSERT` for cheap checks of important assumptions. Use `ASSERT ID` when the check is expensive, or when you want to collect violations in the log before you decide to stop on them.
 
-> 📝 `LOG-POINT` is not an application log. The documentation states that there is no API to read the checkpoint log, so it is meant for tests only. Logging that operations or users read belongs in the application log — see [18-Debugging](../18-Debugging/README.md#application-log-bal). Dynamic logpoints, which need no code change, can be set in transaction `SDLP` or in ADT.
+**`LOG-POINT` — a test-only statement.** Target: Standard ABAP only.
+
+> 📝 **Contextual snippet** — a test-only statement in the method `split`: add it while you investigate, and remove it before release ([Rule 13.6](../docs/ABAP-Development-Rules.md#136-release-no-always-active-breakpoint-no-break-point-without-id-and-no-break-user-macro)). The checkpoint group `zsm_cp_order` exists in `SAAB`.
+
+```abap
+" Test only: inactive until the group is set to "log"; SAAB then shows the calls
+LOG-POINT ID zsm_cp_order
+          SUBKEY |{ package_size }|
+          FIELDS quantity package_size.
+```
+
+> 💡 A dynamic logpoint, set in transaction `SDLP` or in ADT, needs no change to the code and therefore no transport. Prefer it whenever you only want to see which values reach a point.
+
+> 📝 `LOG-POINT` is not an application log. The documentation states that there is no API to read the checkpoint log, so it is meant for tests only. Logging that operations or users read belongs in the application log — see [18-Debugging](../18-Debugging/README.md#application-log-bal).
 
 **Standard ABAP / ABAP for Cloud Development:** `ASSERT`, with or without `ID`, is available in both; `BREAK-POINT` and `LOG-POINT` only in Standard ABAP.
 
@@ -356,7 +369,7 @@ The names `COMPUTE_INT_ZERODIVIDE`, `ASSERTION_FAILED` and `RAISE_SHORTDUMP` are
 - Read the short dump in order: error, place, call stack, data, cause chain.
 - Use exception breakpoints and watchpoints instead of stepping line by line through long code.
 - State internal assumptions with `ASSERT`, and raise exceptions for anything a caller or user can act on — [Rule 6.12](../docs/ABAP-Development-Rules.md#612-state-the-internal-assumptions-of-a-program-with-assert-raise-exceptions-for-situations-a-caller-or-user-can-act-on).
-- Give every `BREAK-POINT` and `LOG-POINT` a checkpoint group; release no always-active breakpoint — [Rule 13.6](../docs/ABAP-Development-Rules.md#136-release-no-always-active-breakpoint-no-break-point-without-id-and-no-break-user-macro).
+- Release no always-active breakpoint and no `LOG-POINT` — [Rule 13.6](../docs/ABAP-Development-Rules.md#136-release-no-always-active-breakpoint-no-break-point-without-id-and-no-break-user-macro).
 - Name checkpoint groups by the naming table (`zsm_cp_`) — [Rule 2.6](../docs/ABAP-Development-Rules.md#26-name-development-objects-by-the-object-naming-table).
 - Keep the cause when converting exceptions, so that the dump shows the whole chain — [Rule 6.8](../docs/ABAP-Development-Rules.md#68-keep-the-cause-when-converting-an-exception-pass-it-as-previous).
 - Turn every fixed defect into a unit test — [22-ABAP-Unit](../22-ABAP-Unit/README.md).
@@ -364,7 +377,7 @@ The names `COMPUTE_INT_ZERODIVIDE`, `ASSERTION_FAILED` and `RAISE_SHORTDUMP` are
 
 ## ⚠️ Common Mistakes
 
-- Releasing `BREAK-POINT` without `ID`, or `BREAK` with a user name, so that a forgotten stop reaches the quality or production system.
+- Releasing `BREAK-POINT` without `ID`, `BREAK` with a user name, or a `LOG-POINT`, so that a forgotten test statement reaches the quality or production system.
 - Making a program wait for the debugger with an endless loop guarded by a hard-coded user name. It puts a user name into the code and a hanging loop into a system; use an external breakpoint or debug the job step instead.
 - Using `ASSERT` to check input from a caller, which turns a handleable error into a runtime error.
 - Writing an assertion whose condition calls a method with side effects.
