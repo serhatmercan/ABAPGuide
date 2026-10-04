@@ -10,23 +10,23 @@ ABAP Memory (`MEMORY ID`) lets you pass data between an `EXPORT`ing and `SUBMIT`
 
 ```abap
 " Standard EXPORT/IMPORT via ABAP Memory
-EXPORT lt_deliveries TO MEMORY ID 'ZSM_DELIVERIES'.
-IMPORT lt_deliveries FROM MEMORY ID 'ZSM_DELIVERIES'.
+EXPORT deliveries TO MEMORY ID 'ZSM_DELIVERIES'.
+IMPORT deliveries FROM MEMORY ID 'ZSM_DELIVERIES'.
 
 " Calling another report and collecting its result:
 " clear the ID, run the report (which EXPORTs to it), then IMPORT.
-DATA lt_result TYPE zsm_tt_export.
+DATA exported_orders TYPE zsm_tt_export.
 
 FREE MEMORY ID 'ZSM_EXPORT'.
 
 SUBMIT zsm_r_export
-       WITH s_vkorg  IN it_vkorg
-       WITH p_from   EQ lv_date_from
-       WITH p_to     EQ lv_date_to
+       WITH s_vkorg  IN sales_org_range
+       WITH p_from   EQ date_from
+       WITH p_to     EQ date_to
        WITH p_export EQ abap_true
        AND RETURN.
 
-IMPORT lt_result FROM MEMORY ID 'ZSM_EXPORT'.
+IMPORT exported_orders FROM MEMORY ID 'ZSM_EXPORT'.
 IF sy-subrc <> 0.
   " nothing was exported - handle explicitly rather than using stale data
 ENDIF.
