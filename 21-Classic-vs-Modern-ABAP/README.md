@@ -105,6 +105,7 @@ Superseded, but preserved in this guide because you will meet all of it. Knowing
 | **`CLIENT SPECIFIED`** (obsolete) | `USING CLIENT` / `USING [ALL] CLIENTS` | Implicit client handling is the default; cross-client access must be explicit. | 7.8 |
 | **`CALL TRANSACTION` without `WITH`/`WITHOUT AUTHORITY-CHECK`** (obsolete) | `WITH AUTHORITY-CHECK` | The call should state whether the user's authorization is checked. | 8.9 |
 | **Pseudo comments for the extended program check (`"#EC …`)** (obsolete) | Pragmas (`##…`) | Pragmas are checked by the compiler and tied to a specific check. | 11.5 |
+| **Pseudo comments for test classes (`"#AU Risk_Level`, `"#AU Duration`)** (obsolete) | The additions `RISK LEVEL` and `DURATION` of `CLASS … FOR TESTING` | The additions are real syntax; a misspelt pseudo comment only produces a warning when the tests run. Existing pseudo comments still take effect. | 10.2 |
 | **`SEARCH`** (obsolete) | `FIND` | `FIND` offers match offset, length, line and regular-expression support, and is far clearer about what it did. | 3.16 |
 | **`REPLACE f1 WITH f2 INTO g`** (obsolete) | `REPLACE ... IN ...`, `replace( )` | The short form's operand order is unmemorable and its behaviour surprising. | 3.16 |
 | **`REGEX` addition** (POSIX syntax, obsolete) | `PCRE` addition *(VERSION-DEPENDENT)* | A more complete and standard regular-expression syntax. Verify availability on your release. | 3.16 |
