@@ -114,7 +114,7 @@ Superseded, but preserved in this guide because you will meet all of it. Knowing
 | **Customer exits (SMOD/CMOD)** (obsolete) | BAdIs | One active project per enhancement; procedural; no filtering. The ABAP Keyword Documentation lists `CALL CUSTOMER-FUNCTION` among the obsolete calls and names the Enhancement Framework and `CALL BADI` instead. | — |
 | **Modifications (access key)** | Any of the above | Every upgrade becomes an adjustment project. | — |
 | **Reading domain fixed values from `DD07L`/`DD07T` or with `DD_DOMVALUES_GET`** | RTTS (`get_ddic_fixed_values`) | RTTS reads the fixed values through the data element's own type description, without a table read or a function module call. | — |
-| **Frontend function modules `WS_FILENAME_GET`, `WS_UPLOAD`, `WS_DOWNLOAD`, `UPLOAD`** | Methods of `cl_gui_frontend_services` | One class covers the file dialogs and the transfer, with a typed signature and one exception per failure. Status in the function module attributes: [verify]. | — |
+| **Frontend function modules `WS_FILENAME_GET`, `WS_UPLOAD`, `WS_DOWNLOAD`, `UPLOAD`** | Methods of `cl_gui_frontend_services` | One class covers the file dialogs and the transfer, with a typed signature and one exception per failure. | — |
 | **OLE automation (`ole2_object`)** | Server-side file generation | Requires SAP GUI for Windows on the user's desktop; fails in background jobs and over RFC. | — |
 | **`SELECT ... ENDSELECT`** row by row | `SELECT ... INTO TABLE` | Row-by-row round trips to the database. `PACKAGE SIZE` with `ENDSELECT` for very large volumes remains accepted. | 9.7 |
 
