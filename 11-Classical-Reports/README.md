@@ -42,7 +42,7 @@ AT LINE-SELECTION.
   WRITE: / TEXT-002.
 ```
 
-> ⚠️ **`UP TO n ROWS` goes after `INTO` in strict ABAP SQL.** The position before `INTO` is accepted only outside the strict mode, and `@` host variables or a comma-separated field list switch that mode on — [Rule 7.1](../docs/ABAP-Development-Rules.md#71-write-strict-abap-sql-a-comma-separated-field-list--host-variables-into-after-the-query-clauses).
+> ⚠️ **`UP TO n ROWS` goes after `INTO`.** When `INTO` is the last clause, the ABAP Keyword Documentation requires `UP TO`, `OFFSET` and the other ABAP-specific additions after it — [Rule 7.1](../docs/ABAP-Development-Rules.md#71-write-strict-abap-sql-a-comma-separated-field-list--host-variables-into-after-the-query-clauses).
 
 ## 🖨️ Dynamic Reports — Building Tables and Field Catalogs at Runtime
 
@@ -283,7 +283,7 @@ CLOSE DATASET file_path.
 ## ⚠️ Common Mistakes
 
 - Forgetting `ULINE`/spacing conventions, making classical list output hard to read.
-- Writing `UP TO n ROWS` before `INTO` in a `SELECT` with `@` host variables — a syntax error in strict ABAP SQL.
+- Writing `UP TO n ROWS` before an `INTO` that ends the statement — the documentation requires it after `INTO`.
 - Expecting `END-OF-PAGE` output without reserving footer lines with `LINE-COUNT`.
 - Using dynamic tables / dynamic `SELECT (table)` with unvalidated user input — validate the name against the Dictionary first.
 - **Validating existence and calling it security.** Existence and authorization are two different checks; a generic reader needs both.
