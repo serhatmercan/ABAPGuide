@@ -114,7 +114,7 @@ DATA(time_zone) = sy-zonlo.
 
 Useful when accepting dates from multiple upstream formats (Excel serial dates, ISO strings, or plain `YYYYMMDD`):
 
-> 📝 **Contextual snippet** — `zcx_zsm_invalid_date_format` is a placeholder exception class. `KCD_EXCEL_DATE_CONVERT` also has an optional parameter `DATE_FORMAT` (default `'TMJ'`). **[verify: whether it converts Excel serial numbers or formatted date strings — its documentation in `SE37`]**
+> 📝 **Contextual snippet** — `zcx_zsm_invalid_date_format` is a placeholder exception class. Despite its name, `KCD_EXCEL_DATE_CONVERT` converts a date string with separators, not an Excel serial number. Its optional parameter `DATE_FORMAT` sets the order of the parts; the default `'TMJ'` means day, month, year. A two-digit year above 50 becomes 19xx, any other 20xx.
 
 ```abap
 CLASS lcl_date_parser DEFINITION FINAL.
@@ -126,6 +126,10 @@ ENDCLASS.
 
 CLASS lcl_date_parser IMPLEMENTATION.
   METHOD convert_value_to_date.
+    " Excel's 1900 date system counts a 29 February 1900 that never
+    " existed, so this day zero is right for every serial from 61 on
+    CONSTANTS excel_day_zero TYPE d VALUE '18991230'.
+
     DATA(input) = condense( value ).
 
     IF input IS INITIAL.
@@ -137,8 +141,12 @@ CLASS lcl_date_parser IMPLEMENTATION.
       result = |{ input+0(4) }{ input+5(2) }{ input+8(2) }|.
 
     ELSEIF input CA '.'.
-      " Localised string: DD.MM.YYYY
-      result = |{ input+6(4) }{ input+3(2) }{ input+0(2) }|.
+      " Localised string DD.MM.YYYY or DD.MM.YY; the function module
+      " also expands a two-digit year
+      CALL FUNCTION 'KCD_EXCEL_DATE_CONVERT'
+        EXPORTING excel_date  = input
+                  date_format = 'TMJ'
+        IMPORTING sap_date    = result.
 
     ELSEIF input CO '0123456789' AND strlen( input ) = 8.
       " Already YYYYMMDD
@@ -147,9 +155,7 @@ CLASS lcl_date_parser IMPLEMENTATION.
     ELSEIF input CO '0123456789'.
       " Purely numeric but not 8 digits: an Excel SERIAL date (a day count,
       " with no separators at all)
-      CALL FUNCTION 'KCD_EXCEL_DATE_CONVERT'
-        EXPORTING excel_date = input
-        IMPORTING sap_date   = result.
+      result = excel_day_zero + CONV i( input ).
 
     ELSE.
       RAISE EXCEPTION TYPE zcx_zsm_invalid_date_format.
@@ -158,7 +164,7 @@ CLASS lcl_date_parser IMPLEMENTATION.
 ENDCLASS.
 ```
 
-> 🧠 `CA` ("contains any") tests whether a string contains any of the given characters; `CO` ("contains only") tests that it contains nothing else. Note that an Excel **serial** date is a plain day count with no separators — a value containing `.` is a localised `DD.MM.YYYY` string, not a serial. Getting those two branches the wrong way round is an easy and expensive mistake. The method only rearranges digits: check the result for a valid calendar date before you use it.
+> 🧠 `CA` ("contains any") tests whether a string contains any of the given characters; `CO` ("contains only") tests that it contains nothing else. Note that an Excel **serial** date is a plain day count with no separators — a value containing `.` is a localised `DD.MM.YYYY` string, not a serial. Getting those two branches the wrong way round is an easy and expensive mistake. Check the result for a valid calendar date before you use it.
 
 ## ✅ Validating a Time Value
 
