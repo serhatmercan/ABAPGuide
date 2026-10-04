@@ -1,6 +1,6 @@
 # ABAP Development Rules
 
-> 📝 **Status:** adopted; 6 statements still to be verified, marked **[verify]**.
+> 📝 **Status:** adopted; 4 statements still to be verified, marked **[verify]**.
 
 ## 0 Purpose and Status
 
@@ -80,7 +80,7 @@ SELECT matnr, mtart
   INTO TABLE @DATA(products).
 ```
 
-In SAP's list of released objects, `I_PRODUCT` is released, and `MARA` is classified as not to be released, with `I_PRODUCT` among its successors. **[verify: the field names `Product` and `ProductType` of `I_Product`]**
+In SAP's list of released objects, `I_PRODUCT` is released, and `MARA` is classified as not to be released, with `I_PRODUCT` among its successors. `I_Product` has the fields `Product` and `ProductType` used above.
 
 ### 1.3 In Standard ABAP, prefer a released API over an unreleased one when both exist
 
@@ -1650,7 +1650,7 @@ The ABAP Keyword Documentation names two function modules:
 - `FILE_VALIDATE_NAME` checks a physical file name against a logical file name or path.
 - `FILE_GET_NAME` builds physical names from logical ones. A program that only uses it usually needs no further validation.
 
-Check file-access authorization as well. **[verify: the parameter names of `FILE_VALIDATE_NAME`]**
+Check file-access authorization as well. `FILE_VALIDATE_NAME` raises the classic exceptions `LOGICAL_FILENAME_NOT_FOUND` and `VALIDATION_FAILED`.
 
 ```abap
 " ✅
@@ -2004,7 +2004,7 @@ Tests against real data break when that data changes, and they can change it the
 
 The ABAP SQL test environment and the CDS test environment redirect reads to test doubles that the test fills itself. Clean ABAP points to the available test isolation tools.
 
-> ⚠️ **VERSION-DEPENDENT: ABAP SQL and CDS test environments.** Availability and API details depend on the release. Check the [ABAP Keyword Documentation](https://help.sap.com/doc/abapdocu_latest_index_htm/latest/en-US/index.htm). Both `cl_osql_test_environment` and `cl_cds_test_environment` are released for ABAP for Cloud Development. **[verify: their method names and parameters, e.g. `create`, `insert_test_data`, `clear_doubles`, `destroy`]**
+> ⚠️ **VERSION-DEPENDENT: ABAP SQL and CDS test environments.** Availability and API details depend on the release. Check the [ABAP Keyword Documentation](https://help.sap.com/doc/abapdocu_latest_index_htm/latest/en-US/index.htm). Both `cl_osql_test_environment` and `cl_cds_test_environment` are released for ABAP for Cloud Development. The instances they create implement `if_osql_test_environment` and `if_cds_test_environment`, which provide `insert_test_data` (parameter `i_data`), `clear_doubles` and `destroy`. **[verify: the factory method `create` and its parameter `i_dependency_list`]**
 
 ```abap
 " ✅
