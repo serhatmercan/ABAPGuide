@@ -128,7 +128,7 @@ This chapter covers **ABAP-side** performance: internal tables, memory, and how 
 ## ✅ Best Practices
 
 - Profile before optimizing — use `SAT` (Runtime Analysis; `SE30` is its predecessor) and `ST05` (SQL Trace) to find the actual bottleneck rather than guessing — [Rule 9.1](../docs/ABAP-Development-Rules.md#91-measure-before-you-optimise).
-- `FREE MEMORY ID` when done with ABAP Memory, and avoid using it as a general-purpose "pass data anywhere" mechanism — it makes program dependencies implicit and hard to trace.
+- In Standard ABAP, `FREE MEMORY ID` when done with ABAP Memory (ABAP for Cloud Development does not allow `FREE MEMORY`), and avoid using it as a general-purpose "pass data anywhere" mechanism — it makes program dependencies implicit and hard to trace.
 - Batch database writes and reads: one `COMMIT WORK` at the transaction boundary rather than one per row, and a join or `FOR ALL ENTRIES` instead of a select inside a loop.
 - Prefer a typed `SORTED`/`HASHED` table or a secondary key over `BINARY SEARCH`, and use keyed access instead of nested loops.
 - Hold locks for as short a time as possible — a long-running loop that holds an enqueue blocks other users for its entire duration.
@@ -140,7 +140,7 @@ This chapter covers **ABAP-side** performance: internal tables, memory, and how 
 - Nested loops over two large tables without a key on the inner one.
 - Using `BINARY SEARCH` on a table that is not sorted by exactly the right key, which returns wrong results without any error.
 - `COMMIT WORK` once per row inside a loop.
-- Forgetting `FREE MEMORY` before reusing a `MEMORY ID`, so old data leaks into a new run.
+- In Standard ABAP, forgetting `FREE MEMORY ID` before reusing an ID, so old data leaks into a new run (ABAP for Cloud Development does not allow `FREE MEMORY`).
 - Writing `EXPORT itab TO MEMORY ID …` without parameter names — an obsolete form.
 - Expecting a buffered table to show another server's change immediately.
 - Adding secondary keys to internal tables that are only ever read via the primary key — the key has to be maintained, so it costs without paying back.
