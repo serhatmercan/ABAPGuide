@@ -1,6 +1,6 @@
 # ABAP Development Rules
 
-> 📝 **Status:** adopted; 4 statements still to be verified, marked **[verify]**.
+> 📝 **Status:** adopted; 5 statements still to be verified, marked **[verify]**.
 
 ## 0 Purpose and Status
 
@@ -1121,7 +1121,7 @@ CATCH cx_sy_open_sql_db.
 
 Classic results are read once, in the wrapper (5.1), so callers deal with only one error mechanism. Clean ABAP recommends exceptions over return codes and wrapping foreign errors.
 
-The same applies to BAPIs: check the `RETURN` table in the wrapper and raise when it contains an error or an abort. For how to evaluate the table, see [15-BAPIs](../15-BAPIs/README.md).
+The same applies to BAPIs: check the `RETURN` table in the wrapper and raise when it contains a message of type `E` (error), `A` (abort) or `X` (exception) **[verify: fixed values of `BAPIRET2-TYPE`]**. For how to evaluate the table, see [15-BAPIs](../15-BAPIs/README.md).
 
 ```abap
 " ✅
