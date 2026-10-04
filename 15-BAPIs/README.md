@@ -92,6 +92,8 @@ Write BAPIs **do not decide the transaction boundary**. They register their work
 > 📝 **Contextual snippet** — the transaction owner, for example a report; `sales_order_api`, `order_header`, `order_items` and `order_partners` are assumed.
 
 ```abap
+DATA commit_return TYPE bapiret2.
+
 TRY.
     DATA(order_id) = sales_order_api->create( header   = order_header
                                               items    = order_items
@@ -100,7 +102,17 @@ TRY.
     " WAIT only because the next step reads the new order (Rule 7.14)
     CALL FUNCTION 'BAPI_TRANSACTION_COMMIT'
       EXPORTING
-        wait = abap_true.
+        wait   = abap_true
+      IMPORTING
+        return = commit_return.
+
+    " A failed update comes back as a message, not as an exception
+    IF commit_return-type CA 'EA'.
+      MESSAGE ID commit_return-id TYPE 'S' NUMBER commit_return-number
+        WITH commit_return-message_v1 commit_return-message_v2
+             commit_return-message_v3 commit_return-message_v4
+        DISPLAY LIKE 'E'.
+    ENDIF.
 
   CATCH zcx_zsm_bapi_error INTO DATA(bapi_error).
     CALL FUNCTION 'BAPI_TRANSACTION_ROLLBACK'.
@@ -110,7 +122,7 @@ ENDTRY.
 
 > ⚠️ **Use `BAPI_TRANSACTION_COMMIT`, not a plain `COMMIT WORK`, after BAPI calls.** The BAPI protocol ends with `BAPI_TRANSACTION_COMMIT` or `BAPI_TRANSACTION_ROLLBACK`, and the transaction owner calls them ([Rule 7.11](../docs/ABAP-Development-Rules.md#711-close-bapi-calls-with-bapi_transaction_commit-or-bapi_transaction_rollback)). After its commit, `BAPI_TRANSACTION_COMMIT` also calls the function module `BUFFER_REFRESH_ALL` to refresh buffered data, a step that a plain `COMMIT WORK` skips.
 
-> 💡 **`wait = abap_true`** is meant for the case where the *same* program must immediately re-read the document it just created or changed; otherwise leave it unset, because waiting costs time ([Rule 7.14](../docs/ABAP-Development-Rules.md#714-use-commit-work-and-wait-only-when-the-next-step-depends-on-the-update)). With `wait` set, the function module executes `COMMIT WORK AND WAIT` instead of `COMMIT WORK`, and reports a failed commit as a type `E` message in its `RETURN` parameter.
+> 💡 **`wait = abap_true`** is meant for the case where the *same* program must immediately re-read the document it just created or changed; otherwise leave it unset, because waiting costs time ([Rule 7.14](../docs/ABAP-Development-Rules.md#714-use-commit-work-and-wait-only-when-the-next-step-depends-on-the-update)). With `wait` set, the function module executes `COMMIT WORK AND WAIT` instead of `COMMIT WORK`, and reports a failed commit as a type `E` message in its `RETURN` parameter, a single `BAPIRET2` structure. The example above treats `E` and `A` there as a failed commit.
 
 > ⚠️ **Never call `BAPI_TRANSACTION_COMMIT` from inside a reusable wrapper** that other code calls. The wrapper does not know what else the caller has pending in the same SAP LUW. Raise an exception, or return the `BAPIRET2` table, and let the transaction owner decide.
 
