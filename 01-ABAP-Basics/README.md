@@ -32,7 +32,7 @@ Each of these statements must be the first statement of its program after includ
 
 ## 🧪 Example — Program Header & Global Declarations
 
-> 📝 **Contextual snippet** — assumes the `CLASS lcl_main IMPLEMENTATION` part, the structure `zsm_s_delivery`, and the dynpro with its modules; they are left out here.
+> 📝 **Contextual snippet** — assumes the `CLASS lcl_main IMPLEMENTATION` part, the private helper methods and event handlers, the structure `zsm_s_delivery`, and the dynpro with its modules; they are left out here and shown in full in [13-ALV](../13-ALV/README.md#-option-3--oop-alv-grid-cl_gui_alv_grid--full-interactive-control).
 
 ```abap
 "----------------------------------------------------------------------
@@ -50,6 +50,10 @@ DATA main TYPE REF TO lcl_main.
 CLASS lcl_main DEFINITION FINAL.
   PUBLIC SECTION.
     METHODS start_of_selection.
+
+    " Called from the PBO module of screen 0100
+    METHODS show_alv.
+
   PRIVATE SECTION.
     DATA custom_container TYPE REF TO cl_gui_custom_container.
     DATA header_document  TYPE REF TO cl_dd_document.
