@@ -14,7 +14,7 @@ Selection screens gather report input from the user (`PARAMETERS`, `SELECT-OPTIO
 " work areas that SELECT-OPTIONS ... FOR refers to.
 TABLES: mara, vbak, mseg, tadir, sscrfields.
 
-DATA lt_values TYPE vrm_values.
+DATA listbox_values TYPE vrm_values.
 
 SELECTION-SCREEN BEGIN OF BLOCK b1 WITH FRAME TITLE TEXT-001.
   PARAMETERS p_matnr TYPE mara-matnr OBLIGATORY.
@@ -37,17 +37,17 @@ SELECTION-SCREEN BEGIN OF BLOCK b1 WITH FRAME TITLE TEXT-001.
 
   " MODIF ID groups fields so LOOP AT SCREEN can address them together.
   " The name must match what you compare against screen-group1 later.
-  PARAMETERS p_count TYPE zsm_t_data-print_count AS LISTBOX VISIBLE LENGTH 5
+  PARAMETERS p_count TYPE zsm_t_print_job-print_count AS LISTBOX VISIBLE LENGTH 5
                      MODIF ID gr2 DEFAULT 1 OBLIGATORY.
   SELECT-OPTIONS s_mjahr FOR mseg-mjahr MODIF ID gr2.
   SELECT-OPTIONS s_lgort FOR mseg-lgort MODIF ID gr2.
 
   SELECTION-SCREEN SKIP.
 
-  PARAMETERS p_id     TYPE zsm_d_id MATCHCODE OBJECT zsm_sh_id.
+  PARAMETERS p_id     TYPE zsm_e_document_id MATCHCODE OBJECT zsm_sh_document_id.
   PARAMETERS p_mail   AS CHECKBOX.
   PARAMETERS p_number TYPE i AS LISTBOX VISIBLE LENGTH 7 DEFAULT 3 OBLIGATORY.
-  SELECT-OPTIONS s_date FOR zsm_t_doc-erdat DEFAULT sy-datum OBLIGATORY.
+  SELECT-OPTIONS s_date FOR zsm_t_document-erdat DEFAULT sy-datum OBLIGATORY.
 
   SELECTION-SCREEN SKIP.
 
@@ -118,13 +118,13 @@ START-OF-SELECTION.
 
 FORM init.
   " Populate a listbox's values at runtime
-  lt_values = VALUE #( ( key = '1' text = 'One' )
-                       ( key = '2' text = 'Two' )
-                       ( key = '3' text = 'Three' ) ).
+  listbox_values = VALUE #( ( key = '1' text = 'One' )
+                            ( key = '2' text = 'Two' )
+                            ( key = '3' text = 'Three' ) ).
 
   CALL FUNCTION 'VRM_SET_VALUES'
     EXPORTING id     = 'P_NUMBER'
-              values = lt_values.
+              values = listbox_values.
 
   " Custom function-key icons/text on the selection screen toolbar
   sscrfields-functxt_01 = VALUE smp_dyntxt( icon_id   = '@J2@'
@@ -140,10 +140,10 @@ FORM init.
   SELECT SINGLE lgort
     FROM zsm_t_user_default
     WHERE username = @sy-uname
-    INTO @DATA(lv_lgort).
+    INTO @DATA(default_storage_location).
 
   IF sy-subrc = 0.
-    s_lgort = VALUE #( ( sign = 'I' option = 'EQ' low = lv_lgort ) ).
+    s_lgort = VALUE #( ( sign = 'I' option = 'EQ' low = default_storage_location ) ).
   ENDIF.
 ENDFORM.
 
@@ -151,11 +151,11 @@ FORM modify_screen.
   " Hide/disable a group of fields dynamically.
   " The compared value must match the MODIF ID used in the declarations
   " ('GR2' here, uppercase - screen-group1 is a character field).
-  LOOP AT SCREEN INTO DATA(ls_screen).
-    IF ls_screen-group1 = 'GR2'.
-      ls_screen-active    = 0.
-      ls_screen-invisible = 1.
-      MODIFY SCREEN FROM ls_screen.
+  LOOP AT SCREEN INTO DATA(screen_field).
+    IF screen_field-group1 = 'GR2'.
+      screen_field-active    = 0.
+      screen_field-invisible = 1.
+      MODIFY SCREEN FROM screen_field.
     ENDIF.
   ENDLOOP.
 ENDFORM.
@@ -185,14 +185,14 @@ PROCESS AFTER INPUT.
 **ABAP source — the program that owns the screen:**
 
 ```abap
-REPORT zsm_test.
+REPORT zsm_r_tabstrip_screen.
 
-CONTROLS go_tab TYPE TABSTRIP.
+CONTROLS main_tabs TYPE TABSTRIP.
 
-DATA: gt_values TYPE vrm_values,
-      gv_flag   TYPE xfeld,
-      gv_id     TYPE vrm_id,
-      gv_value  TYPE i.
+DATA: dropdown_values TYPE vrm_values,
+      fields_enabled  TYPE xfeld,
+      dropdown_id     TYPE vrm_id,
+      selected_value  TYPE i.
 
 START-OF-SELECTION.
   CALL SCREEN 0100.
@@ -201,7 +201,7 @@ MODULE status_0100 OUTPUT.
   SET PF-STATUS 'STATUS_0100'.
   SET TITLEBAR 'TITLE_0100'.
 
-  PERFORM set_dropdown_sh.
+  PERFORM set_dropdown_values.
   PERFORM set_screen_fields.
 ENDMODULE.
 
@@ -212,26 +212,26 @@ MODULE user_command_0100 INPUT.
     WHEN 'BACK' OR 'EXIT' OR 'CANC'.
       LEAVE TO SCREEN 0.
     WHEN 'DISABLE' OR 'ENABLE'.
-      gv_flag = COND xfeld( WHEN sy-ucomm = 'DISABLE' THEN abap_false
-                                                      ELSE abap_true ).
+      fields_enabled = COND xfeld( WHEN sy-ucomm = 'DISABLE' THEN abap_false
+                                                             ELSE abap_true ).
     WHEN 'TAB1'.
-      go_tab-activetab = 'TAB1'.
+      main_tabs-activetab = 'TAB1'.
     WHEN 'TAB2'.
-      go_tab-activetab = 'TAB2'.
+      main_tabs-activetab = 'TAB2'.
     WHEN OTHERS.
   ENDCASE.
 ENDMODULE.
 
-FORM set_dropdown_sh.
-  gv_id = 'GV_VALUE'.
-  gt_values = VALUE vrm_values( ( key = '1' text = 'A' )
-                                ( key = '2' text = 'B' )
-                                ( key = '3' text = 'C' ) ).
+FORM set_dropdown_values.
+  dropdown_id = 'SELECTED_VALUE'.
+  dropdown_values = VALUE vrm_values( ( key = '1' text = 'A' )
+                                      ( key = '2' text = 'B' )
+                                      ( key = '3' text = 'C' ) ).
 
   CALL FUNCTION 'VRM_SET_VALUES'
     EXPORTING
-      id     = gv_id
-      values = gt_values.
+      id     = dropdown_id
+      values = dropdown_values.
 ENDFORM.
 ```
 
@@ -245,8 +245,8 @@ PROCESS BEFORE OUTPUT.
   MODULE status_0102.
 
 PROCESS AFTER INPUT.
-  FIELD qmel-zzcarrier MODULE check_carrier.
-  FIELD qmel-zzcarrier MODULE get_carrier_text ON INPUT.
+  FIELD qmel-zz_carrier MODULE check_carrier.
+  FIELD qmel-zz_carrier MODULE get_carrier_text ON INPUT.
   MODULE user_command_0102.
 ```
 
@@ -257,12 +257,12 @@ MODULE status_0102 OUTPUT.
   " Make the custom fields display-only in the display transactions.
   " NOTE: 'x IN ( a, b )' is ABAP SQL syntax and is NOT valid in an ABAP IF.
   " Use an OR chain, or a range table for longer lists.
-  LOOP AT SCREEN INTO DATA(ls_screen).
-    IF ( ls_screen-name = 'QMEL-ZZPROD_CODE' OR
-         ls_screen-name = 'QMEL-ZZCARRIER' )
+  LOOP AT SCREEN INTO DATA(screen_field).
+    IF ( screen_field-name = 'QMEL-ZZ_PRODUCT_CODE' OR
+         screen_field-name = 'QMEL-ZZ_CARRIER' )
    AND ( sy-tcode = 'QM03' OR sy-tcode = 'IW23' ).
-      ls_screen-input = 0.
-      MODIFY SCREEN FROM ls_screen.
+      screen_field-input = 0.
+      MODIFY SCREEN FROM screen_field.
     ENDIF.
   ENDLOOP.
 ENDMODULE.
@@ -271,9 +271,9 @@ ENDMODULE.
 
 > 💡 For a longer list of values, build a range table once and keep the `IN` form:
 > ```abap
-> DATA(lr_display_tcodes) = VALUE rseloption( sign = 'I' option = 'EQ'
->                                             ( low = 'QM03' ) ( low = 'IW23' ) ).
-> IF sy-tcode IN lr_display_tcodes.
+> DATA(display_tcodes) = VALUE rseloption( sign = 'I' option = 'EQ'
+>                                          ( low = 'QM03' ) ( low = 'IW23' ) ).
+> IF sy-tcode IN display_tcodes.
 > ```
 
 ## 🔔 Popups
@@ -282,10 +282,10 @@ ENDMODULE.
 " A stand-alone selection screen displayed as a modal popup window.
 " Declare it once, then call it where you need it.
 SELECTION-SCREEN BEGIN OF SCREEN 601 AS WINDOW.
-  SELECT-OPTIONS s_datum FOR zsm_t_doc-erdat DEFAULT sy-datum OBLIGATORY.
-  SELECT-OPTIONS s_dtype FOR zsm_t_doc-doc_type.
+  SELECT-OPTIONS s_datum FOR zsm_t_document-erdat DEFAULT sy-datum OBLIGATORY.
+  SELECT-OPTIONS s_dtype FOR zsm_t_document-doc_type.
   SELECTION-SCREEN SKIP.
-  SELECT-OPTIONS s_uname FOR zsm_t_doc-ernam.
+  SELECT-OPTIONS s_uname FOR zsm_t_document-ernam.
 SELECTION-SCREEN END OF SCREEN 601.
 
 START-OF-SELECTION.
