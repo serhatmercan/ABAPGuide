@@ -10,11 +10,11 @@ This chapter focuses on **Batch Data Communication (BDC/Batch Input)** — simul
 
 ```abap
 " TOP
-DATA gt_bdctable TYPE TABLE OF bdcdata WITH EMPTY KEY.
-DATA gt_messtab  TYPE TABLE OF bdcmsgcoll WITH EMPTY KEY.
+DATA bdc_lines TYPE TABLE OF bdcdata WITH EMPTY KEY.
+DATA messages  TYPE TABLE OF bdcmsgcoll WITH EMPTY KEY.
 
 " FORM
-CLEAR gt_messtab.
+CLEAR messages.
 
 PERFORM bdc_append
   USING 'SAPLMR1M'
@@ -30,12 +30,12 @@ PERFORM bdc_append
   USING ''
         ''
         'RBKP-BELNR'
-        lv_belnr.
+        invoice_id.
 PERFORM bdc_append
   USING ''
         ''
         'RBKP-GJAHR'
-        lv_gjahr.
+        fiscal_year.
 
 PERFORM bdc_append
   USING 'SAPLMR1M'
@@ -53,30 +53,30 @@ PERFORM bdc_append
 " authorized for the called transaction.
 TRY.
     CALL TRANSACTION 'MIR4' WITH AUTHORITY-CHECK
-                            USING        gt_bdctable
+                            USING        bdc_lines
                             UPDATE       'S'
                             MODE         'E'
-                            MESSAGES INTO gt_messtab.
+                            MESSAGES INTO messages.
 
-  CATCH cx_sy_authorization_error INTO DATA(lx_auth).
-    MESSAGE lx_auth->get_text( ) TYPE 'E'.
+  CATCH cx_sy_authorization_error INTO DATA(authorization_error).
+    MESSAGE authorization_error->get_text( ) TYPE 'E'.
 ENDTRY.
 
 " PERFORM
 FORM bdc_append
-  USING iv_program    TYPE bdcdata-program
-        iv_dynpro     TYPE bdcdata-dynpro
-        iv_fieldname  TYPE bdcdata-fnam
-        iv_fieldvalue TYPE bdcdata-fval.
+  USING program     TYPE bdcdata-program
+        dynpro      TYPE bdcdata-dynpro
+        field_name  TYPE bdcdata-fnam
+        field_value TYPE bdcdata-fval.
 
-  DATA(ls_bdctable) = VALUE bdcdata(
-      program  = COND #( WHEN iv_fieldname IS INITIAL THEN iv_program ELSE '' )
-      dynpro   = COND #( WHEN iv_fieldname IS INITIAL THEN iv_dynpro  ELSE '' )
-      dynbegin = COND #( WHEN iv_fieldname IS INITIAL THEN 'X'        ELSE '' )
-      fnam     = iv_fieldname
-      fval     = iv_fieldvalue ).
+  DATA(bdc_line) = VALUE bdcdata(
+      program  = COND #( WHEN field_name IS INITIAL THEN program ELSE '' )
+      dynpro   = COND #( WHEN field_name IS INITIAL THEN dynpro  ELSE '' )
+      dynbegin = COND #( WHEN field_name IS INITIAL THEN 'X'     ELSE '' )
+      fnam     = field_name
+      fval     = field_value ).
 
-  APPEND ls_bdctable TO gt_bdctable.
+  APPEND bdc_line TO bdc_lines.
 ENDFORM.
 ```
 
@@ -101,7 +101,7 @@ ENDFORM.
 ## ✅ Best Practices
 
 - Prefer a **BAPI** ([15-BAPIs](../15-BAPIs/README.md)) over BDC whenever one exists for the target transaction — BDC is fragile (breaks on screen layout/customizing changes) and should be a last resort.
-- Always collect messages (`MESSAGES INTO gt_messtab`) and check them after `CALL TRANSACTION` — a batch input run can "succeed" at the transaction level while still reporting business errors.
+- Always collect messages (`MESSAGES INTO messages`) and check them after `CALL TRANSACTION` — a batch input run can "succeed" at the transaction level while still reporting business errors.
 - **Always state the authorization intent** (`WITH AUTHORITY-CHECK` / `WITHOUT AUTHORITY-CHECK`) rather than leaving it to the default.
 - Use mode `'N'` for production mass-processing jobs; use `'A'`/`'E'` only during development/debugging.
 - Let the caller own the transaction. `UPDATE 'S'` makes the called transaction's update synchronous; it does not make the *calling* program's LUW someone else's responsibility — see [08 — SAP LUW](../08-Open-SQL/README.md#-sap-luw--transaction-ownership).
@@ -109,7 +109,7 @@ ENDFORM.
 ## ⚠️ Common Mistakes
 
 - Hardcoding screen numbers/field names without verifying them against the actual transaction (they change across releases/support packages).
-- Not checking `sy-subrc`/`gt_messtab` after `CALL TRANSACTION`, silently swallowing failed records in a mass upload.
+- Not checking `sy-subrc`/`messages` after `CALL TRANSACTION`, silently swallowing failed records in a mass upload.
 - **Omitting the authorization addition**, so a loader can drive a transaction the user could not run interactively.
 - Using BDC for high-volume, real-time processing — it's significantly slower than a direct BAPI/function module call.
 
