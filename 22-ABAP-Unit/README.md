@@ -43,13 +43,15 @@ The two additions describe the test, and the system compares them with the limit
 
 > ⚠️ **Without `RISK LEVEL`, a test class counts as `CRITICAL`.** The ABAP Keyword Documentation names `CRITICAL` as the default, and tests above the allowed risk level of the system are not executed. Always state both additions; for a unit test they are `HARMLESS` and `SHORT`.
 
+> **Lifecycle:** `LEGACY / HISTORICAL REFERENCE` for the pseudo comments `"#AU Risk_Level …` and `"#AU Duration …`, which older test classes use for the same two properties. The ABAP Keyword Documentation classifies them as obsolete: they still take effect, but the additions `RISK LEVEL` and `DURATION` replace them. See [21-Classic-vs-Modern-ABAP](../21-Classic-vs-Modern-ABAP/README.md#-legacy--historical-reference).
+
 > 💡 Set `DURATION` to the time the test really needs, not to the limit. A unit test that needs `MEDIUM` usually reaches a database or a remote system and should get a test double instead.
 
 The prefixes come from the naming table: `ltc_` for test classes and `lth_` for test helpers, including hand-written test doubles ([Rule 2.6](../docs/ABAP-Development-Rules.md#26-name-development-objects-by-the-object-naming-table)).
 
 ## 🧪 Test Methods and Fixtures
 
-A test method is an instance method declared with `FOR TESTING`. It has no parameters, and it is private, because only the test runner calls it. `RAISING cx_static_check` lets a test pass checked exceptions on: an exception that leaves a test method is reported as an error of that test, so the test does not have to catch exceptions it never expects.
+A test method is an instance method declared with `FOR TESTING`. It has no parameters, and it is private, because only the test runner calls it. `RAISING cx_static_check` lets a test pass checked exceptions on, so the test does not have to catch exceptions it never expects. **[verify: how ABAP Unit reports an exception that leaves a test method; the ABAP Keyword Documentation only says that `RAISING` works as for other instance methods]**
 
 Four optional private methods with fixed names prepare and clean up the test environment, the **fixture**:
 
@@ -461,6 +463,10 @@ ENDCLASS.
 > 💡 The test double is declared with its own class type (`REF TO lth_fixed_tax_rates`), so the test can call `answer_with` and read `requested_country`. The class under test only sees the interface.
 
 **To try it:** create the two interfaces and the class as local objects, activate them in that order, paste the last block into the class's test include, activate it, and run the class's unit tests. All four tests should pass. Then break the calculation, for example by removing the `+ net_amount`, and watch the tests name what broke.
+
+> 📝 **Where to create local objects.** In Standard ABAP, the local package `$TMP` can be used. In an SAP BTP ABAP environment, `ZLOCAL` is a structure package, so first create a development package below it (software component `LOCAL`) and create the objects there.
+
+> 📝 **Activation record.** The two interfaces, the class and its test classes were activated, and the 4 test methods were run with all 4 passing, in both ABAP language versions: Standard ABAP and ABAP for Cloud Development.
 
 ## 🧭 Scope Note
 
