@@ -39,7 +39,8 @@ The chapter that ties the rest together: why productive landscapes contain sever
 | Build a report or a screen | [11](11-Classical-Reports/README.md) · [12](12-Selection-Screens/README.md) · [13](13-ALV/README.md) |
 | Run a report in the background or exchange files | [11](11-Classical-Reports/README.md) |
 | Integrate or extend standard SAP | [14](14-Function-Modules/README.md) · [15](15-BAPIs/README.md) · [16](16-BADIs/README.md) · [17](17-Enhancements/README.md) |
-| Handle errors, log, and tune | [18](18-Debugging/README.md) · [19](19-Performance/README.md) |
+| Report messages, raise exceptions and keep logs | [18](18-Debugging/README.md) · [15](15-BAPIs/README.md) |
+| Tune runtime and memory | [19](19-Performance/README.md) |
 | Review code against a checklist | [20](20-Best-Practices/README.md) |
 | Decide between classic and modern | [21](21-Classic-vs-Modern-ABAP/README.md) |
 
@@ -76,7 +77,7 @@ Chapters and examples are labelled with one of these. Full definitions in [Chapt
 | [15-BAPIs](15-BAPIs/README.md) | BAPIs | `BAPIRET2`, transaction control, standard call pattern | Classic, still relevant |
 | [16-BADIs](16-BADIs/README.md) | BAdIs | Classic vs. new BAdIs, filters, implementation pattern | Current + classic |
 | [17-Enhancements](17-Enhancements/README.md) | Enhancements | User exits vs. customer exits, enhancement points, modifications | Classic + legacy |
-| [18-Debugging](18-Debugging/README.md) | Messages & Exceptions | `MESSAGE`, exception handling, application log | Current |
+| [18-Debugging](18-Debugging/README.md) | Messages, Exceptions & Logging | `MESSAGE` and message types, return tables, class-based and classic exceptions, application log | Current |
 | [19-Performance](19-Performance/README.md) | Performance & Memory | Internal table tuning, ABAP Memory, database access | Current |
 | [20-Best-Practices](20-Best-Practices/README.md) | Best Practices & Clean ABAP | Clean ABAP naming, classic prefixes as a reading aid, rule summaries, refactoring example, review checklist | Current + classic |
 | [21-Classic-vs-Modern-ABAP](21-Classic-vs-Modern-ABAP/README.md) | **Classic vs Modern** | **Lifecycle map, ABAP Cloud boundary, decision table** | **Start here for context** |
