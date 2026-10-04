@@ -1,10 +1,14 @@
 # String Functions
 
+> **Lifecycle:** `CURRENT / RECOMMENDED`. Older forms you will still meet are labelled where they appear. See [21-Classic-vs-Modern-ABAP](../21-Classic-vs-Modern-ABAP/README.md).
+
 ## 📖 Introduction
 
 Common string manipulation patterns: concatenation with string templates, searching, case conversion, and pattern matching.
 
 ## 🧵 Concatenation
+
+> 📝 **Contextual snippet** — `base_url`, `company_code`, `business_area`, the structures `primary` and `fallback` (component `value`) and `storage_location` (component `werks`) are assumed.
 
 ```abap
 DATA(first_name) = `Ada`.
@@ -32,11 +36,13 @@ DATA(shipping_point) = |{ storage_location-werks+0(2) }01|.
 
 ## 🔎 Checking a Single Character (Offset Access)
 
+> 📝 **Contextual snippet** — `payment` is assumed, with the currency key `waers`.
+
 ```abap
 IF payment-waers+0(1) = 'A' OR payment-waers+0(1) = 'T'.
 ENDIF.
 ```
-`field+offset(length)` extracts a substring — `waers+0(1)` is the first character of `waers`.
+`field+offset(length)` extracts a substring — `waers+0(1)` is the first character of `waers`. On a `string`, offset/length access is allowed for reading only, not as a write target.
 
 ## 🧹 CONDENSE
 
@@ -51,17 +57,19 @@ CONDENSE full_name NO-GAPS.
 IF text CP 'P*'.
 ENDIF.
 ```
-`CP` supports simple wildcards and is **case-insensitive**:
+`CP` supports simple wildcards and is **case-insensitive**; after a successful comparison, `sy-fdpos` holds the offset of the match:
 
 | Symbol | Meaning |
 |---|---|
 | `*` | any character sequence (including none) |
 | `+` | exactly one arbitrary character |
-| `#` | escape character — `#*` matches a literal `*` |
+| `#` | escape character — `#*` matches a literal `*`, and a character marked with `#` is compared case-sensitively |
 
 Use `#` to escape when the search term itself may contain `*` or `+`. For a case-**sensitive** match, compare with `=` or use `find( )`.
 
 ## 📏 Length & Built-in String Functions
+
+> 📝 **Contextual snippet** — `text` (a string) and the string table `parts` are assumed.
 
 ```abap
 DATA(text_length)   = strlen( text ).
@@ -90,11 +98,16 @@ DATA(upper_text) = to_upper( word ).
 DATA(lower_text) = to_lower( word ).
 
 " Inside a string template
-DATA(word_upper) = |{ word CASE = (cl_abap_format=>c_upper) }|.
-DATA(word_lower) = |{ word CASE = (cl_abap_format=>c_lower) }|.
+DATA(word_upper) = |{ word CASE = UPPER }|.
+DATA(word_lower) = |{ word CASE = LOWER }|.
+
+" Dynamic form: the value comes from the constants of cl_abap_format
+DATA(word_dynamic) = |{ word CASE = (cl_abap_format=>c_upper) }|.
 ```
 
 ## 🔎 FIND — Searching Text
+
+> 📝 **Contextual snippet** — `text` (a string) and the string table `log_lines` are assumed.
 
 ```abap
 " Find a substring and get its position
@@ -106,7 +119,7 @@ IF sy-subrc = 0.
   DATA(found_text) = text+match_offset(match_length).
 ENDIF.
 
-" Case-insensitive search across every word of an internal table
+" Case-insensitive search across every line of an internal table
 FIND FIRST OCCURRENCE OF 'error' IN TABLE log_lines
      IGNORING CASE
      MATCH LINE DATA(line_index).
@@ -115,15 +128,19 @@ FIND FIRST OCCURRENCE OF 'error' IN TABLE log_lines
 DATA(position_of_name) = find( val = text sub = 'Lovelace' ).
 ```
 
+> 📝 `FIND … IN TABLE` respects case unless `IGNORING CASE` is added, works on standard tables without secondary keys, and leaves `sy-tabix` and `sy-fdpos` unchanged.
+
 > **Lifecycle:** the older `SEARCH ... FOR` statement is `LEGACY / HISTORICAL REFERENCE` — it is documented as obsolete and superseded by `FIND`. You will meet it in existing code (it sets `sy-subrc` and `sy-fdpos`); write `FIND` in new code.
 
 ## ♻️ Replace
+
+> 📝 **Contextual snippet** — `text` (a string) and the string table `text_lines` are assumed.
 
 ```abap
 " Replace all occurrences of a literal in a single field
 REPLACE ALL OCCURRENCES OF ',' IN text WITH '.'.
 
-" Across every word of an internal table of strings
+" Across every line of an internal table of strings
 REPLACE ALL OCCURRENCES OF 'old' IN TABLE text_lines WITH 'new'.
 
 " Functional form (occ = 0 means "all occurrences")
@@ -133,7 +150,9 @@ DATA(clean_text) = replace( val = text sub = ',' with = '.' occ = 0 ).
 REPLACE ALL OCCURRENCES OF PCRE '\s+' IN text WITH ` `.
 ```
 
-> ⚠️ **VERSION-DEPENDENT:** newer releases provide the `PCRE` addition for regular expressions, and document the older `REGEX` addition as superseded. Check which is available on your target release before choosing. The obsolete short form `REPLACE f1 WITH f2 INTO g` also still appears in older code — recognise it, but write one of the forms above.
+> ⚠️ **VERSION-DEPENDENT: the `PCRE` addition.** Check that your release offers it in the [ABAP Keyword Documentation](https://help.sap.com/doc/abapdocu_latest_index_htm/latest/en-US/index.htm). Regular expressions in POSIX syntax (`REGEX` with a POSIX pattern) are obsolete and cause a syntax check warning.
+
+> **Lifecycle:** `LEGACY / HISTORICAL REFERENCE` for the short form `REPLACE f1 WITH f2 INTO g`, which the documentation lists as obsolete. It still appears in older code — recognise it, but write one of the forms above. See [21-Classic-vs-Modern-ABAP](../21-Classic-vs-Modern-ABAP/README.md#-legacy--historical-reference).
 
 ## ✅ Best Practices
 
@@ -160,5 +179,6 @@ REPLACE ALL OCCURRENCES OF PCRE '\s+' IN text WITH ` `.
 
 ## 🔗 Related Chapters
 
-- [02-Data-Types](../02-Data-Types/README.md)
-- [21-Classic-vs-Modern-ABAP](../21-Classic-vs-Modern-ABAP/README.md)
+- [02-Data-Types](../02-Data-Types/README.md) — character-like types and conversions
+- [04-Operators](../04-Operators/README.md) — comparison operators
+- [21-Classic-vs-Modern-ABAP](../21-Classic-vs-Modern-ABAP/README.md) — obsolete string statements

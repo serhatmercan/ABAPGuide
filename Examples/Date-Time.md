@@ -1,5 +1,7 @@
 # Date & Time
 
+> **Lifecycle:** `CURRENT / RECOMMENDED`. Older forms you will still meet are labelled where they appear. See [21-Classic-vs-Modern-ABAP](../21-Classic-vs-Modern-ABAP/README.md).
+
 ## 📖 Introduction
 
 Date/time handling in ABAP mixes native types (`d`, `t`, `timestampl`), string-template formatting options, and helper classes/function modules. This chapter is a quick reference for the most common conversions.
@@ -25,9 +27,11 @@ DATA(date_user) = |{ date DATE = USER }|.  " the user's logon date format
 
 ## 🧮 Date Calculations
 
+> 📝 **Contextual snippet** — `date_from` and `date_to` are assumed. **[verify: the methods `get_system_date` and `get_user_time_zone` of `CL_ABAP_CONTEXT_INFO`, and the parameters of `RP_CALC_DATE_IN_INTERVAL`, in your system]**
+
 ```abap
-" Current date. cl_abap_context_info is the released, ABAP Cloud-safe way to
-" read context information, and it is easier to substitute in a test than sy-datum.
+" Current date. cl_abap_context_info is in the list of released APIs for ABAP
+" for Cloud Development, and it is easier to substitute in a test than sy-datum.
 DATA(today) = cl_abap_context_info=>get_system_date( ).
 
 " DATS values are numeric internally, so plain arithmetic works for day offsets
@@ -45,7 +49,7 @@ CALL FUNCTION 'RP_CALC_DATE_IN_INTERVAL'
   IMPORTING calc_date = two_years_ago.
 ```
 
-> 📝 **NEEDS OFFICIAL VERIFICATION** — confirm the signature and availability of any date function module in SE37 for your release. Avoid using industry-component helper classes (for example the Real Estate `CL_RECA_DATE`) as a general-purpose date API: they are component-specific, not released for general use, and may be unavailable in your system or under ABAP Cloud.
+> 📝 Confirm the signature and availability of any date function module in SE37 for your release. Avoid using industry-component helper classes (for example the Real Estate `CL_RECA_DATE`) as a general-purpose date API: they are component-specific, not released for general use, and may be unavailable in your system or under ABAP Cloud.
 
 ## 📐 Declarations & `WRITE ... TO` Formatting
 
@@ -55,9 +59,12 @@ DATA delivery_date TYPE d VALUE '20180715'.
 DATA posting_date  LIKE sy-datum.
 
 " Format a date into a display field.
-" Use a DATE FORMAT keyword - NOT an edit mask. An edit mask is applied
+" Use a date format addition - NOT an edit mask. An edit mask is applied
 " positionally to the raw YYYYMMDD content, so '__.__.____' against
 " 20180715 produces '20.18.0715', not '15.07.2018'.
+" The order of day and month and the separator come from the date format
+" setting (user defaults or SET COUNTRY); DD/MM/YYYY and MM/DD/YYYY have the
+" same effect and only choose the four-digit year.
 DATA display_text TYPE c LENGTH 10.
 WRITE delivery_date TO display_text DD/MM/YYYY.
 
@@ -93,17 +100,20 @@ DATA(user_time_zone) = cl_abap_context_info=>get_user_time_zone( ).
 DATA(time_zone) = sy-zonlo.
 ```
 
-> 📝 Use a verified mechanism for time zones rather than guessing at a helper class. `CL_ABAP_CONTEXT_INFO` and `sy-zonlo` are both well established; check SE24 before adopting anything else.
+> 📝 Use a verified mechanism for time zones rather than guessing at a helper class. `CL_ABAP_CONTEXT_INFO` (released for ABAP for Cloud Development) and `sy-zonlo` are both well established; check SE24 before adopting anything else.
 
 ## 🔁 Converting a Free-Text Value to a Date
 
 Useful when accepting dates from multiple upstream formats (Excel serial dates, ISO strings, or plain `YYYYMMDD`):
 
+> 📝 **Contextual snippet** — `zcx_zsm_invalid_date_format` is a placeholder exception class. **[verify: the parameters of `KCD_EXCEL_DATE_CONVERT` in `SE37`]**
+
 ```abap
-CLASS lcl_date_parser DEFINITION.
+CLASS lcl_date_parser DEFINITION FINAL.
   PUBLIC SECTION.
     METHODS convert_value_to_date IMPORTING value         TYPE string
-                                  RETURNING VALUE(result) TYPE d.
+                                  RETURNING VALUE(result) TYPE d
+                                  RAISING   zcx_zsm_invalid_date_format.
 ENDCLASS.
 
 CLASS lcl_date_parser IMPLEMENTATION.
@@ -140,9 +150,11 @@ CLASS lcl_date_parser IMPLEMENTATION.
 ENDCLASS.
 ```
 
-> 🧠 `CA` ("contains any") tests whether a string contains any of the given characters; `CO` ("contains only") tests that it contains nothing else. Note that an Excel **serial** date is a plain day count with no separators — a value containing `.` is a localised `DD.MM.YYYY` string, not a serial. Getting those two branches the wrong way round is an easy and expensive mistake.
+> 🧠 `CA` ("contains any") tests whether a string contains any of the given characters; `CO` ("contains only") tests that it contains nothing else. Note that an Excel **serial** date is a plain day count with no separators — a value containing `.` is a localised `DD.MM.YYYY` string, not a serial. Getting those two branches the wrong way round is an easy and expensive mistake. The method only rearranges digits: check the result for a valid calendar date before you use it.
 
 ## ✅ Validating a Time Value
+
+> 📝 **Contextual snippet** — a UI-layer program; `zsm_msg` is the placeholder message class. **[verify: the parameters and exceptions of `CONVERT_TIME_INPUT` in `SE37`]**
 
 ```abap
 DATA time_input  TYPE c LENGTH 8.
@@ -157,7 +169,7 @@ CALL FUNCTION 'CONVERT_TIME_INPUT'
              OTHERS                    = 3.
 
 IF sy-subrc <> 0.
-  MESSAGE 'Invalid time value' TYPE 'E'.
+  MESSAGE e012(zsm_msg) WITH time_input.
 ENDIF.
 ```
 
@@ -188,5 +200,6 @@ ENDIF.
 
 ## 🔗 Related Chapters
 
-- [02-Data-Types](../02-Data-Types/README.md)
-- [09-Modularization](../09-Modularization/README.md)
+- [02-Data-Types](../02-Data-Types/README.md) — the types `d`, `t` and time stamps
+- [09-Modularization](../09-Modularization/README.md) — conversion exits
+- [Conversion.md](Conversion.md) — time stamp conversion
