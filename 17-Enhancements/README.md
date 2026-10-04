@@ -25,7 +25,7 @@ These two are constantly confused, including in job interviews. They are differe
 
 **User exits** (classic SD) are empty `FORM` routines that SAP delivers inside modification-enabled includes such as `MV45AFZZ`. You write your code directly into the delivered include:
 
-> 📝 **Contextual snippet** — shows where the code goes, not what it does. **[verify: the include `MV45AFZZ` and its form `USEREXIT_SAVE_DOCUMENT_PREPARE` in your release]**
+> 📝 **Contextual snippet** — shows where the code goes, not what it does.
 
 ```abap
 " In include MV45AFZZ (delivered by SAP, intended to be edited)
