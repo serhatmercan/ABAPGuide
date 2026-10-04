@@ -264,7 +264,7 @@ START-OF-SELECTION.
   ENDIF.
 
 FORM pf_status_set USING excluded TYPE slis_t_extab.
-  " A copy of the standard status STANDARD_FULLSCREEN (program SAPLKKBL) [verify];
+  " A copy of the standard status STANDARD_FULLSCREEN (program SAPLKKBL);
   " EXCLUDING hides the function codes the grid passes in
   SET PF-STATUS 'STANDARD_FULLSCREEN' EXCLUDING excluded.
 ENDFORM.
@@ -289,7 +289,8 @@ ENDFORM.
 
 FORM user_command USING ucomm    TYPE sy-ucomm
                         selfield TYPE slis_selfield.
-  " '&IC1' is the double-click or hotspot function code of the ALV [verify]
+  " '&IC1' is the ALV function "Choose" on F2, which a double-click or
+  " a hotspot click triggers
   IF ucomm = '&IC1' AND selfield-fieldname = 'EBELN'.
     MESSAGE s033(zsm_msg) WITH selfield-value.
   ENDIF.
