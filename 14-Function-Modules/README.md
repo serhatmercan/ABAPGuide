@@ -102,7 +102,7 @@ ENDTRY.
 | `N` | No screens shown (fully background/silent) |
 | `P` | No screens shown, but a breakpoint in the called transaction opens the debugger |
 
-According to the ABAP Keyword Documentation, any other value behaves like `A`, and `A` is also the default when the addition is missing.
+According to the ABAP Keyword Documentation, any other value behaves like `A`, and `A` is also the default when the addition is missing. The same page describes the breakpoint behaviour: in mode `P`, a breakpoint in a called transaction opens the ABAP Debugger; in mode `N`, it ends the processing with `sy-subrc` 1001.
 
 | Update | Behavior |
 |---|---|
