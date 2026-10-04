@@ -238,7 +238,7 @@ Downloading works the same way in reverse: `file_save_dialog` asks for the targe
 
 > 📝 **Excel files.** A tab-separated text file, which Excel can save directly, is the most robust upload format. `ALSM_EXCEL_TO_INTERNAL_TABLE` reads the file through OLE automation — its exception `UPLOAD_OLE` reports a failed OLE upload — and shares the limits described in [10-Objects](../10-Objects/README.md#-legacy--interop-objects-ole-odata-model). Check how any other Excel function module reads the file before you rely on it in a report that may run without SAP GUI. For `.xlsx` content, look for a released API in the released-objects list of your release (ABAP Development Tools, or the list of released APIs in the [ABAP Keyword Documentation](https://help.sap.com/doc/abapdocu_latest_index_htm/latest/en-US/index.htm)).
 
-> **Lifecycle:** `LEGACY / HISTORICAL REFERENCE` for the function modules `WS_FILENAME_GET`, `WS_UPLOAD`, `WS_DOWNLOAD` and `UPLOAD`, which older programs use for the same steps. The methods of `cl_gui_frontend_services` replace them. **[verify: obsolete flag in the function module attributes]** See [21-Classic-vs-Modern-ABAP](../21-Classic-vs-Modern-ABAP/README.md#-legacy--historical-reference).
+> **Lifecycle:** `LEGACY / HISTORICAL REFERENCE` for the function modules `WS_FILENAME_GET`, `WS_UPLOAD`, `WS_DOWNLOAD` and `UPLOAD`, older function modules that programs used for the same steps. The methods of `cl_gui_frontend_services` supersede them. See [21-Classic-vs-Modern-ABAP](../21-Classic-vs-Modern-ABAP/README.md#-legacy--historical-reference).
 
 ## 🗄️ Writing a File on the Application Server
 
