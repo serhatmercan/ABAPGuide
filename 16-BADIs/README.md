@@ -10,7 +10,7 @@ A **BAdI** is SAP's object-oriented enhancement technique for injecting custom l
 
 This example implements `IF_EX_ME_PROCESS_PO_CUST~PROCESS_ITEM`, a well-known Purchasing BAdI used to default and validate purchase order item data:
 
-> 📝 **Contextual snippet** — the method of a BAdI implementing class for `ME_PROCESS_PO_CUST`; `im_item` and the other parameter names are fixed by the SAP interface ([Rule 2.4](../docs/ABAP-Development-Rules.md#24-keep-names-that-are-fixed-by-a-signature-you-do-not-own)). `'NB'` is SAP's standard purchase order type; the tolerance is a placeholder value. **[verify: the methods `get_header`, `get_data`, `get_previous_data` (exception `NO_DATA`) and `set_data` of `IF_PURCHASE_ORDER_ITEM_MM` in `SE24`]**
+> 📝 **Contextual snippet** — the method of a BAdI implementing class for `ME_PROCESS_PO_CUST`; `im_item` and the other parameter names are fixed by the SAP interface ([Rule 2.4](../docs/ABAP-Development-Rules.md#24-keep-names-that-are-fixed-by-a-signature-you-do-not-own)). `'NB'` is SAP's standard purchase order type; the tolerance is a placeholder value.
 
 ```abap
 METHOD if_ex_me_process_po_cust~process_item.
@@ -53,7 +53,7 @@ ENDMETHOD.
 3. `im_item->get_previous_data( )` retrieves the item's data **before** the current change. On a brand-new item there is no previous version, and the method raises its classic exception `NO_DATA`, which sets `sy-subrc`.
 4. The business logic then conditionally defaults fields (`uebto` — over-delivery tolerance, `webre` — GR-based invoice verification flag) only for new items of document type `'NB'` (standard PO).
 
-> 💡 The same BAdI separates the steps: the process methods change data, and its `CHECK` method validates the whole document and reports a failed check through a changing parameter **[verify: the parameter `CH_FAILED` of `IF_EX_ME_PROCESS_PO_CUST~CHECK`]**. Put each piece of logic into the method meant for it.
+> 💡 The same BAdI separates the steps: the process methods change data, and its `CHECK` method validates the whole document and reports a failed check through its changing parameter `CH_FAILED`. Put each piece of logic into the method meant for it.
 
 ## 🛠️ Implementing a BAdI in SE19
 
@@ -72,7 +72,7 @@ Two things are often conflated here, so keep them apart. **Which mechanism** a B
 
 | Concept | Description | Lifecycle |
 |---|---|---|
-| **Classic BAdI** | The original mechanism (SE18/SE19), based on generated adapter classes and processed in the BAdI Builder. Called via `CL_EXITHANDLER=>GET_INSTANCE` **[verify: its parameters in `SE24`]**. | `CLASSIC BUT STILL RELEVANT` — widely present in existing systems |
+| **Classic BAdI** | The original mechanism (SE18/SE19), based on generated adapter classes and processed in the BAdI Builder. Called via `CL_EXITHANDLER=>GET_INSTANCE`, which returns the instance in its changing parameter `INSTANCE`. | `CLASSIC BUT STILL RELEVANT` — widely present in existing systems |
 | **New BAdI** | Part of the Enhancement Framework, defined inside an **enhancement spot** and called with the `GET BADI` / `CALL BADI` statements. Supports fallback classes and the Switch Framework. | `CURRENT / RECOMMENDED` for on-premise enhancement |
 
 **Cardinality and filtering — applies to either mechanism:**
@@ -91,7 +91,7 @@ Two things are often conflated here, so keep them apart. **Which mechanism** a B
 | **BAdI Definition** | Declares the interface, the cardinality and any filters (SE18, or an enhancement spot in SE80) |
 | **BAdI Implementation** | Your class implementing that interface (SE19) |
 
-> 📝 BAdIs are not limited to business processes. The classic BAdI `CTS_REQUEST_CHECK`, for example, offers the method `CHECK_BEFORE_RELEASE` for checks before a transport request is released **[verify: the interface `IF_EX_CTS_REQUEST_CHECK` and its method in `SE24`]**.
+> 📝 BAdIs are not limited to business processes. The classic BAdI `CTS_REQUEST_CHECK`, for example, offers the method `CHECK_BEFORE_RELEASE` for checks before a transport request is released; it receives the request and its objects and can stop the release with its exception `CANCEL`.
 
 > 📝 **Contextual snippet** — `zsm_badi_pricing` is a placeholder single-use BAdI with the filter `doc_type` and the method `adjust_price`; `header_data`, `item_data` and `price` are assumed.
 
