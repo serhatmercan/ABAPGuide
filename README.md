@@ -70,7 +70,7 @@ Chapters and examples are labelled with one of these. Full definitions in [Chapt
 | [09-Modularization](09-Modularization/README.md) | Modularization | Function modules, conversion exits, RFC, macros, `SUBMIT` | Classic + legacy |
 | [10-Objects](10-Objects/README.md) | Objects / OOP | Classes, visibility, inheritance, static vs. instance, interfaces, constructors, events | Current |
 | [11-Classical-Reports](11-Classical-Reports/README.md) | Classical Reports | List events, `WRITE`, dynamic tables + authorization, background jobs, files | Classic |
-| [12-Selection-Screens](12-Selection-Screens/README.md) | Selection Screens & Dynpro | Selection screens, PBO/PAI, screen modification, popups | Classic |
+| [12-Selection-Screens](12-Selection-Screens/README.md) | Selection Screens & Dynpro | Selection screens, PBO/PAI, screen modification, value help, table controls, popups | Classic |
 | [13-ALV](13-ALV/README.md) | ALV | `CL_SALV_TABLE`, `REUSE_ALV_*`, `CL_GUI_ALV_GRID`, field catalogs, events | Current + classic |
 | [14-Function-Modules](14-Function-Modules/README.md) | BDC / Batch Input | `CALL TRANSACTION`, BDC tables, message handling, authorization | Classic |
 | [15-BAPIs](15-BAPIs/README.md) | BAPIs | `BAPIRET2`, transaction control, standard call pattern | Classic, still relevant |
