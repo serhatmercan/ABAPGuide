@@ -36,7 +36,7 @@ IF sy-subrc <> 0.
 ENDIF.
 ```
 
-> ⚠️ **Scope:** according to the ABAP Keyword Documentation, ABAP memory belongs to the **call sequence** in the current ABAP session: the programs linked by `SUBMIT … AND RETURN` or `CALL TRANSACTION` share it, and `LEAVE TO TRANSACTION` ends it. It is not shared with other sessions or other users. Always `FREE MEMORY ID '...'` before reusing an ID, or you will silently read the previous run's data. Object references cannot be stored there. Do not confuse it with:
+> ⚠️ **Scope:** according to the ABAP Keyword Documentation, ABAP memory belongs to the **call sequence** in the current ABAP session: the programs linked by `SUBMIT … AND RETURN` or `CALL TRANSACTION` share it, and `LEAVE TO TRANSACTION` ends it. It is not shared with other sessions or other users. In Standard ABAP, always `FREE MEMORY ID '...'` before reusing an ID, or you will silently read the previous run's data; ABAP for Cloud Development does not allow `FREE MEMORY` (see the version note below). Object references cannot be stored there. Do not confuse it with:
 > - **SAP Memory** (`SET`/`GET PARAMETER ID`) — the user memory. The documentation notes that the statements work on a local copy that is synchronised only at certain points, so they are suitable for passing data within one ABAP session, not between parallel sessions;
 > - **Shared memory** (shared-memory-enabled classes) — the mechanism for genuinely cross-session data.
 >
