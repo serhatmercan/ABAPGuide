@@ -10,7 +10,7 @@ According to the ABAP Keyword Documentation, BAPIs are defined in the Business O
 
 ## 📨 The `BAPIRET2` Return Structure
 
-Most BAPIs return their messages in a table with the line type `BAPIRET2`, which you check before anything is committed. Older BAPIs use other return structures; the signature in `SE37` shows which one. `BAPIRET2_T` is the standard table type of `BAPIRET2`. **[verify: `X` as a message type; the data element `BAPI_MTYPE` of `BAPIRET2-TYPE` has no fixed values, so check its documentation in `SE11`]**
+Most BAPIs return their messages in a table with the line type `BAPIRET2`, which you check before anything is committed. Older BAPIs use other return structures; the signature in `SE37` shows which one. `BAPIRET2_T` is the standard table type of `BAPIRET2`.
 
 ```abap
 DATA return_messages TYPE bapiret2_t.
@@ -18,13 +18,13 @@ DATA return_messages TYPE bapiret2_t.
 
 | Field | Meaning |
 |---|---|
-| `type` | Message type: `S` (success), `I` (info), `W` (warning), `E` (error), `A` (abort), `X` (exception) |
+| `type` | Message type: `S` (success), `I` (info), `W` (warning), `E` (error), `A` (abort) |
 | `id` | Message class |
 | `number` | Message number |
 | `message` | Fully formatted message text |
 | `message_v1` … `message_v4` | The message variables |
 
-An error is any line of type `E`, `A` or `X`. One `LOOP … WHERE` finds the first of them:
+An error is any line of type `E` or `A`. The check below also treats `X` as an error; that is a defensive extra check, not a documented value. One `LOOP … WHERE` finds the first error:
 
 ```abap
 LOOP AT return_messages INTO DATA(error) WHERE type CA 'EAX'.
@@ -34,7 +34,7 @@ ENDLOOP.
 DATA(has_error) = xsdbool( sy-subrc = 0 ).
 ```
 
-> ⚠️ **Check for `E`, `A` and `X`, not only `E`.** Checking only for `E` can miss aborts and exceptions that some BAPIs report.
+> ⚠️ **Check for `E` and `A`, not only `E`.** Checking only for `E` misses aborts.
 
 ## 🧭 Typical BAPI Call Pattern
 
@@ -108,9 +108,9 @@ TRY.
 ENDTRY.
 ```
 
-> ⚠️ **Use `BAPI_TRANSACTION_COMMIT`, not a plain `COMMIT WORK`, after BAPI calls.** The BAPI protocol ends with `BAPI_TRANSACTION_COMMIT` or `BAPI_TRANSACTION_ROLLBACK`, and the transaction owner calls them ([Rule 7.11](../docs/ABAP-Development-Rules.md#711-close-bapi-calls-with-bapi_transaction_commit-or-bapi_transaction_rollback)). **[verify: what `BAPI_TRANSACTION_COMMIT` does besides `COMMIT WORK`, in its source code]**
+> ⚠️ **Use `BAPI_TRANSACTION_COMMIT`, not a plain `COMMIT WORK`, after BAPI calls.** The BAPI protocol ends with `BAPI_TRANSACTION_COMMIT` or `BAPI_TRANSACTION_ROLLBACK`, and the transaction owner calls them ([Rule 7.11](../docs/ABAP-Development-Rules.md#711-close-bapi-calls-with-bapi_transaction_commit-or-bapi_transaction_rollback)). After its commit, `BAPI_TRANSACTION_COMMIT` also calls the function module `BUFFER_REFRESH_ALL` to refresh buffered data, a step that a plain `COMMIT WORK` skips.
 
-> 💡 **`wait = abap_true`** is meant for the case where the *same* program must immediately re-read the document it just created or changed; otherwise leave it unset, because waiting costs time ([Rule 7.14](../docs/ABAP-Development-Rules.md#714-use-commit-work-and-wait-only-when-the-next-step-depends-on-the-update)). **[verify: that `wait` makes `BAPI_TRANSACTION_COMMIT` execute `COMMIT WORK AND WAIT`]**
+> 💡 **`wait = abap_true`** is meant for the case where the *same* program must immediately re-read the document it just created or changed; otherwise leave it unset, because waiting costs time ([Rule 7.14](../docs/ABAP-Development-Rules.md#714-use-commit-work-and-wait-only-when-the-next-step-depends-on-the-update)). With `wait` set, the function module executes `COMMIT WORK AND WAIT` instead of `COMMIT WORK`, and reports a failed commit as a type `E` message in its `RETURN` parameter.
 
 > ⚠️ **Never call `BAPI_TRANSACTION_COMMIT` from inside a reusable wrapper** that other code calls. The wrapper does not know what else the caller has pending in the same SAP LUW. Raise an exception, or return the `BAPIRET2` table, and let the transaction owner decide.
 
@@ -118,7 +118,7 @@ ENDTRY.
 
 - Prefer BAPIs over BDC ([14-Function-Modules](../14-Function-Modules/README.md)) and over direct table writes ([08-Open-SQL](../08-Open-SQL/README.md)) whenever a suitable one exists — BAPIs enforce the application's business rules and offer a more stable interface across releases.
 - Call each BAPI in one wrapper method that turns the return table into an exception — [Rules 5.1](../docs/ABAP-Development-Rules.md#51-write-new-logic-in-classes-wrap-function-modules-and-bapis) and [6.9](../docs/ABAP-Development-Rules.md#69-turn-sy-subrc-and-bapi-return-tables-into-exceptions-at-the-boundary).
-- Check the `RETURN` table for `E`, `A` **and** `X` before committing.
+- Check the `RETURN` table for `E` **and** `A` before committing; checking `X` as well is a defensive extra.
 - Use `BAPI_TRANSACTION_COMMIT` / `BAPI_TRANSACTION_ROLLBACK`, not bare `COMMIT WORK` / `ROLLBACK WORK`.
 - Set `wait = abap_true` only when the same program must immediately re-read the data it just wrote.
 - Decide the transaction outcome at the **top-level caller**, not inside a reusable wrapper.
@@ -126,7 +126,7 @@ ENDTRY.
 
 ## ⚠️ Common Mistakes
 
-- Checking only for `type = 'E'` and missing `'A'`/`'X'` messages, leading to a commit of a partially failed transaction.
+- Checking only for `type = 'E'` and missing `'A'` messages, leading to a commit of a partially failed transaction.
 - Forgetting to commit at all, silently discarding successful BAPI changes.
 - Using a plain `COMMIT WORK` after a BAPI instead of `BAPI_TRANSACTION_COMMIT`.
 - Committing inside a reusable wrapper, so the caller loses control of its own transaction.
