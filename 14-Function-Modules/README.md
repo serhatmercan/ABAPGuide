@@ -10,7 +10,7 @@ Standard data is changed through BAPIs or released APIs first ([Rule 7.9](../doc
 
 ## 📥 Batch Input — Simulating Screen Input
 
-> 📝 **Contextual snippet** — `zcx_zsm_batch_input_error` is a placeholder exception class with T100 messages from `zsm_msg`. The screen numbers and function codes come from a recording in transaction `SHDB`; record the transaction in your own release before you rely on them. **[verify: the components of `BDCMSGCOLL`, e.g. `MSGTYP`]**
+> 📝 **Contextual snippet** — `zcx_zsm_batch_input_error` is a placeholder exception class with T100 messages from `zsm_msg`. The screen numbers and function codes come from a recording in transaction `SHDB`; record the transaction in your own release before you rely on them.
 
 ```abap
 CLASS lcl_invoice_transaction DEFINITION FINAL.
@@ -132,7 +132,7 @@ According to the ABAP Keyword Documentation, `CALL TRANSACTION` opens a new SAP 
 
 ## 🗂️ Batch Input Sessions
 
-`CALL TRANSACTION … USING` processes the screens immediately. A batch input session stores them instead; transaction `SM35` processes the session later and keeps a log for every transaction in it. Sessions suit large loads that someone has to monitor and restart. They are created with the function modules `BDC_OPEN_GROUP`, `BDC_INSERT` and `BDC_CLOSE_GROUP` **[verify: their parameters in `SE37`]**.
+`CALL TRANSACTION … USING` processes the screens immediately. A batch input session stores them instead; transaction `SM35` processes the session later and keeps a log for every transaction in it. Sessions suit large loads that someone has to monitor and restart. They are created with the function modules `BDC_OPEN_GROUP` (session name in `GROUP`, the user who processes it in `USER`, `KEEP` to keep it after processing), `BDC_INSERT` (one call per transaction: `TCODE` and the `BDCDATA` lines in the table `DYNPROTAB`) and `BDC_CLOSE_GROUP`.
 
 ## ✅ Best Practices
 
