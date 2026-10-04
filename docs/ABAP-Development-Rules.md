@@ -1,6 +1,6 @@
 # ABAP Development Rules
 
-> 📝 **Status:** adopted; 5 statements still to be verified, marked **[verify]**.
+> 📝 **Status:** adopted; 1 statement still to be verified, marked **[verify]**.
 
 ## 0 Purpose and Status
 
@@ -1121,7 +1121,7 @@ CATCH cx_sy_open_sql_db.
 
 Classic results are read once, in the wrapper (5.1), so callers deal with only one error mechanism. Clean ABAP recommends exceptions over return codes and wrapping foreign errors.
 
-The same applies to BAPIs: check the `RETURN` table in the wrapper and raise when it contains a message of type `E` (error), `A` (abort) or `X` (exception) **[verify: `X` as a message type of `BAPIRET2-TYPE`; its data element `BAPI_MTYPE` has no fixed values, so check the data element documentation in `SE11`]**. For how to evaluate the table, see [15-BAPIs](../15-BAPIs/README.md).
+The same applies to BAPIs: check the `RETURN` table in the wrapper and raise when it contains a message of type `E` (error) or `A` (abort), the documented error types. Treat `X` as an error too; that is a defensive extra check, not a documented value. For how to evaluate the table, see [15-BAPIs](../15-BAPIs/README.md).
 
 ```abap
 " ✅
@@ -1462,7 +1462,7 @@ Waiting costs the user time, so it needs a reason:
 
 In both cases, evaluate `sy-subrc`. Otherwise, commit without waiting. The decision belongs to the transaction owner (7.10).
 
-The same applies to the `WAIT` parameter of `BAPI_TRANSACTION_COMMIT` (7.11). **[verify: that `BAPI_TRANSACTION_COMMIT` with `WAIT` set executes `COMMIT WORK AND WAIT`]**
+The same applies to the `WAIT` parameter of `BAPI_TRANSACTION_COMMIT` (7.11). With `WAIT` set, the function module executes `COMMIT WORK AND WAIT` and reports a failed commit as a type `E` message in its `RETURN` parameter; without it, it executes `COMMIT WORK`.
 
 This is a team rule.
 
@@ -1632,9 +1632,26 @@ client->authenticate( username = '<user>'
 
 According to the ABAP Keyword Documentation, `cl_abap_random` and its typed variants call the Mersenne Twister, a pseudo-random number generator. Their output follows from the seed and can be predicted, so it must not protect anything.
 
-Use a cryptographically secure generator. **[verify: the recommended API for cryptographically secure random values in each language version, e.g. function module `GENERATE_SEC_RANDOM` in Standard ABAP]**
+Use a cryptographically secure generator. In Standard ABAP, the function module `GENERATE_SEC_RANDOM` creates random bytes through the kernel's security service. `LENGTH` sets the number of bytes (default 16), `RANDOM` returns them as an `xstring`, and the classic exceptions are `INVALID_LENGTH`, `NO_MEMORY` and `INTERNAL_ERROR`. **[verify: the secure random API for ABAP for Cloud Development]**
 
 ```abap
+" ✅ Standard ABAP
+DATA random_bytes TYPE xstring.
+
+CALL FUNCTION 'GENERATE_SEC_RANDOM'
+  EXPORTING
+    length         = 32
+  IMPORTING
+    random         = random_bytes
+  EXCEPTIONS
+    invalid_length = 1
+    no_memory      = 2
+    internal_error = 3
+    OTHERS         = 4.
+IF sy-subrc <> 0.
+  RAISE EXCEPTION NEW zcx_zsm_random_failed( ).
+ENDIF.
+
 " ❌ predictable
 DATA(one_time_code) = cl_abap_random_int=>create( seed = seed
                                                   min  = 100000
@@ -1710,7 +1727,7 @@ CALL TRANSACTION 'ZSM_ORDER'.
 
 A remote-enabled function module can be called from another system or program. A check in the caller's UI is not part of that path.
 
-According to the ABAP Keyword Documentation, an automatic authorization check runs for remote calls only if the profile parameter `auth/rfc_authority_check` is set to 1. That check decides whether the function module may be called at all. It says nothing about the business data the function module reads or changes. **[verify: that the automatic check uses the authorization object `S_RFC`]**
+According to the ABAP Keyword Documentation, an automatic authorization check runs for remote calls only if the profile parameter `auth/rfc_authority_check` is set to 1. The documentation of that profile parameter names the authorization object of the check: `S_RFC`. That check decides whether the function module may be called at all. It says nothing about the business data the function module reads or changes.
 
 - The RFC function module, or the class it delegates to (5.1), checks the business authorizations itself, before it reads or changes data (8.1).
 - A failed check is reported through the function module's classic exceptions or its return table. RFC supports only classic exceptions (6.1).
@@ -2004,7 +2021,7 @@ Tests against real data break when that data changes, and they can change it the
 
 The ABAP SQL test environment and the CDS test environment redirect reads to test doubles that the test fills itself. Clean ABAP points to the available test isolation tools.
 
-> ⚠️ **VERSION-DEPENDENT: ABAP SQL and CDS test environments.** Availability and API details depend on the release. Check the [ABAP Keyword Documentation](https://help.sap.com/doc/abapdocu_latest_index_htm/latest/en-US/index.htm). Both `cl_osql_test_environment` and `cl_cds_test_environment` are released for ABAP for Cloud Development. The instances they create implement `if_osql_test_environment` and `if_cds_test_environment`, which provide `insert_test_data` (parameter `i_data`), `clear_doubles` and `destroy`. **[verify: the factory method `create` and its parameter `i_dependency_list`]**
+> ⚠️ **VERSION-DEPENDENT: ABAP SQL and CDS test environments.** Availability and API details depend on the release. Check the [ABAP Keyword Documentation](https://help.sap.com/doc/abapdocu_latest_index_htm/latest/en-US/index.htm). Both `cl_osql_test_environment` and `cl_cds_test_environment` are released for ABAP for Cloud Development. The instances they create implement `if_osql_test_environment` and `if_cds_test_environment`, which provide `insert_test_data` (parameter `i_data`), `clear_doubles` and `destroy`. The factory method `cl_osql_test_environment=>create` takes the tables to replace in `i_dependency_list` and returns the environment in `r_result`. The class is `CREATE PRIVATE FOR TESTING`, so only test code can use it.
 
 ```abap
 " ✅
