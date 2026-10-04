@@ -1,6 +1,6 @@
 # ABAP Development Rules
 
-> 📝 **Status:** adopted; 1 statement still to be verified, marked **[verify]**.
+> 📝 **Status:** adopted; 2 statements still to be verified, marked **[verify]**.
 
 ## 0 Purpose and Status
 
@@ -205,12 +205,15 @@ A fixed infix per object type tells the reader what kind of object a name refers
 | CDS table function | `ZSM_F_` | `ZSM_F_OrderAging` |
 | Report | `zsm_r_` | `zsm_r_order_overview` |
 | Lock object | `EZSM_` | `EZSM_ORDER` |
+| Checkpoint group | `zsm_cp_` | `zsm_cp_order` |
 | Local class | `lcl_` | `lcl_main` |
 | Local interface | `lif_` | `lif_order_source` |
 | Local test class | `ltc_` | `ltc_release` |
 | Local test helper | `lth_` | `lth_order_builder` |
 
 > 📝 Lock object names must start with `E`, so the lock object row puts `E` in front of the namespace instead of using a lower-case infix.
+
+> 📝 Checkpoint groups are maintained in transaction `SAAB` and control `ASSERT`, `BREAK-POINT` and `LOG-POINT` with the addition `ID` (6.12, 13.6). **[verify: the maximum length of a checkpoint group name]**
 
 > 📝 Local types live inside one program, so they carry a short type prefix without the namespace. These prefixes are common SAP practice, and Clean ABAP itself names local test classes `ltc_` and test helpers `lth_`. Section 14 records this as a deviation.
 
@@ -1014,6 +1017,8 @@ A `CX_STATIC_CHECK` exception must be declared in `RAISING`, and callers must ca
 
 A `CX_NO_CHECK` exception does not need to be declared, because it can always propagate. It may still be declared explicitly to document that it can occur. Clean ABAP states that it cannot be declared; the ABAP Keyword Documentation takes precedence here (0.1).
 
+A violated internal assumption is a programming error, not an exception category: use `ASSERT` (6.12).
+
 ### 6.4 Take exception texts from a message class through the T100 interfaces
 
 T100 messages are translated, can be found with a where-used list, and can be passed on unchanged into `BAPIRET2` tables or the application log.
@@ -1174,6 +1179,28 @@ log->add_system_message( ).
 
 " ❌ below the UI
 MESSAGE e004(zsm_msg) WITH order_id.
+```
+
+### 6.12 State the internal assumptions of a program with ASSERT; raise exceptions for situations a caller or user can act on
+
+An assumption that the program itself guarantees, such as a total that must match its items, is not an error a caller can handle. If it is false, the program has a defect, and continuing would only spread wrong data. The ABAP Programming Guidelines recommend assertions for these checks. `ASSERT` ends the program with the runtime error `ASSERTION_FAILED` when its condition is false. With `ID`, a checkpoint group (2.6) controls it from outside the program.
+
+The split between the three ways to stop or guard a program is a team rule:
+
+| Situation | Use |
+|---|---|
+| An internal assumption is violated — a programming error | `ASSERT` |
+| A runtime situation that nobody in the call chain can fix, such as missing must-have configuration | an exception of category `CX_NO_CHECK` (6.3), logged by the boundary handler (6.6, 6.8) |
+| A deliberate termination whose short dump must carry the cause chain | `RAISE SHORTDUMP` with a `PREVIOUS` exception |
+
+Anything a caller or user can act on, such as invalid input, raises an exception (6.3). The condition of an assertion has no side effects; the ABAP Keyword Documentation requires this for functional methods in it. `ASSERT` and `RAISE SHORTDUMP` are allowed in Standard ABAP and in ABAP for Cloud Development.
+
+```abap
+" ✅ the method built both tables itself; a mismatch is a defect here
+ASSERT lines( package_totals ) = lines( packages ).
+
+" ❌ input from the caller is not an internal assumption
+ASSERT order_id IS NOT INITIAL.
 ```
 
 ---
@@ -2301,6 +2328,20 @@ This is a team rule.
 
 Contextual snippets (0.5) are never claimed as checked: they are not complete objects, and no check can have run on them. This is a team rule.
 
+### 13.6 Release no always-active breakpoint: no BREAK-POINT without ID and no BREAK user macro
+
+An always-active breakpoint stops every dialog user who reaches it. According to the ABAP Keyword Documentation, always-active breakpoints are meant only for tests and are not allowed in production programs, and the extended program check reports `BREAK-POINT` without `ID` as an error. `BREAK` followed by a user name is a predefined macro, not a statement; it also puts a user name into the code.
+
+`BREAK-POINT ID` and `ASSERT ID`, controlled by a checkpoint group (2.6), may stay in released code. `LOG-POINT` always requires `ID`. `BREAK-POINT` is not allowed in ABAP for Cloud Development at all. Excluding the `BREAK` macro is a team rule.
+
+```abap
+" ✅ inactive until the checkpoint group activates it
+BREAK-POINT ID zsm_cp_order.
+
+" ❌ always active
+BREAK-POINT.
+```
+
 ---
 
 ## 14 Deviations from Clean ABAP
@@ -2311,7 +2352,7 @@ Rules 0–13 were compared against the current Clean ABAP text. The table lists 
 |---|---|---|---|
 | [2.6](#26-name-development-objects-by-the-object-naming-table) | Avoid encodings, including prefixes such as `cl_` and `if_`. Its sub-page on encodings accepts them for global Dictionary objects only as a compromise. | Every development object carries a type infix after the namespace: `zcl_zsm_`, `zsm_tt_`, `zsm_s_` and so on. | Global objects share one Dictionary namespace. The infix shows the object type wherever only the name is visible: transport lists, where-used lists, SE11. One scheme across all guides. |
 | [2.6](#26-name-development-objects-by-the-object-naming-table) (local types) | Avoid encodings. It says nothing specific about local classes and interfaces, but names its own local test classes `ltc_` and test helpers `lth_`. | Local classes take `lcl_`, local interfaces `lif_`, local test classes `ltc_` and local test helpers `lth_`. | Consistent with Clean ABAP's own `ltc_` / `lth_` practice. A short local prefix makes local types recognisable inside a program. |
-| [6.11](#611-use-message-statements-only-in-the-ui-layer) | For totally unrecoverable situations, dump. Where `RAISE SHORTDUMP` is not available, use a type `X` message. | No `MESSAGE` statement below the UI layer, including type `X`. Unrecoverable situations raise a `CX_NO_CHECK` exception (6.3). | An exception reaches the boundary handler (6.6), which logs it with its cause chain (6.8). A type `X` message ends the program before anything can be logged. |
+| [6.11](#611-use-message-statements-only-in-the-ui-layer) | For totally unrecoverable situations, dump. Where `RAISE SHORTDUMP` is not available, use a type `X` message. | No `MESSAGE` statement below the UI layer, including type `X`. Unrecoverable situations raise a `CX_NO_CHECK` exception (6.3); violated internal assumptions use `ASSERT`, and a deliberate termination with a cause chain uses `RAISE SHORTDUMP` ([6.12](#612-state-the-internal-assumptions-of-a-program-with-assert-raise-exceptions-for-situations-a-caller-or-user-can-act-on)). | An exception reaches the boundary handler (6.6), which logs it with its cause chain (6.8). A type `X` message ends the program before anything can be logged. |
 | [11.4](#114-document-public-classes-interfaces-and-methods-with-abap-doc-including-parameter-and-raising) | Write ABAP Doc only for public APIs meant for other teams or applications, and do not enforce it everywhere. | ABAP Doc for every global interface and every public section of a global class. | The public section is kept minimal (5.6), so the cost stays small. In the guides, every public method is an API for readers who copy it. |
 | [11.6](#116-mark-open-work-with-a-ticket-reference-not-a-personal-id) | Add your nickname, initials or user to `TODO`, `FIXME` and `XXX` comments. | A ticket reference instead of a personal ID. | The repository rules forbid user names in content. A ticket outlives the people working on it. |
 
@@ -2324,14 +2365,14 @@ These rules are decisions of the team: they have no basis in Clean ABAP or the A
 | Language version | 1.3 |
 | Modern syntax | 3.8, 3.9, 3.18, 3.19 (no new macros at all) |
 | Classes and methods | 5.12 |
-| Error handling | 6.2 (one abstract root per category), 6.6, 6.7, 6.11 |
+| Error handling | 6.2 (one abstract root per category), 6.6, 6.7, 6.11, 6.12 (the split between `ASSERT`, `CX_NO_CHECK` and `RAISE SHORTDUMP`) |
 | Database access and SAP LUW | 7.13, 7.14, 7.15 |
 | Security | 8.2, 8.3, 8.9, 8.10 |
 | Performance | 9.1 |
 | Testing | 10.1, 10.2 (default risk level and duration), 10.10 |
 | Comments | 11.5 (reason for each pragma), 11.6 |
 | Formatting | 12.1 |
-| Quality gates | 13.1, 13.2, 13.3, 13.4, 13.5 |
+| Quality gates | 13.1, 13.2, 13.3, 13.4, 13.5, 13.6 (excluding the `BREAK` macro) |
 | AI-assisted development | 15.1–15.5 |
 
 ### Rules from the ABAP Programming Guidelines
@@ -2341,6 +2382,7 @@ These rules have no Clean ABAP counterpart and are not team rules. They follow a
 | Rule | Guideline recommendation |
 |---|---|
 | [3.19](#319-do-not-write-macros-use-methods-or-expressions) | Macros only in exceptional cases; methods or expressions instead; no new macros in type pools or `TRMAC`. The ban on all new macros is the team part. |
+| [6.12](#612-state-the-internal-assumptions-of-a-program-with-assert-raise-exceptions-for-situations-a-caller-or-user-can-act-on) | Use assertions to check the consistency of a program's state. The split between `ASSERT`, `CX_NO_CHECK` and `RAISE SHORTDUMP` is the team part. |
 | [9.8](#98-use-collect-only-with-hashed-tables-or-sorted-tables-with-a-unique-key) | `COLLECT` only for hashed tables or sorted tables with a unique key. |
 
 ---
