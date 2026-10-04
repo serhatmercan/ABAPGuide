@@ -169,7 +169,7 @@ result = VALUE #( FOR fixed_value IN fixed_values
 
 ### Other type information
 
-The same entry points describe any type, not only data elements: `describe_by_name` takes a type name, and `describe_by_data` takes a data object. The result is an object of the matching type description class, such as `CL_ABAP_ELEMDESCR`, `CL_ABAP_STRUCTDESCR` or `CL_ABAP_TABLEDESCR`. Its attributes, for example `type_kind`, describe the type, and the classes for complex types offer methods to navigate to their parts — for example to list the components of a structure at runtime. **[verify: the method names for reading structure components, e.g. `get_components`, in your system]**
+The same entry points describe any type, not only data elements: `describe_by_name` takes a type name, and `describe_by_data` takes a data object. The result is an object of the matching type description class, such as `CL_ABAP_ELEMDESCR`, `CL_ABAP_STRUCTDESCR` or `CL_ABAP_TABLEDESCR`. Its attributes, for example `type_kind`, describe the type, and the classes for complex types lead to their parts — for example, the attribute `components` of `CL_ABAP_STRUCTDESCR` lists the components of a structure at runtime.
 
 ## 🎯 Ranges Tables
 
