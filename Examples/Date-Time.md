@@ -27,7 +27,7 @@ DATA(date_user) = |{ date DATE = USER }|.  " the user's logon date format
 
 ## 🧮 Date Calculations
 
-> 📝 **Contextual snippet** — `date_from` and `date_to` are assumed. **[verify: the methods `get_system_date` and `get_user_time_zone` of `CL_ABAP_CONTEXT_INFO`, and the parameters of `RP_CALC_DATE_IN_INTERVAL`, in your system]**
+> 📝 **Contextual snippet** — `date_from` and `date_to` are assumed.
 
 ```abap
 " Current date. cl_abap_context_info is in the list of released APIs for ABAP
@@ -42,8 +42,11 @@ DATA(days_between)   = date_to - date_from.
 " Month/year offsets need calendar logic - use a function module for those
 DATA two_years_ago TYPE d.
 
+" DAYS, MONTHS and YEARS are all mandatory parameters
 CALL FUNCTION 'RP_CALC_DATE_IN_INTERVAL'
   EXPORTING date      = today
+            days      = 0
+            months    = 0
             years     = 2
             signum    = '-'
   IMPORTING calc_date = two_years_ago.
@@ -94,7 +97,12 @@ WRITE time TO masked_time USING EDIT MASK '__:__:__'.
 
 ```abap
 " The user's time zone (released, ABAP Cloud-safe)
-DATA(user_time_zone) = cl_abap_context_info=>get_user_time_zone( ).
+" get_user_time_zone( ) raises CX_ABAP_CONTEXT_INFO_ERROR
+TRY.
+    DATA(user_time_zone) = cl_abap_context_info=>get_user_time_zone( ).
+  CATCH cx_abap_context_info_error INTO DATA(context_error).
+    " handle or convert the error (Rule 6.8)
+ENDTRY.
 
 " The classic system field for the user's time zone
 DATA(time_zone) = sy-zonlo.
@@ -106,7 +114,7 @@ DATA(time_zone) = sy-zonlo.
 
 Useful when accepting dates from multiple upstream formats (Excel serial dates, ISO strings, or plain `YYYYMMDD`):
 
-> 📝 **Contextual snippet** — `zcx_zsm_invalid_date_format` is a placeholder exception class. **[verify: the parameters of `KCD_EXCEL_DATE_CONVERT` in `SE37`]**
+> 📝 **Contextual snippet** — `zcx_zsm_invalid_date_format` is a placeholder exception class. `KCD_EXCEL_DATE_CONVERT` also has an optional parameter `DATE_FORMAT` (default `'TMJ'`). **[verify: whether it converts Excel serial numbers or formatted date strings — its documentation in `SE37`]**
 
 ```abap
 CLASS lcl_date_parser DEFINITION FINAL.
@@ -154,7 +162,7 @@ ENDCLASS.
 
 ## ✅ Validating a Time Value
 
-> 📝 **Contextual snippet** — a UI-layer program; `zsm_msg` is the placeholder message class. **[verify: the parameters and exceptions of `CONVERT_TIME_INPUT` in `SE37`]**
+> 📝 **Contextual snippet** — a UI-layer program; `zsm_msg` is the placeholder message class. `PLAUSIBILITY_CHECK` defaults to `'X'`.
 
 ```abap
 DATA time_input  TYPE c LENGTH 8.
