@@ -7,15 +7,15 @@ Robust ABAP programs communicate clearly with users (`MESSAGE`), handle errors g
 ## 💬 MESSAGE Statement Variants
 
 ```abap
-DATA et_return TYPE bapiret2_t.
-DATA lv_message TYPE bapi_msg.
+DATA return_messages TYPE bapiret2_t.
+DATA message_text    TYPE bapi_msg.
 
 " Build a BAPIRET2-style message from the current sy-msg* fields
 MESSAGE ID sy-msgid TYPE sy-msgty NUMBER sy-msgno
         WITH sy-msgv1 sy-msgv2 sy-msgv3 sy-msgv4
-        INTO lv_message.
+        INTO message_text.
 
-et_return = VALUE #( ( type = 'E' id = 'ZSM_MSG' number = '001' message = lv_message ) ).
+return_messages = VALUE #( ( type = 'E' id = 'ZSM_MSG' number = '001' message = message_text ) ).
 
 " Simple ad-hoc messages
 MESSAGE 'An error occurred' TYPE 'E'.
@@ -24,35 +24,35 @@ MESSAGE TEXT-001 TYPE 'W'.
 MESSAGE i001(zsm_msg).
 
 " Capturing a message into a variable instead of displaying it
-MESSAGE e002(zsm_msg) INTO lv_message.
-MESSAGE e003(zsm_msg) WITH lv_value1 lv_value2 INTO lv_message.  " &1 &2 placeholders
+MESSAGE e002(zsm_msg) INTO message_text.
+MESSAGE e003(zsm_msg) WITH first_value second_value INTO message_text.  " &1 &2 placeholders
 
 " Building a return message directly with a string template
-APPEND VALUE #( type = 'E' message = |Error occurred: { lv_text }| ) TO et_return.
+APPEND VALUE #( type = 'E' message = |Error occurred: { text }| ) TO return_messages.
 
 " Merging one return table into another
-APPEND LINES OF lt_return TO et_return.
+APPEND LINES OF document_messages TO return_messages.
 ```
 
 ### Acting on a Return Table
 
 ```abap
 " Inside a loop over the documents being processed
-LOOP AT lt_documents INTO DATA(ls_document).
-  process_document( EXPORTING is_document = ls_document
-                    IMPORTING et_return   = DATA(lt_return) ).
+LOOP AT documents INTO DATA(document).
+  process_document( EXPORTING document        = document
+                    IMPORTING return_messages = DATA(document_messages) ).
 
-  DATA(lv_has_error) = xsdbool(    line_exists( lt_return[ type = 'E' ] )
-                                OR line_exists( lt_return[ type = 'A' ] )
-                                OR line_exists( lt_return[ type = 'X' ] ) ).
+  DATA(has_error) = xsdbool(    line_exists( document_messages[ type = 'E' ] )
+                             OR line_exists( document_messages[ type = 'A' ] )
+                             OR line_exists( document_messages[ type = 'X' ] ) ).
 
-  APPEND LINES OF lt_return TO et_return.
+  APPEND LINES OF document_messages TO return_messages.
 
-  IF lv_has_error = abap_true.
+  IF has_error = abap_true.
     CONTINUE.               " skip this document, keep processing the rest
   ENDIF.
 
-  APPEND ls_document TO lt_processed.
+  APPEND document TO processed_documents.
 ENDLOOP.
 ```
 
@@ -76,15 +76,15 @@ ENDLOOP.
 " characters such as '$' are not valid in an ABAP name.
 CLASS lcl_message_collector DEFINITION.
   PUBLIC SECTION.
-    METHODS add IMPORTING iv_type    TYPE bapiret2-type
-                          iv_message TYPE bapi_msg
-                CHANGING  ct_return  TYPE bapiret2_t.
+    METHODS add IMPORTING type     TYPE bapiret2-type
+                          message  TYPE bapi_msg
+                CHANGING  messages TYPE bapiret2_t.
 ENDCLASS.
 
 CLASS lcl_message_collector IMPLEMENTATION.
   METHOD add.
-    APPEND VALUE #( type    = iv_type
-                    message = iv_message ) TO ct_return.
+    APPEND VALUE #( type    = type
+                    message = message ) TO messages.
   ENDMETHOD.
 ENDCLASS.
 ```
@@ -107,38 +107,38 @@ A very common integration pattern: convert whatever the last statement's `sy-msg
 ```abap
 CLASS lcl_message_collector DEFINITION.
   PUBLIC SECTION.
-    METHODS add_system_message IMPORTING is_syst    TYPE syst
-                                         iv_message TYPE bapi_msg OPTIONAL
-                               CHANGING  ct_return  TYPE bapiret2_t.
+    METHODS add_system_message IMPORTING system_fields TYPE syst
+                                         message       TYPE bapi_msg OPTIONAL
+                               CHANGING  messages      TYPE bapiret2_t.
 ENDCLASS.
 
 CLASS lcl_message_collector IMPLEMENTATION.
   METHOD add_system_message.
-    DATA(ls_message) = VALUE bapiret2( id         = is_syst-msgid
-                                       number     = is_syst-msgno
-                                       type       = is_syst-msgty
-                                       message_v1 = is_syst-msgv1
-                                       message_v2 = is_syst-msgv2
-                                       message_v3 = is_syst-msgv3
-                                       message_v4 = is_syst-msgv4 ).
+    DATA(message_line) = VALUE bapiret2( id         = system_fields-msgid
+                                         number     = system_fields-msgno
+                                         type       = system_fields-msgty
+                                         message_v1 = system_fields-msgv1
+                                         message_v2 = system_fields-msgv2
+                                         message_v3 = system_fields-msgv3
+                                         message_v4 = system_fields-msgv4 ).
 
-    ls_message-message = COND bapi_msg( WHEN iv_message IS NOT INITIAL
-                                        THEN iv_message
-                                        ELSE ls_message-message ).
+    message_line-message = COND bapi_msg( WHEN message IS NOT INITIAL
+                                          THEN message
+                                          ELSE message_line-message ).
 
-    APPEND ls_message TO ct_return.
+    APPEND message_line TO messages.
   ENDMETHOD.
 ENDCLASS.
 
 " Usage
-DATA lt_messages TYPE bapiret2_t.
+DATA collected_messages TYPE bapiret2_t.
 
-MESSAGE e007(zsm_msg) INTO DATA(lv_text).
+MESSAGE e007(zsm_msg) INTO DATA(text).
 
 NEW lcl_message_collector( )->add_system_message(
-    EXPORTING is_syst    = syst
-              iv_message = CONV #( lv_text )
-    CHANGING  ct_return  = lt_messages ).
+    EXPORTING system_fields = syst
+              message       = CONV #( text )
+    CHANGING  messages      = collected_messages ).
 ```
 
 ## 🧯 Exception Handling
@@ -151,51 +151,51 @@ ABAP has two error-handling mechanisms. **Classic exceptions** (`RAISE`, `EXCEPT
 " first. A superclass listed before its subclass makes the subclass CATCH
 " unreachable - the compiler and the extended check both flag this.
 TRY.
-    lv_result = lv_dividend / lv_divisor.        " may raise CX_SY_ZERODIVIDE
-    lv_number = CONV i( lv_character_input ).    " may raise CX_SY_CONVERSION_NO_NUMBER
+    result = dividend / divisor.           " may raise CX_SY_ZERODIVIDE
+    number = CONV i( character_input ).    " may raise CX_SY_CONVERSION_NO_NUMBER
 
-  CATCH cx_sy_zerodivide INTO DATA(lx_zerodivide).
+  CATCH cx_sy_zerodivide INTO DATA(zero_divide).
     " most specific first ...
-    MESSAGE lx_zerodivide->get_text( ) TYPE 'E'.
+    MESSAGE zero_divide->get_text( ) TYPE 'E'.
 
-  CATCH cx_sy_arithmetic_error INTO DATA(lx_arithmetic).
+  CATCH cx_sy_arithmetic_error INTO DATA(arithmetic_error).
     " ... then its superclass
-    MESSAGE lx_arithmetic->get_text( ) TYPE 'E'.
+    MESSAGE arithmetic_error->get_text( ) TYPE 'E'.
 
-  CATCH cx_sy_conversion_no_number INTO DATA(lx_no_number).
-    MESSAGE lx_no_number->get_text( ) TYPE 'E'.
+  CATCH cx_sy_conversion_no_number INTO DATA(no_number).
+    MESSAGE no_number->get_text( ) TYPE 'E'.
 
-  CATCH cx_sy_conversion_error INTO DATA(lx_conversion).
+  CATCH cx_sy_conversion_error INTO DATA(conversion_error).
     " superclass of cx_sy_conversion_no_number - must come AFTER it
-    MESSAGE lx_conversion->get_text( ) TYPE 'E'.
+    MESSAGE conversion_error->get_text( ) TYPE 'E'.
 ENDTRY.
 ```
 
 ```abap
 " Raising your own exception
-IF lv_quantity <= 0.
-  RAISE EXCEPTION TYPE zcx_invalid_quantity
-    EXPORTING iv_quantity = lv_quantity.
+IF quantity <= 0.
+  RAISE EXCEPTION TYPE zcx_zsm_invalid_quantity
+    EXPORTING quantity = quantity.
 ENDIF.
 ```
 
 ```abap
 " Classic exceptions from a function module call (LEGACY, but everywhere).
 " For a REMOTE call, always handle system_failure and communication_failure.
-DATA lv_system_msg TYPE string.
-DATA lv_comm_msg   TYPE string.
+DATA system_message TYPE string.
+DATA communication_message   TYPE string.
 
-CALL FUNCTION 'ZSM_F_TEST' DESTINATION lv_destination
-  EXPORTING  iv_organization_id    = iv_organization_id
-  IMPORTING  et_person             = et_person
-  EXCEPTIONS system_failure        = 1 MESSAGE lv_system_msg
-             communication_failure = 2 MESSAGE lv_comm_msg
+CALL FUNCTION 'ZSM_FM_READ_PERSONS' DESTINATION destination
+  EXPORTING  organization_id       = organization_id
+  IMPORTING  persons               = persons
+  EXCEPTIONS system_failure        = 1 MESSAGE system_message
+             communication_failure = 2 MESSAGE communication_message
              OTHERS                = 3.
 
 CASE sy-subrc.
   WHEN 0.
-  WHEN 1.       MESSAGE lv_system_msg TYPE 'E'.
-  WHEN 2.       MESSAGE lv_comm_msg   TYPE 'E'.
+  WHEN 1.       MESSAGE system_message TYPE 'E'.
+  WHEN 2.       MESSAGE communication_message TYPE 'E'.
   WHEN OTHERS.  MESSAGE 'Remote call failed' TYPE 'E'.
 ENDCASE.
 ```
@@ -207,9 +207,9 @@ ENDCASE.
 > " Boundary handler - logs and re-raises, does not swallow
 > TRY.
 >     run_job( ).
->   CATCH cx_root INTO DATA(lx_unexpected).
->     log_failure( lx_unexpected ).
->     RAISE EXCEPTION lx_unexpected.
+>   CATCH cx_root INTO DATA(unexpected_error).
+>     log_failure( unexpected_error ).
+>     RAISE EXCEPTION unexpected_error.
 > ENDTRY.
 > ```
 
@@ -226,14 +226,14 @@ ENDCASE.
 SELECT SINGLE username, logdate, logtime
   FROM zsm_t_log
   WHERE username = @sy-uname
-  INTO @DATA(ls_log).
+  INTO @DATA(log_entry).
 
 " Collect (the caller decides when to write and commit)
-DATA lt_log TYPE TABLE OF zsm_t_log.
+DATA log_entries TYPE TABLE OF zsm_t_log.
 
 APPEND VALUE #( username = sy-uname
                 logdate  = sy-datum
-                logtime  = sy-uzeit ) TO lt_log.
+                logtime  = sy-uzeit ) TO log_entries.
 ```
 
 > ⚠️ `INTO CORRESPONDING FIELDS OF @DATA(...)` is not valid — an inline declaration has no type to derive from in that form. Either declare the target explicitly, or list the columns and use a plain `INTO @DATA(...)` as above.
@@ -267,9 +267,9 @@ ENDCASE.
 > SELECT SINGLE is_active
 >   FROM zsm_t_feature
 >   WHERE feature = 'EXTENDED_CHECK'
->   INTO @DATA(lv_feature_active).
+>   INTO @DATA(feature_active).
 >
-> IF lv_feature_active = abap_true.
+> IF feature_active = abap_true.
 >   " ...
 > ENDIF.
 > ```
@@ -282,7 +282,7 @@ ENDCASE.
 - Collect and log **all** messages, not just the first error, when processing bulk data (mass BAPI calls, batch jobs).
 - Use message classes (SE91) instead of hardcoded literal text for anything user-facing or translatable.
 - Prefer the SAP Application Log (`SLG0`/`SLG1` and the `BAL_*` or `CL_BALI_*` API) over ad-hoc Z-tables for anything beyond the simplest debugging trace.
-- Propagate a caught exception's text with `lx_error->get_text( )` rather than inventing a new message.
+- Propagate a caught exception's text with `error->get_text( )` rather than inventing a new message.
 - Drive environment-specific behaviour from Customizing, not from `sy-sysid` / `sy-mandt`.
 
 ## ⚠️ Common Mistakes
@@ -300,7 +300,7 @@ ENDCASE.
 - Explain the difference between classic (`EXCEPTIONS`) and class-based (`TRY`/`CATCH`/`RAISE EXCEPTION`) error handling.
 - Explain why `CATCH` order matters and how to determine it from the exception hierarchy.
 - Argue both sides of catching `cx_root`, and say where it belongs.
-- Know how to propagate a caught exception's message text (`lx_error->get_text( )`).
+- Know how to propagate a caught exception's message text (`error->get_text( )`).
 - Explain how you would log a mass-processing run so that every failed record is traceable afterwards.
 
 ## 🐞 Debugger — Scope Note
