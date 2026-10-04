@@ -89,10 +89,12 @@ ENDIF.
 
 ABAP provides the class `cl_abap_random` (or `cl_abap_random_int` for integers) to generate pseudo-random numbers — useful for test data generation:
 
-> 📝 **Contextual snippet** — shows the call only. **[verify: the parameters of `cl_abap_random_int=>create` and the method `cl_abap_random=>seed` in your system]**
+> 📝 **Contextual snippet** — shows the call only; the seed form follows the example in the ABAP Keyword Documentation. `create` can raise the exception `CX_ABAP_RANDOM`.
 
 ```abap
-DATA(random_generator) = cl_abap_random_int=>create( seed = cl_abap_random=>seed( )
+GET TIME FIELD DATA(time).
+
+DATA(random_generator) = cl_abap_random_int=>create( seed = CONV i( time )
                                                      min  = 1
                                                      max  = 100 ).
 DATA(random_number) = random_generator->get_next( ).
