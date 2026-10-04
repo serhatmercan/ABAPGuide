@@ -129,13 +129,13 @@ Superseded, but preserved in this guide because you will meet all of it. Knowing
 
 2. **You may only use *released* APIs.** In Standard ABAP you can call almost any SAP object you can find. In ABAP for Cloud Development you may only use objects released for that language version — in general with the release contract C1 — plus objects of your own software component. A released object has the release state *Released* or *Deprecated*; a deprecated one names its successor where one exists. An object existing is no longer the same as an object being usable — see [Rules 1.2](../docs/ABAP-Development-Rules.md#12-when-targeting-abap-for-cloud-development-use-only-released-apis) and [1.3](../docs/ABAP-Development-Rules.md#13-in-standard-abap-prefer-a-released-api-over-an-unreleased-one-when-both-exist).
 
-3. **Extension happens at defined extension points.** You extend through released BAdIs, released APIs, and the defined extensibility options. This is the practical content of "keep the core clean". **[verify: that modifications, implicit enhancements and edits to delivered includes are excluded from the ABAP Cloud development model, against SAP's extensibility documentation]**
+3. **Extension happens at defined extension points.** You extend through released BAdIs, released APIs, and the defined extensibility options. According to the ABAP Keyword Documentation, only released APIs can be used or extended. This is the practical content of "keep the core clean". The extensibility options themselves are described in SAP's extensibility documentation on the [SAP Help Portal](https://help.sap.com/).
 
 **What this means for the technologies in this guide:**
 
 - **Not allowed in ABAP for Cloud Development:** dynpro statements, classical list output (`WRITE`), selection screens (`PARAMETERS`, `SELECT-OPTIONS`), `CALL TRANSACTION` and therefore BDC, macros (`DEFINE`), and header-line tables (`WITH HEADER LINE`, `OCCURS`). These belong to the on-premise model.
 - **`FORM` / `PERFORM`:** obsolete; technically allowed in ABAP for Cloud Development; not written in new code.
-- **`REUSE_ALV_*` and `CL_GUI_ALV_GRID`:** these are APIs, not statements, so the language version alone does not decide. **[verify: their release state for ABAP for Cloud Development in your target system]**
+- **`REUSE_ALV_*` and `CL_GUI_ALV_GRID`:** these are APIs, not statements, so the language version alone does not decide. `CL_GUI_ALV_GRID` and `CL_SALV_TABLE` are not in the list of released APIs of the ABAP Keyword Documentation *(VERSION-DEPENDENT: the list changes with the release)*. **[verify: the release state of the `REUSE_ALV_*` function modules for ABAP for Cloud Development]**
 - **Carries over:** ABAP Objects, modern expressions and modern ABAP SQL. Individual additions can still differ, so check the language-element list for your release.
 - **Direct access to SAP standard tables** is replaced by released APIs, for example released CDS views ([Rule 7.2](../docs/ABAP-Development-Rules.md#72-read-through-released-cds-views-where-they-exist)).
 
