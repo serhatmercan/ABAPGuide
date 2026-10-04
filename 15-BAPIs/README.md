@@ -10,7 +10,7 @@ Every well-behaved BAPI returns messages in a table of type `BAPIRET2`, which yo
 
 ```abap
 " BAPI Return Message
-DATA(lt_return) = VALUE bapiret2_t( ).
+DATA(return_messages) = VALUE bapiret2_t( ).
 ```
 
 | Field | Meaning |
@@ -25,11 +25,11 @@ DATA(lt_return) = VALUE bapiret2_t( ).
 Write BAPIs **do not decide the transaction boundary**. They register their work and report the outcome in `RETURN`; the caller decides whether that work is committed or discarded. This is the same ownership rule described in [08 — SAP LUW & Transaction Ownership](../08-Open-SQL/README.md#-sap-luw--transaction-ownership), applied to the BAPI protocol.
 
 ```abap
-DATA(lv_has_error) = xsdbool(    line_exists( lt_return[ type = 'E' ] )
-                              OR line_exists( lt_return[ type = 'A' ] )
-                              OR line_exists( lt_return[ type = 'X' ] ) ).
+DATA(has_error) = xsdbool(    line_exists( return_messages[ type = 'E' ] )
+                           OR line_exists( return_messages[ type = 'A' ] )
+                           OR line_exists( return_messages[ type = 'X' ] ) ).
 
-IF lv_has_error = abap_false.
+IF has_error = abap_false.
   CALL FUNCTION 'BAPI_TRANSACTION_COMMIT'
     EXPORTING wait = abap_true.       " see the note on WAIT below
 ELSE.
@@ -45,9 +45,9 @@ ENDIF.
 
 > ⚠️ **Warning:** Always check the return table for **any** message of type `E`, `A`, or `X` before committing — checking only for `E` can miss aborts/exceptions in some BAPIs. A safer, more defensive check:
 > ```abap
-> DATA(lv_has_error) = xsdbool(    line_exists( lt_return[ type = 'E' ] )
->                               OR line_exists( lt_return[ type = 'A' ] )
->                               OR line_exists( lt_return[ type = 'X' ] ) ).
+> DATA(has_error) = xsdbool(    line_exists( return_messages[ type = 'E' ] )
+>                            OR line_exists( return_messages[ type = 'A' ] )
+>                            OR line_exists( return_messages[ type = 'X' ] ) ).
 > ```
 > (see [18-Debugging](../18-Debugging/README.md#-message-statement-variants) for more on this pattern)
 
@@ -55,16 +55,16 @@ ENDIF.
 
 ```abap
 CALL FUNCTION 'BAPI_SALESORDER_CREATEFROMDAT2'
-  EXPORTING  order_header_in = ls_header
-  IMPORTING  salesdocument   = lv_vbeln
-  TABLES     order_items_in  = lt_items
-             return          = lt_return.
+  EXPORTING  order_header_in = order_header
+  IMPORTING  salesdocument   = order_id
+  TABLES     order_items_in  = order_items
+             return          = return_messages.
 
-DATA(lv_has_error) = xsdbool(    line_exists( lt_return[ type = 'E' ] )
-                              OR line_exists( lt_return[ type = 'A' ] )
-                              OR line_exists( lt_return[ type = 'X' ] ) ).
+DATA(has_error) = xsdbool(    line_exists( return_messages[ type = 'E' ] )
+                           OR line_exists( return_messages[ type = 'A' ] )
+                           OR line_exists( return_messages[ type = 'X' ] ) ).
 
-IF lv_has_error = abap_false.
+IF has_error = abap_false.
   CALL FUNCTION 'BAPI_TRANSACTION_COMMIT'
     EXPORTING wait = abap_true.
 ELSE.
