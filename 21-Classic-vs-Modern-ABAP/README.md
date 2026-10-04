@@ -79,7 +79,7 @@ These are not going away, they are not mistakes, and a technical lead who cannot
 | **Classic BAdIs, enhancement points** | The extension mechanism holding most existing customer logic. | — | [16](../16-BADIs/README.md), [17](../17-Enhancements/README.md) |
 | **`TABLES`** | Not allowed in classes, but still **required** for dynpro and selection-screen structures such as `SSCRFIELDS`. Only the variant `TABLES *` is obsolete. | — | [12](../12-Selection-Screens/README.md) |
 | **`FOR ALL ENTRIES`** | Not obsolete. Joins and subqueries are usually better, but FAE remains the right tool when the driver set comes from ABAP. | 7.4 | [08](../08-Open-SQL/README.md#-for-all-entries-in) |
-| **ABAP Memory** | Legitimate for `SUBMIT`-based decoupling between programs. | — | [19](../19-Performance/README.md) |
+| **ABAP Memory** (`EXPORT`/`IMPORT … TO`/`FROM MEMORY ID`, named parameters) | Legitimate for `SUBMIT`-based decoupling between programs of one call sequence. Not classified as obsolete in the named form; the short forms are (see the legacy table). | — | [19](../19-Performance/README.md#-abap-memory--passing-data-between-programs) |
 | **Dynamic programming** (`ASSIGN`, RTTS, dynamic SQL) | Powerful and necessary for generic frameworks — and security-sensitive. | 8.4 | [07](../07-Internal-Tables/README.md), [11](../11-Classical-Reports/README.md) |
 | **Prefix notation** (`lv_`, `lt_`, `iv_` …) | Everywhere in existing code, so it must be read fluently. New code uses Clean ABAP names; a change inside a prefixed object keeps that object's style. | 2.1, 2.5 | [20](../20-Best-Practices/README.md#-reading-classic-prefix-notation) |
 | **`CHECK` outside the start of a method** | Common in existing loops and processing blocks. Its effect depends on where it stands, so new code uses `IF … RETURN` and, in loops, `IF` with `CONTINUE`. | 3.17 | [05](../05-Control-Statements/README.md) |
@@ -98,6 +98,7 @@ Superseded, but preserved in this guide because you will meet all of it. Knowing
 | **Macros (`DEFINE`)** | Methods or expressions | Text substitution before compilation: no context, no signature, and the debugger cannot step through them. Not classified as obsolete; the ABAP Programming Guidelines allow them only in exceptional cases. | 3.19 |
 | **Header-line tables / `OCCURS`** (obsolete) | Explicit work areas | The table and its work area share a name, which makes code ambiguous to read and impossible to use in ABAP Objects contexts. | 3.16 |
 | **`MOVE a TO b`** (obsolete) | `b = a` | The assignment operator is shorter and works in expressions. | 3.16 |
+| **`EXPORT`/`IMPORT` without parameter names, `… TO MEMORY` / `FREE MEMORY` without `ID`** (obsolete) | `EXPORT p1 = dobj1 … TO MEMORY ID id`, `FREE MEMORY ID id` | Without names each object is stored under its own name, which is error-prone; without an ID, every export overwrites the same anonymous area. | 3.16 |
 | **`REFRESH itab`** (obsolete) | `CLEAR itab` | `CLEAR` does the same for a table without a header line. | 3.16 |
 | **Static `CALL METHOD`** (obsolete) | Functional method call | A functional call can be used in expressions and reads like a function. | 3.15 |
 | **Host variables without `@`** (obsolete) | Strict ABAP SQL with `@` | The strict syntax is checked more thoroughly and separates ABAP data from columns. | 7.1 |
