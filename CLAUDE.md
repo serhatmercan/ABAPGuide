@@ -10,6 +10,9 @@ Coding rules: docs/ABAP-Development-Rules.md. Cite rules by number (Rule 2.6).
   chapters on these; link to Chapter 21 "Scope Boundary" instead.
 - ABAP Unit is Chapter 22 (`22-ABAP-Unit`); rule section 10 summarises,
   the chapter teaches.
+- Debugging is Chapter 23 (`23-Debugging-Troubleshooting`). Keep the
+  folder name `18-Debugging`; its title is "Messages, Exceptions &
+  Logging".
 - CDS appears in this guide only as a data source of ABAP SQL reads;
   anything beyond that links to CDSGuide
   (https://github.com/serhatmercan/CDSGuide).

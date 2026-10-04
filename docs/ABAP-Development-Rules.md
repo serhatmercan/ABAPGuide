@@ -544,7 +544,7 @@ DATA(order) = order_ref->*.
 
 ### 3.19 Do not write macros; use methods or expressions
 
-A macro has no context of its own and cannot be executed step by step in the ABAP Debugger. Errors in larger macros are therefore very hard to analyze.
+A macro has no context of its own and cannot be executed step by step in the ABAP Debugger (see [23-Debugging-Troubleshooting](../23-Debugging-Troubleshooting/README.md)). Errors in larger macros are therefore very hard to analyze.
 
 The ABAP Programming Guidelines allow macros only in exceptional cases, and recommend methods or expressions instead. Many typical macros only fill internal tables, and a `VALUE` expression (3.4) replaces them. The guidelines also say that no new macros should be defined in type pools or in the table `TRMAC`. Macros are not classified as obsolete.
 
@@ -2226,7 +2226,7 @@ loop at ORDERS assigning field-symbol(<ORDER>).
 
 ### 12.2 Write no more than one statement per line
 
-One statement per line keeps diffs, breakpoints and the debugger's line display precise. Clean ABAP recommends no more than one statement per line.
+One statement per line keeps diffs, breakpoints and the debugger's line display precise ([23-Debugging-Troubleshooting](../23-Debugging-Troubleshooting/README.md)). Clean ABAP recommends no more than one statement per line.
 
 ```abap
 " ✅
@@ -2352,7 +2352,7 @@ Rules 0–13 were compared against the current Clean ABAP text. The table lists 
 |---|---|---|---|
 | [2.6](#26-name-development-objects-by-the-object-naming-table) | Avoid encodings, including prefixes such as `cl_` and `if_`. Its sub-page on encodings accepts them for global Dictionary objects only as a compromise. | Every development object carries a type infix after the namespace: `zcl_zsm_`, `zsm_tt_`, `zsm_s_` and so on. | Global objects share one Dictionary namespace. The infix shows the object type wherever only the name is visible: transport lists, where-used lists, SE11. One scheme across all guides. |
 | [2.6](#26-name-development-objects-by-the-object-naming-table) (local types) | Avoid encodings. It says nothing specific about local classes and interfaces, but names its own local test classes `ltc_` and test helpers `lth_`. | Local classes take `lcl_`, local interfaces `lif_`, local test classes `ltc_` and local test helpers `lth_`. | Consistent with Clean ABAP's own `ltc_` / `lth_` practice. A short local prefix makes local types recognisable inside a program. |
-| [6.11](#611-use-message-statements-only-in-the-ui-layer) | For totally unrecoverable situations, dump. Where `RAISE SHORTDUMP` is not available, use a type `X` message. | No `MESSAGE` statement below the UI layer, including type `X`. Unrecoverable situations raise a `CX_NO_CHECK` exception (6.3); violated internal assumptions use `ASSERT`, and a deliberate termination with a cause chain uses `RAISE SHORTDUMP` ([6.12](#612-state-the-internal-assumptions-of-a-program-with-assert-raise-exceptions-for-situations-a-caller-or-user-can-act-on)). | An exception reaches the boundary handler (6.6), which logs it with its cause chain (6.8). A type `X` message ends the program before anything can be logged. |
+| [6.11](#611-use-message-statements-only-in-the-ui-layer) | For totally unrecoverable situations, dump. Where `RAISE SHORTDUMP` is not available, use a type `X` message. | No `MESSAGE` statement below the UI layer, including type `X`. Unrecoverable situations raise a `CX_NO_CHECK` exception (6.3); violated internal assumptions use `ASSERT`, and a deliberate termination with a cause chain uses `RAISE SHORTDUMP` ([6.12](#612-state-the-internal-assumptions-of-a-program-with-assert-raise-exceptions-for-situations-a-caller-or-user-can-act-on)). | An exception reaches the boundary handler (6.6), which logs it with its cause chain (6.8). A type `X` message ends the program before anything can be logged. How runtime errors and short dumps are read is shown in [23-Debugging-Troubleshooting](../23-Debugging-Troubleshooting/README.md#-runtime-errors-and-short-dumps). |
 | [11.4](#114-document-public-classes-interfaces-and-methods-with-abap-doc-including-parameter-and-raising) | Write ABAP Doc only for public APIs meant for other teams or applications, and do not enforce it everywhere. | ABAP Doc for every global interface and every public section of a global class. | The public section is kept minimal (5.6), so the cost stays small. In the guides, every public method is an API for readers who copy it. |
 | [11.6](#116-mark-open-work-with-a-ticket-reference-not-a-personal-id) | Add your nickname, initials or user to `TODO`, `FIXME` and `XXX` comments. | A ticket reference instead of a personal ID. | The repository rules forbid user names in content. A ticket outlives the people working on it. |
 

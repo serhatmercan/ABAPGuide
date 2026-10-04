@@ -523,3 +523,4 @@ ENDCLASS.
 - [18-Debugging](../18-Debugging/README.md) — class-based exceptions that tests expect and check
 - [20-Best-Practices](../20-Best-Practices/README.md) — refactoring legacy code with tests in place
 - [21-Classic-vs-Modern-ABAP](../21-Classic-vs-Modern-ABAP/README.md) — where ABAP Unit and test seams sit in the lifecycle map
+- [23-Debugging-Troubleshooting](../23-Debugging-Troubleshooting/README.md) — finding a defect, then keeping it fixed with a test

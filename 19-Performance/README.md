@@ -173,3 +173,4 @@ This chapter covers **ABAP-side** performance: internal tables, memory, and how 
 - [09-Modularization](../09-Modularization/README.md) — `SUBMIT` with parameters
 - [20-Best-Practices](../20-Best-Practices/README.md) — the review checklist
 - [21-Classic-vs-Modern-ABAP](../21-Classic-vs-Modern-ABAP/README.md) — scope boundary and lifecycle of ABAP memory
+- [23-Debugging-Troubleshooting](../23-Debugging-Troubleshooting/README.md) — reading short dumps, including memory dumps

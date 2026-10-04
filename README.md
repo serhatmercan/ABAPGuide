@@ -6,7 +6,7 @@ That last part is the point. Real SAP systems run several generations of ABAP at
 
 ### Scope
 
-- **Covers:** ABAP language fundamentals, internal tables, ABAP SQL, modularization, ABAP Objects, classical reports, selection screens and dynpro, three generations of ALV, BAPIs, BAdIs and the enhancement framework, messages and exceptions, performance, and ABAP Unit — including the modern (7.40-generation) expression syntax throughout.
+- **Covers:** ABAP language fundamentals, internal tables, ABAP SQL, modularization, ABAP Objects, classical reports, selection screens and dynpro, three generations of ALV, BAPIs, BAdIs and the enhancement framework, messages and exceptions, performance, ABAP Unit, and debugging and troubleshooting — including the modern (7.40-generation) expression syntax throughout.
 - **Does not cover:** RAP, CDS, AMDP, or ABAP Cloud beyond the boundary explained in [Chapter 21](21-Classic-vs-Modern-ABAP/README.md). That is a deliberate boundary, not an oversight.
 - **Coding rules:** new and changed examples follow [docs/ABAP-Development-Rules.md](docs/ABAP-Development-Rules.md).
 - **Examples are illustrative.** They are written to teach a pattern, not to be dropped into production unchanged. See [How to Use](#-how-to-use).
@@ -14,7 +14,7 @@ That last part is the point. Real SAP systems run several generations of ABAP at
 
 ## ✨ Highlights
 
-- **22 structured chapters** plus a quick-reference Examples section
+- **23 structured chapters** plus a quick-reference Examples section
 - **100+ annotated ABAP code examples** written for this guide
 - **Explicit classic-to-modern lifecycle guidance** on every major technology
 - **Internal tables and modern expressions** — `VALUE`, `FOR`, `REDUCE`, `FILTER`, `COND`, table expressions, secondary keys
@@ -44,6 +44,7 @@ The chapter that ties the rest together: why productive landscapes contain sever
 | Tune runtime and memory | [19](19-Performance/README.md) |
 | Review code against a checklist | [20](20-Best-Practices/README.md) |
 | Write unit tests and test doubles | [22](22-ABAP-Unit/README.md) |
+| Debug a problem or read a short dump | [23](23-Debugging-Troubleshooting/README.md) · [18](18-Debugging/README.md) |
 | Decide between classic and modern | [21](21-Classic-vs-Modern-ABAP/README.md) |
 
 ## 🏷️ Lifecycle Legend
@@ -84,6 +85,7 @@ Chapters and examples are labelled with one of these. Full definitions in [Chapt
 | [20-Best-Practices](20-Best-Practices/README.md) | Best Practices & Clean ABAP | Clean ABAP naming, classic prefixes as a reading aid, rule summaries, refactoring example, review checklist | Current + classic |
 | [21-Classic-vs-Modern-ABAP](21-Classic-vs-Modern-ABAP/README.md) | **Classic vs Modern** | **Lifecycle map, ABAP Cloud boundary, decision table** | **Start here for context** |
 | [22-ABAP-Unit](22-ABAP-Unit/README.md) | ABAP Unit | Test classes, fixtures, assertions, test doubles, ABAP SQL test environment, test seams, running tests | Current |
+| [23-Debugging-Troubleshooting](23-Debugging-Troubleshooting/README.md) | Debugging & Troubleshooting | ABAP Debugger, breakpoints and watchpoints, `BREAK-POINT`/`ASSERT`/`LOG-POINT` and checkpoint groups, short dumps, troubleshooting method, common runtime errors | Current |
 | [Examples](Examples/README.md) | Examples | Strings, dates/times, conversions | Current + legacy |
 
 ## 🚀 How to Use
