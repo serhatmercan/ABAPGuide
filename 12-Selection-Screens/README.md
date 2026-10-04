@@ -189,7 +189,7 @@ START-OF-SELECTION.
 
 When the values exist only at runtime, `AT SELECTION-SCREEN ON VALUE-REQUEST` builds them and hands them to the function module `F4IF_INT_TABLE_VALUE_REQUEST`, which shows the list and writes the chosen value into the screen field.
 
-> 📝 **Contextual snippet** — part of an executable program; the text symbols `f01` and `f02` hold the descriptions. **[verify: the parameters of `F4IF_INT_TABLE_VALUE_REQUEST` in `SE37` of your release]**
+> 📝 **Contextual snippet** — part of an executable program; the text symbols `f01` and `f02` hold the descriptions.
 
 ```abap
 TYPES: BEGIN OF file_format,
@@ -222,14 +222,9 @@ AT SELECTION-SCREEN ON VALUE-REQUEST FOR p_format.
 
 ### From a Dictionary Search Help
 
-When the same value help is needed on several screens, define it once in the ABAP Dictionary as an elementary search help (transaction `SE11`) and attach it with `MATCHCODE OBJECT`, as `p_id` does above. Its definition names:
+When the same value help is needed on several screens, define it once in the ABAP Dictionary as an elementary search help (transaction `SE11`) and attach it with `MATCHCODE OBJECT`, as `p_id` does above. Its definition names the table or view that supplies the values, how the hit list is shown, and which parameters exchange values with the screen.
 
-- **the selection method** — the table or view that supplies the values, and optionally a text table for language-dependent texts;
-- **the dialog type** — whether the hit list appears at once or only after the user has restricted the values;
-- **the parameters** — which of them take a value from the screen (import), which return the chosen value (export), and where each appears in the hit list and in the restriction dialog;
-- **optionally a search help exit** — a function module that adjusts the values or the dialog.
-
-The ABAP Keyword Documentation does not describe these settings; they are part of the ABAP Dictionary documentation for your release **[verify]**.
+The settings are described in the ABAP Dictionary documentation on the [SAP Help Portal](https://help.sap.com/); the ABAP Keyword Documentation does not cover them.
 
 ## 🪟 Custom Screens (Dynpros)
 
@@ -289,8 +284,8 @@ MODULE status_0100 OUTPUT.
 ENDMODULE.
 
 MODULE user_command_0100 INPUT.
-  " Function codes beginning with '&' are used by SAP standard functions [verify] -
-  " use plain names for your own commands.
+  " Give your own commands plain, descriptive function codes; standard GUI
+  " statuses define codes of their own (display them in SE41)
   CASE sy-ucomm.
     WHEN 'BACK' OR 'EXIT' OR 'CANC'.
       LEAVE TO SCREEN 0.
@@ -421,7 +416,7 @@ START-OF-SELECTION.
 
 ### Confirmation Popup
 
-> 📝 **Contextual snippet** — the text symbols `p02` and `p03` hold the title and the question. **[verify: the parameters and answer values of `POPUP_TO_CONFIRM` in `SE37` of your release]**
+> 📝 **Contextual snippet** — the text symbols `p02` and `p03` hold the title and the question. **[verify: the answer values of `POPUP_TO_CONFIRM` in its function module documentation]**
 
 ```abap
 DATA answer TYPE c LENGTH 1.
@@ -447,7 +442,7 @@ ENDIF.
 
 ### Other Popup Function Modules
 
-You will meet these in existing code. Check the signature and, for new code, the release status in `SE37` before using one **[verify]**.
+You will meet these in existing code. Before you use one in new code, check its release status and documentation in `SE37`.
 
 | Function module | Shows |
 |---|---|
