@@ -25,10 +25,10 @@ START-OF-SELECTION.
   SELECT matnr, mtart, ersda
     FROM mara
     UP TO 50 ROWS
-    INTO TABLE @DATA(lt_mara).
+    INTO TABLE @DATA(materials).
 
-  LOOP AT lt_mara INTO DATA(ls_mara).
-    WRITE: / ls_mara-matnr, ls_mara-mtart, ls_mara-ersda.
+  LOOP AT materials INTO DATA(material).
+    WRITE: / material-matnr, material-mtart, material-ersda.
   ENDLOOP.
 
 AT LINE-SELECTION.
@@ -44,12 +44,12 @@ Sometimes the structure of the data to display isn't known at design time (e.g.,
 " Definition
 PARAMETERS p_table TYPE dd02l-tabname.
 
-DATA gt_fieldcat TYPE lvc_t_fcat.
-DATA gr_table    TYPE REF TO data.
-DATA gr_line     TYPE REF TO data.
+DATA field_catalog TYPE lvc_t_fcat.
+DATA table_ref     TYPE REF TO data.
+DATA line_ref      TYPE REF TO data.
 
-FIELD-SYMBOLS <fs_table> TYPE STANDARD TABLE.
-FIELD-SYMBOLS <fs_line>  TYPE any.
+FIELD-SYMBOLS <rows> TYPE STANDARD TABLE.
+FIELD-SYMBOLS <row>  TYPE any.
 
 START-OF-SELECTION.
 
@@ -60,7 +60,7 @@ START-OF-SELECTION.
     FROM dd02l
     WHERE tabname  = @p_table
       AND as4local = 'A'
-    INTO @DATA(lv_exists).
+    INTO @DATA(table_exists).
 
   IF sy-subrc <> 0.
     MESSAGE 'Table or view does not exist' TYPE 'E'.
@@ -91,11 +91,11 @@ START-OF-SELECTION.
   " ------------------------------------------------------------------
   CALL FUNCTION 'LVC_FIELDCATALOG_MERGE'
     EXPORTING i_structure_name = p_table
-    CHANGING  ct_fieldcat      = gt_fieldcat.
+    CHANGING  ct_fieldcat      = field_catalog.
 
   cl_alv_table_create=>create_dynamic_table(
-      EXPORTING  it_fieldcatalog           = gt_fieldcat
-      IMPORTING  ep_table                  = gr_table
+      EXPORTING  it_fieldcatalog           = field_catalog
+      IMPORTING  ep_table                  = table_ref
       EXCEPTIONS generate_subpool_dir_full = 1
                  OTHERS                    = 2 ).
 
@@ -103,15 +103,15 @@ START-OF-SELECTION.
     MESSAGE 'Could not create the dynamic table' TYPE 'E'.
   ENDIF.
 
-  ASSIGN gr_table->* TO <fs_table>.
+  ASSIGN table_ref->* TO <rows>.
 
-  CREATE DATA gr_line LIKE LINE OF <fs_table>.
-  ASSIGN gr_line->* TO <fs_line>.
+  CREATE DATA line_ref LIKE LINE OF <rows>.
+  ASSIGN line_ref->* TO <row>.
 
   SELECT *
     FROM (p_table)
     UP TO 100 ROWS
-    INTO TABLE <fs_table>.
+    INTO TABLE <rows>.
 ```
 
 > ⚠️ **A successful Dictionary lookup proves that the table exists — it proves nothing about whether this user may read it.** A dynamic `SELECT` performs **no** implicit authorization check, so a generic table viewer without one is a complete bypass of SAP's table authorization model: any table the program can name, it can read.
