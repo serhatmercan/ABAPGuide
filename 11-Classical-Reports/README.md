@@ -128,7 +128,7 @@ START-OF-SELECTION.
 
 > ⚠️ **A successful Dictionary lookup proves that the table exists — it proves nothing about whether this user may read it.** A dynamic `SELECT` performs **no** implicit authorization check, so a generic table viewer without one is a complete bypass of SAP's table authorization model: any table the program can name, it can read.
 >
-> `VIEW_AUTHORITY_CHECK` is the standard function module SAP uses for exactly this purpose (generic table/view access in extended table maintenance). Call it with the display activity before the dynamic `SELECT`, and treat a non-zero `sy-subrc` as a hard stop — never as a warning. **[verify: the full parameter list of `VIEW_AUTHORITY_CHECK` in `SE37` of your release before productive use]**
+> `VIEW_AUTHORITY_CHECK` is the standard function module SAP uses for exactly this purpose (generic table/view access in extended table maintenance). Call it with the display activity before the dynamic `SELECT`, and treat a non-zero `sy-subrc` as a hard stop — never as a warning. Pass the activity explicitly: the parameter `view_action` defaults to `'U'`, not to display.
 
 > 💡 This pattern (dynamic field catalog + `cl_alv_table_create=>create_dynamic_table`) is the classic basis for generic "table viewer" utilities and pairs naturally with [13-ALV](../13-ALV/README.md) to display the result.
 
@@ -144,7 +144,7 @@ A report that runs for a long time, or that must run without a user session, is 
 2. `SUBMIT ... VIA JOB ... NUMBER ...` adds the report as a job step. `VIA JOB` works only together with `AND RETURN`.
 3. `JOB_CLOSE` completes the job and can release it for an immediate start.
 
-> 📝 **Contextual snippet** — assumes a structure `document` with company code and fiscal year; `zsm_r_order_overview` and its parameters are the called report from [09-Modularization](../09-Modularization/README.md#-calling-other-programs--submit--screen-chaining). The function module parameters follow the example in the ABAP Keyword Documentation; **[verify: the signatures of `JOB_OPEN` and `JOB_CLOSE` in `SE37` of your release]**.
+> 📝 **Contextual snippet** — assumes a structure `document` with company code and fiscal year; `zsm_r_order_overview` and its parameters are the called report from [09-Modularization](../09-Modularization/README.md#-calling-other-programs--submit--screen-chaining). The function module parameters follow the example in the ABAP Keyword Documentation; `OTHERS` also catches the further exceptions of `JOB_CLOSE`, such as `INVALID_TARGET`.
 
 ```abap
 DATA job_count TYPE tbtcjob-jobcount.
@@ -201,7 +201,7 @@ ENDIF.
 
 The methods of `cl_gui_frontend_services` show the file dialogs and transfer files between the user's PC and the program. They need SAP GUI, so they work only in dialog processing.
 
-> 📝 **Contextual snippet** — part of an executable program; `zsm_s_upload_line` is a placeholder structure whose components match the columns of a tab-separated file, and `zsm_msg` is the placeholder message class. **[verify: the method signatures of `cl_gui_frontend_services` in `SE24` of your release]**
+> 📝 **Contextual snippet** — part of an executable program; `zsm_s_upload_line` is a placeholder structure whose components match the columns of a tab-separated file, and `zsm_msg` is the placeholder message class.
 
 ```abap
 PARAMETERS p_file TYPE localfile OBLIGATORY.
@@ -236,7 +236,7 @@ Downloading works the same way in reverse: `file_save_dialog` asks for the targe
 
 > ⚠️ **A background job has no SAP GUI.** `gui_upload` and `gui_download` fail there. Check with the function module `GUI_IS_AVAILABLE` first if the report can also run in the background, or use a file on the application server (next section).
 
-> 📝 **Excel files.** A tab-separated text file, which Excel can save directly, is the most robust upload format. Function modules such as `ALSM_EXCEL_TO_INTERNAL_TABLE` and `TEXT_CONVERT_XLS_TO_SAP` work through the desktop installation of Excel **[verify]** and share the limits of OLE automation described in [10-Objects](../10-Objects/README.md#-legacy--interop-objects-ole-odata-model). For `.xlsx` content, use an API that is available and released in your system **[verify]**.
+> 📝 **Excel files.** A tab-separated text file, which Excel can save directly, is the most robust upload format. `ALSM_EXCEL_TO_INTERNAL_TABLE` reads the file through OLE automation — its exception `UPLOAD_OLE` reports a failed OLE upload — and shares the limits described in [10-Objects](../10-Objects/README.md#-legacy--interop-objects-ole-odata-model). Check how any other Excel function module reads the file before you rely on it in a report that may run without SAP GUI. For `.xlsx` content, look for a released API in the released-objects list of your release (ABAP Development Tools, or the list of released APIs in the [ABAP Keyword Documentation](https://help.sap.com/doc/abapdocu_latest_index_htm/latest/en-US/index.htm)).
 
 > **Lifecycle:** `LEGACY / HISTORICAL REFERENCE` for the function modules `WS_FILENAME_GET`, `WS_UPLOAD`, `WS_DOWNLOAD` and `UPLOAD`, which older programs use for the same steps. The methods of `cl_gui_frontend_services` replace them. **[verify: obsolete flag in the function module attributes]** See [21-Classic-vs-Modern-ABAP](../21-Classic-vs-Modern-ABAP/README.md#-legacy--historical-reference).
 
