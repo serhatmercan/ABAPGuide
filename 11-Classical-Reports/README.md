@@ -42,7 +42,7 @@ AT LINE-SELECTION.
   WRITE: / TEXT-002.
 ```
 
-> ⚠️ **`UP TO n ROWS` goes after `INTO` in strict ABAP SQL.** The position before `INTO` is accepted only outside the strict mode, and `@` host variables or a comma-separated field list switch that mode on — [Rule 7.1](../docs/ABAP-Development-Rules.md#71-write-strict-abap-sql-a-comma-separated-field-list--host-variables-into-last).
+> ⚠️ **`UP TO n ROWS` goes after `INTO` in strict ABAP SQL.** The position before `INTO` is accepted only outside the strict mode, and `@` host variables or a comma-separated field list switch that mode on — [Rule 7.1](../docs/ABAP-Development-Rules.md#71-write-strict-abap-sql-a-comma-separated-field-list--host-variables-into-after-the-query-clauses).
 
 ## 🖨️ Dynamic Reports — Building Tables and Field Catalogs at Runtime
 

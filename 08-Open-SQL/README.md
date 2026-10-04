@@ -168,7 +168,7 @@ SELECT MAX( posnr ) AS max_posnr
   INTO @DATA(max_item_number).
 ```
 
-> ⚠️ **Strict ABAP SQL and clause order.** Escaping host variables with `@` and comma-separated field lists switch on the strict syntax check; host variables without `@` are obsolete. Writing `INTO` as the **final clause** — after `FROM`, `WHERE`, `GROUP BY`, `HAVING`, `ORDER BY` and `UP TO n ROWS` — is also part of the strict syntax. This guide always writes `INTO` last — [Rule 7.1](../docs/ABAP-Development-Rules.md#71-write-strict-abap-sql-a-comma-separated-field-list--host-variables-into-last).
+> ⚠️ **Strict ABAP SQL and clause order.** Escaping host variables with `@` and comma-separated field lists switch on the strict syntax check; host variables without `@` are obsolete. Writing `INTO` as the **final clause** — after `FROM`, `WHERE`, `GROUP BY`, `HAVING`, `ORDER BY` and `UP TO n ROWS` — is also part of the strict syntax. This guide always writes `INTO` last — [Rule 7.1](../docs/ABAP-Development-Rules.md#71-write-strict-abap-sql-a-comma-separated-field-list--host-variables-into-after-the-query-clauses).
 
 ## 🔗 Joins
 
@@ -678,7 +678,7 @@ Where the key must be a readable running number, draw it from a number range obj
 
 ## ✅ Best Practices
 
-- Write strict ABAP SQL with `@` host variables and `INTO` last — [Rule 7.1](../docs/ABAP-Development-Rules.md#71-write-strict-abap-sql-a-comma-separated-field-list--host-variables-into-last).
+- Write strict ABAP SQL with `@` host variables and `INTO` last — [Rule 7.1](../docs/ABAP-Development-Rules.md#71-write-strict-abap-sql-a-comma-separated-field-list--host-variables-into-after-the-query-clauses).
 - Select only the fields you need — avoid `SELECT *` in production code, especially inside loops — [Rule 7.7](../docs/ABAP-Development-Rules.md#77-list-the-fields-you-need-instead-of-select-).
 - Always qualify `SELECT SINGLE` with a `WHERE` on the full key. Without one you get an arbitrary row — [Rule 7.5](../docs/ABAP-Development-Rules.md#75-use-select-single-only-with-the-full-primary-key).
 - Always check `IF driver_items IS NOT INITIAL` before `FOR ALL ENTRIES`, and de-duplicate the driver table first — [Rule 7.4](../docs/ABAP-Development-Rules.md#74-use-for-all-entries-only-with-a-non-empty-de-duplicated-driver-table).

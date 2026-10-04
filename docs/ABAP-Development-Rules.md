@@ -1182,16 +1182,20 @@ MESSAGE e004(zsm_msg) WITH order_id.
 
 > **Lifecycle:** `CURRENT / RECOMMENDED`. The explanations behind these rules are in [08-Open-SQL](../08-Open-SQL/README.md). This section only states the rules.
 
-### 7.1 Write strict ABAP SQL: a comma-separated field list, @ host variables, INTO last
+### 7.1 Write strict ABAP SQL: a comma-separated field list, @ host variables, INTO after the query clauses
 
 The strict syntax is checked more thoroughly and reads like the SQL it produces. Unescaped host variables are an obsolete form (3.16). See [08-Open-SQL](../08-Open-SQL/README.md#-select--single-row--all-rows).
+
+`INTO` follows the `WHERE`, `GROUP BY`, `HAVING` and `ORDER BY` clauses. Only `UP TO n ROWS`, `OFFSET` and the other ABAP-specific additions, such as `BYPASSING BUFFER`, come after it. The ABAP Keyword Documentation requires these additions after `INTO` whenever `INTO` is the last clause, and its newer strict modes enforce that position for `INTO`.
 
 ```abap
 " ✅
 SELECT order_id, status
   FROM zsm_t_order
   WHERE customer_id = @customer_id
-  INTO TABLE @DATA(orders).
+  ORDER BY order_id
+  INTO TABLE @DATA(orders)
+  UP TO 100 ROWS.
 
 " ❌
 SELECT order_id status FROM zsm_t_order INTO TABLE orders
