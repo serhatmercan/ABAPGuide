@@ -10,7 +10,7 @@ According to the ABAP Keyword Documentation, BAPIs are defined in the Business O
 
 ## 📨 The `BAPIRET2` Return Structure
 
-Most BAPIs return their messages in a table with the line type `BAPIRET2`, which you check before anything is committed. Older BAPIs use other return structures; the signature in `SE37` shows which one. **[verify: the components of `BAPIRET2`, the table type `BAPIRET2_T` and the fixed values of `BAPIRET2-TYPE`]**
+Most BAPIs return their messages in a table with the line type `BAPIRET2`, which you check before anything is committed. Older BAPIs use other return structures; the signature in `SE37` shows which one. `BAPIRET2_T` is the standard table type of `BAPIRET2`. **[verify: `X` as a message type; the data element `BAPI_MTYPE` of `BAPIRET2-TYPE` has no fixed values, so check its documentation in `SE11`]**
 
 ```abap
 DATA return_messages TYPE bapiret2_t.
@@ -40,7 +40,7 @@ DATA(has_error) = xsdbool( sy-subrc = 0 ).
 
 The BAPI is called in one wrapper method ([Rule 5.1](../docs/ABAP-Development-Rules.md#51-write-new-logic-in-classes-wrap-function-modules-and-bapis)). The wrapper evaluates the return table and turns an error into an exception ([Rule 6.9](../docs/ABAP-Development-Rules.md#69-turn-sy-subrc-and-bapi-return-tables-into-exceptions-at-the-boundary)); it never commits.
 
-> 📝 **Contextual snippet** — `zcx_zsm_bapi_error` is a placeholder exception class that implements `IF_T100_DYN_MSG`, so it can carry the BAPI's own message ([Rule 6.5](../docs/ABAP-Development-Rules.md#65-raise-with-raise-exception-new-use-raise-exception-type--message-to-attach-a-t100-message)). A real order needs more data than shown, for example schedule lines. **[verify: the parameters of `BAPI_SALESORDER_CREATEFROMDAT2` and the structures `BAPISDHD1`, `BAPISDITM` and `BAPIPARNR`]**
+> 📝 **Contextual snippet** — `zcx_zsm_bapi_error` is a placeholder exception class that implements `IF_T100_DYN_MSG`, so it can carry the BAPI's own message ([Rule 6.5](../docs/ABAP-Development-Rules.md#65-raise-with-raise-exception-new-use-raise-exception-type--message-to-attach-a-t100-message)). A real order needs more data than shown, for example schedule lines (`ORDER_SCHEDULES_IN`). `ORDER_PARTNERS` is a mandatory `TABLES` parameter, `RETURN` an optional one, and `SALESDOCUMENT` is typed like `BAPIVBELN-VBELN`, which the method's result follows.
 
 ```abap
 CLASS lcl_sales_order_api DEFINITION FINAL.
@@ -53,7 +53,7 @@ CLASS lcl_sales_order_api DEFINITION FINAL.
       IMPORTING header        TYPE bapisdhd1
                 items         TYPE order_items
                 partners      TYPE order_partners
-      RETURNING VALUE(result) TYPE vbeln_va
+      RETURNING VALUE(result) TYPE bapivbeln-vbeln
       RAISING   zcx_zsm_bapi_error.
 ENDCLASS.
 
