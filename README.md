@@ -38,6 +38,7 @@ The chapter that ties the rest together: why productive landscapes contain sever
 | Structure and reuse code | [09](09-Modularization/README.md) · [10](10-Objects/README.md) |
 | Build a report or a screen | [11](11-Classical-Reports/README.md) · [12](12-Selection-Screens/README.md) · [13](13-ALV/README.md) |
 | Run a report in the background or exchange files | [11](11-Classical-Reports/README.md) |
+| Load data into a transaction that has no API | [14](14-Function-Modules/README.md) · [15](15-BAPIs/README.md) |
 | Integrate or extend standard SAP | [14](14-Function-Modules/README.md) · [15](15-BAPIs/README.md) · [16](16-BADIs/README.md) · [17](17-Enhancements/README.md) |
 | Report messages, raise exceptions and keep logs | [18](18-Debugging/README.md) · [15](15-BAPIs/README.md) |
 | Tune runtime and memory | [19](19-Performance/README.md) |
@@ -73,7 +74,7 @@ Chapters and examples are labelled with one of these. Full definitions in [Chapt
 | [11-Classical-Reports](11-Classical-Reports/README.md) | Classical Reports | List events, `WRITE`, dynamic tables + authorization, background jobs, files | Classic |
 | [12-Selection-Screens](12-Selection-Screens/README.md) | Selection Screens & Dynpro | Selection screens, PBO/PAI, screen modification, value help, table controls, popups | Classic |
 | [13-ALV](13-ALV/README.md) | ALV | `CL_SALV_TABLE`, `REUSE_ALV_*`, `CL_GUI_ALV_GRID`, field catalogs, events | Current + classic |
-| [14-Function-Modules](14-Function-Modules/README.md) | BDC / Batch Input | `CALL TRANSACTION`, BDC tables, message handling, authorization | Classic |
+| [14-Function-Modules](14-Function-Modules/README.md) | Batch Input (BDC) & Calling Transactions | `CALL TRANSACTION … USING`, BDC tables, modes, sessions, messages, SAP LUW, authorization | Classic |
 | [15-BAPIs](15-BAPIs/README.md) | BAPIs | `BAPIRET2`, transaction control, standard call pattern | Classic, still relevant |
 | [16-BADIs](16-BADIs/README.md) | BAdIs | Classic vs. new BAdIs, filters, implementation pattern | Current + classic |
 | [17-Enhancements](17-Enhancements/README.md) | Enhancements | User exits vs. customer exits, enhancement points, modifications | Classic + legacy |

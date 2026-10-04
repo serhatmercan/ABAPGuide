@@ -1,10 +1,10 @@
-# 14 — Function Modules & Batch Input (BDC)
+# 14 — Batch Input (BDC) & Calling Transactions
 
 > **Lifecycle:** `CLASSIC BUT STILL RELEVANT`. BDC remains the practical fallback for mass loads into transactions that expose no API, and you will meet it in almost every long-lived SAP landscape. It is a last resort, not a first choice, and it is **not** part of the ABAP Cloud development model — see [21-Classic-vs-Modern-ABAP](../21-Classic-vs-Modern-ABAP/README.md).
 
 ## 📖 Introduction
 
-This chapter focuses on **Batch Data Communication (BDC/Batch Input)** — simulating user input into a classic dynpro transaction programmatically. It's still widely used for mass data loads into transactions that don't have a BAPI. (General function module usage/calls are covered in [09-Modularization](../09-Modularization/README.md).)
+This chapter focuses on **Batch Data Communication (BDC/Batch Input)** — simulating user input into a classic dynpro transaction programmatically. It's still widely used for mass data loads into transactions that don't have a BAPI. Function modules in general — calling them, RFC, conversion exits — are covered in [09-Modularization](../09-Modularization/README.md); the folder keeps its historical name.
 
 Standard data is changed through BAPIs or released APIs first ([Rule 7.9](../docs/ABAP-Development-Rules.md#79-write-only-to-your-own-tables-change-sap-standard-data-through-bapis-or-released-apis)); batch input is the fallback when neither exists. Like a BAPI call, it belongs in a small wrapper class that the rest of the code calls ([Rule 5.1](../docs/ABAP-Development-Rules.md#51-write-new-logic-in-classes-wrap-function-modules-and-bapis)).
 
