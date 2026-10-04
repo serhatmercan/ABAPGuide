@@ -10,15 +10,15 @@ ALV is the standard SAP grid control for displaying tabular data with sorting, f
 | **Function-module based** | `REUSE_ALV_GRID_DISPLAY` | ⭐⭐ Medium | ⭐⭐⭐ High (classic events) | `CLASSIC BUT STILL RELEVANT` — very widespread; not for new code |
 | **OOP ALV Grid** | `cl_gui_alv_grid` | ⭐⭐⭐ High | ⭐⭐⭐⭐ Highest (full event handling, editable grids) | `CLASSIC BUT STILL RELEVANT` — still the only on-premise option for editable, event-rich grids |
 
-> **All three are SAP GUI technologies** and are outside the ABAP Cloud development model, where the UI layer is Fiori/UI5 over OData. That does not make them obsolete — it makes them on-premise technologies. All three are kept in this chapter deliberately. Whether the classes and function modules are released for ABAP for Cloud Development is a separate question; chapter 21 marks it `[verify]`. See [21-Classic-vs-Modern-ABAP](../21-Classic-vs-Modern-ABAP/README.md#-what-changes-under-abap-cloud).
+> **All three are SAP GUI technologies** and are outside the ABAP Cloud development model, where the UI layer is Fiori/UI5 over OData. That does not make them obsolete — it makes them on-premise technologies. All three are kept in this chapter deliberately. Whether they are released for ABAP for Cloud Development is a separate question: `CL_GUI_ALV_GRID` and `CL_SALV_TABLE` are not in the documentation's list of released APIs. See [21-Classic-vs-Modern-ABAP](../21-Classic-vs-Modern-ABAP/README.md#-what-changes-under-abap-cloud).
 
-The examples use text symbols for user-facing texts and the placeholder message class `zsm_msg` ([Rule 4.2](../docs/ABAP-Development-Rules.md#42-keep-user-facing-text-out-of-literals)). Text symbols passed to a method are converted with `CONV #( )`, because a typed parameter expects its own length.
+The examples use text symbols for user-facing texts and the placeholder message class `zsm_msg` ([Rule 4.2](../docs/ABAP-Development-Rules.md#42-keep-user-facing-text-out-of-literals)). Text symbols passed to a parameter with a complete type are converted with `CONV #( )`, because that parameter expects its own length; a generic parameter (`TYPE any`) takes the text symbol as it is.
 
 ## 🟢 Option 1 — `cl_salv_table` (Simple ALV / SALV)
 
 The quickest way to display a table, with a clean object-oriented API. Best for simple, read-mostly reports.
 
-> 📝 Complete program; the text symbols `c01`–`c03` and `h01`–`h03` hold the column and header texts. **[verify: the `cl_salv_*` method signatures in `SE24` of your release]**
+> 📝 Complete program; the text symbols `c01`–`c03` and `h01`–`h03` hold the column and header texts.
 
 ```abap
 REPORT zsm_r_material_list.
@@ -86,9 +86,9 @@ CLASS lcl_alv IMPLEMENTATION.
     DATA(header) = NEW cl_salv_form_layout_grid( ).
 
     header->create_label( row    = 1
-                          column = 1 )->set_text( CONV #( TEXT-h02 ) ).
+                          column = 1 )->set_text( TEXT-h02 ).
     header->create_flow( row    = 2
-                         column = 1 )->create_text( text = CONV #( TEXT-h03 ) ).
+                         column = 1 )->create_text( text = TEXT-h03 ).
 
     alv->set_top_of_list( header ).
   ENDMETHOD.
@@ -139,7 +139,7 @@ The classic function-module approach, still very common in existing systems, off
 > `cl_gui_alv_grid` uses the **LVC** types (`lvc_t_fcat`, `lvc_s_layo`, `lvc_t_sort`, …).
 > Mixing them is one of the most common compile errors in ALV code. This section uses SLIS throughout; [Option 3](#-option-3--oop-alv-grid-cl_gui_alv_grid--full-interactive-control) uses LVC throughout.
 
-> 📝 Complete program apart from its placeholders: the structure `zsm_s_po_item` with `EBELN`, `EBELP`, `BSART`, `MATNR`, `MENGE`, `LINE_COLOR` (`CHAR4`) and `CELL_COLORS` (`SLIS_T_SPECIALCOL_ALV`), the message class `zsm_msg`, and the text symbols `t01`–`t03`. **[verify: the parameters of the `REUSE_ALV_*` function modules in `SE37`, and that `PF_STATUS_SET` and `TOP_OF_PAGE` work through `it_events` for the grid display in your release]**
+> 📝 Complete program apart from its placeholders: the structure `zsm_s_po_item` with `EBELN`, `EBELP`, `BSART`, `MATNR`, `MENGE`, `LINE_COLOR` (`CHAR4`) and `CELL_COLORS` (`SLIS_T_SPECIALCOL_ALV`), the message class `zsm_msg`, and the text symbols `t01`–`t03`. The callbacks are passed through the parameters `i_callback_pf_status_set`, `i_callback_top_of_page` and `i_callback_user_command`; further events go into `it_events`.
 
 ```abap
 REPORT zsm_r_po_item_list.
@@ -149,7 +149,6 @@ DATA purchase_order_items TYPE STANDARD TABLE OF zsm_s_po_item WITH EMPTY KEY.
 DATA layout               TYPE slis_layout_alv.
 DATA variant              TYPE disvariant.
 DATA excluded_functions   TYPE slis_t_extab.
-DATA events               TYPE slis_t_event.
 DATA field_catalog        TYPE slis_t_fieldcat_alv.
 DATA filter_criteria      TYPE slis_t_filter_alv.
 DATA list_header          TYPE slis_t_listheader.
@@ -239,29 +238,27 @@ START-OF-SELECTION.
                                optio     = 'EQ'
                                valuf_int = '20' ) ).
 
-  " Callbacks are subroutines of this program, called by name
-  events = VALUE #( ( name = slis_ev_pf_status_set form = 'PF_STATUS_SET' )
-                    ( name = slis_ev_top_of_page   form = 'TOP_OF_PAGE' ) ).
-
   excluded_functions = VALUE #( ( fcode = '&INFO' ) ).
 
   variant-variant = p_variant.
 
+  " Callbacks are subroutines of this program, called by name
   CALL FUNCTION 'REUSE_ALV_GRID_DISPLAY'
-    EXPORTING  i_buffer_active         = abap_false
-               i_callback_program      = sy-repid
-               i_callback_user_command = 'USER_COMMAND'
-               i_save                  = 'A'
-               is_layout               = layout
-               is_variant              = variant
-               it_excluding            = excluded_functions
-               it_events               = events
-               it_fieldcat             = field_catalog
-               it_filter               = filter_criteria
-               it_sort                 = sort_criteria
-    TABLES     t_outtab                = purchase_order_items
-    EXCEPTIONS program_error           = 1
-               OTHERS                  = 2.
+    EXPORTING  i_buffer_active          = abap_false
+               i_callback_program       = sy-repid
+               i_callback_pf_status_set = 'PF_STATUS_SET'
+               i_callback_top_of_page   = 'TOP_OF_PAGE'
+               i_callback_user_command  = 'USER_COMMAND'
+               i_save                   = 'A'
+               is_layout                = layout
+               is_variant               = variant
+               it_excluding             = excluded_functions
+               it_fieldcat              = field_catalog
+               it_filter                = filter_criteria
+               it_sort                  = sort_criteria
+    TABLES     t_outtab                 = purchase_order_items
+    EXCEPTIONS program_error            = 1
+               OTHERS                   = 2.
   IF sy-subrc <> 0.
     MESSAGE e032(zsm_msg).
   ENDIF.
@@ -305,7 +302,7 @@ This is the most powerful and flexible approach: a container-based grid with ric
 
 The program below is the one whose header and global part [01-ABAP-Basics](../01-ABAP-Basics/README.md#-example--program-header--global-declarations) shows. Every handler it declares is implemented and registered; a handler that is declared but not registered is never called, and a declared method without an implementation does not compile.
 
-> 📝 **Contextual snippet** — assumes screen 0100 with a custom control `GRID_AREA`, the GUI status `STATUS_0100` and the title `TITLE_0100`; the placeholder structure `zsm_s_delivery` with the `LIPS` fields `VBELN`, `POSNR`, `MATNR`, `PSTYV`, `LFIMG`, `VRKME` plus the control columns `BUTTON`, `ROW_COLOR` (`CHAR4`), `STATUS_ICON`, `TRAFFIC_LIGHT`, `SELECTED`, `DROPDOWN`, `CELL_COLORS` (`LVC_T_SCOL`) and `FIELD_STYLE` (`LVC_T_STYL`); the placeholder table `zsm_t_print`; the message class `zsm_msg`; and text symbols for all texts. **[verify: the method signatures of `cl_gui_alv_grid`, `cl_gui_splitter_container`, `cl_dd_document`, `cl_alv_changed_data_protocol` and `cl_alv_event_data` in `SE24` of your release]**
+> 📝 **Contextual snippet** — assumes screen 0100 with a custom control `GRID_AREA`, the GUI status `STATUS_0100` and the title `TITLE_0100`; the placeholder structure `zsm_s_delivery` with the `LIPS` fields `VBELN`, `POSNR`, `MATNR`, `PSTYV`, `LFIMG`, `VRKME` plus the control columns `BUTTON`, `ROW_COLOR` (`CHAR4`), `STATUS_ICON`, `TRAFFIC_LIGHT`, `SELECTED`, `DROPDOWN`, `CELL_COLORS` (`LVC_T_SCOL`) and `FIELD_STYLE` (`LVC_T_STYL`); the placeholder table `zsm_t_print`; the message class `zsm_msg`; and text symbols for all texts.
 
 ```abap
 REPORT zsm_r_delivery_monitor.
@@ -480,7 +477,7 @@ CLASS lcl_main IMPLEMENTATION.
                     quickinfo = TEXT-102
                     text      = TEXT-102
                     icon      = icon_insert_row ) TO e_object->mt_toolbar.
-    " butn_type 2 = menu button; its entries come from handle_menu_button [verify]
+    " butn_type 2 = menu button (domain fixed value); its entries come from handle_menu_button
     APPEND VALUE #( function  = 'EXPORT'
                     text      = TEXT-103
                     butn_type = 2 ) TO e_object->mt_toolbar.
@@ -601,7 +598,7 @@ CLASS lcl_main IMPLEMENTATION.
     " es_col_id is a STRUCTURE (lvc_s_col) - compare its FIELDNAME component,
     " not the structure itself.
     IF current_column-fieldname = 'LFIMG'.
-      " ASSIGN is the one place where a table expression sets sy-subrc
+      " In ASSIGN, a table expression that finds no line sets sy-subrc to 4
       " instead of raising CX_SY_ITAB_LINE_NOT_FOUND.
       ASSIGN deliveries[ current_row-row_id ] TO FIELD-SYMBOL(<changed_row>).
       IF sy-subrc = 0.
@@ -655,8 +652,8 @@ CLASS lcl_main IMPLEMENTATION.
       RETURN.
     ENDIF.
 
-    " Simplified: writes into the output table; for a cell that is being
-    " edited, the documented way is the modified-cells table in er_event_data [verify]
+    " Simplified: writes into the output table and refreshes the grid. SAP's
+    " ALV demo programs (BCALV_*) show how to return a value to a cell in edit mode
     ASSIGN deliveries[ es_row_no-row_id ] TO FIELD-SYMBOL(<delivery>).
     IF sy-subrc = 0.
       <delivery>-pstyv = returned_values[ 1 ]-fieldval.
@@ -829,11 +826,11 @@ PROCESS AFTER INPUT.
 
 > 💡 Larger existing reports often split this program into includes — global data, selection screen, local class, dynpro modules. The order of the parts stays the same.
 
-> ⚠️ **`get_selected_rows` returns row indexes in the component `INDEX`.** The `ROW_ID` component belongs to the row-number structures (`es_row_no`, `et_row_no`) that the events and `get_current_cell` pass. **[verify: the components of `LVC_S_ROW` and `LVC_S_ROID`]**
+> ⚠️ **`get_selected_rows` returns row indexes in the component `INDEX`.** The `ROW_ID` component belongs to the row-number structures (`es_row_no`, `et_row_no`) that the events and `get_current_cell` pass.
 
 ## 🎨 Field Catalog — Building It Manually
 
-> 📝 **Contextual snippet** — the text symbols `f01`–`f04` hold the column texts. **[verify: that `REUSE_ALV_FIELDCATALOG_MERGE` with `i_internal_tabname` reads the table declaration from the program source and supports the declaration form you use]**
+> 📝 **Contextual snippet** — the text symbols `f01`–`f04` hold the column texts. With `i_internal_tabname`, `REUSE_ALV_FIELDCATALOG_MERGE` derives the catalog from the program's own declaration of that table (`i_program_name`, `i_inclname`); its function module documentation in `SE37` names the supported declaration forms. A DDIC structure (`i_structure_name`), as in Option 2, avoids that dependency.
 
 ```abap
 " TYPES declares a type; the internal table is then declared from it.
