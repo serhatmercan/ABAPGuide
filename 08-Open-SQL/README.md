@@ -652,7 +652,7 @@ A custom log table needs a unique key for each entry. Two patterns that look har
 - **Reading the highest key and adding one.** Two sessions that run at the same time read the same maximum and write the same key; one insert fails or overwrites the other.
 - **Committing inside the logging method.** The commit closes the caller's SAP LUW as well ([Rule 7.10](../docs/ABAP-Development-Rules.md#710-let-the-top-level-caller-own-the-transaction-reusable-units-never-commit-work)); with `AND WAIT` it also makes every log call wait for the update ([Rule 7.14](../docs/ABAP-Development-Rules.md#714-use-commit-work-and-wait-only-when-the-next-step-depends-on-the-update)).
 
-> 📝 **Contextual snippet** — assumes a custom table `zsm_t_log` with the key field `log_id` and the field `message`, and a method parameter `message`. **[verify: the method `cl_system_uuid=>create_uuid_x16_static` and the exception it raises, in your system]**
+> 📝 **Contextual snippet** — assumes a custom table `zsm_t_log` with the key field `log_id` and the field `message`, and a method `write_log` with the parameter `message`, declared with `RAISING cx_uuid_error`. The UUID call follows the example for `CL_SYSTEM_UUID` in the ABAP Keyword Documentation.
 
 ```abap
 " ❌ race condition on the key, and a commit inside a reusable method
@@ -668,7 +668,8 @@ ENDMETHOD.
 ```abap
 " ✅ unique key without reading the table; the caller owns the transaction
 METHOD write_log.
-  DATA(log_entry) = VALUE zsm_t_log( log_id  = cl_system_uuid=>create_uuid_x16_static( )
+  " create_uuid_x16( ) raises CX_UUID_ERROR; write_log passes it to the caller
+  DATA(log_entry) = VALUE zsm_t_log( log_id  = cl_uuid_factory=>create_system_uuid( )->create_uuid_x16( )
                                      message = message ).
   INSERT zsm_t_log FROM @log_entry.
 ENDMETHOD.
