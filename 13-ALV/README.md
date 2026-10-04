@@ -17,7 +17,7 @@ ALV is the standard SAP grid control for displaying tabular data with sorting, f
 The quickest way to display a table, with a clean object-oriented API. Best for simple, read-mostly reports.
 
 ```abap
-REPORT zsm_tst.
+REPORT zsm_r_material_list.
 
 CLASS lcl_alv DEFINITION.
   PUBLIC SECTION.
@@ -29,77 +29,77 @@ CLASS lcl_alv DEFINITION.
     METHODS show_data.
 
   PRIVATE SECTION.
-    DATA lt_data TYPE TABLE OF mara.
-    DATA lo_alv  TYPE REF TO cl_salv_table.
+    DATA materials TYPE TABLE OF mara.
+    DATA alv       TYPE REF TO cl_salv_table.
 ENDCLASS.
 
 
 CLASS lcl_alv IMPLEMENTATION.
   METHOD get_data.
-    SELECT * FROM mara UP TO 100 ROWS INTO TABLE @lt_data.
+    SELECT * FROM mara UP TO 100 ROWS INTO TABLE @materials.
   ENDMETHOD.
 
   METHOD set_column.
-    DATA(lo_columns) = lo_alv->get_columns( ).
+    DATA(columns) = alv->get_columns( ).
 
     " get_column( ) raises CX_SALV_NOT_FOUND for an unknown column name
     TRY.
-        lo_columns->get_column( 'MANDT' )->set_visible( abap_false ).
+        columns->get_column( 'MANDT' )->set_visible( abap_false ).
 
-        DATA(lo_matkl) = lo_columns->get_column( 'MATKL' ).
-        lo_matkl->set_short_text( 'MatGrp' ).
-        lo_matkl->set_medium_text( 'Material Grp' ).
-        lo_matkl->set_long_text( 'Material Group' ).
+        DATA(material_group_column) = columns->get_column( 'MATKL' ).
+        material_group_column->set_short_text( 'MatGrp' ).
+        material_group_column->set_medium_text( 'Material Grp' ).
+        material_group_column->set_long_text( 'Material Group' ).
 
-      CATCH cx_salv_not_found INTO DATA(lx_not_found).
-        MESSAGE lx_not_found->get_text( ) TYPE 'S' DISPLAY LIKE 'W'.
+      CATCH cx_salv_not_found INTO DATA(not_found_error).
+        MESSAGE not_found_error->get_text( ) TYPE 'S' DISPLAY LIKE 'W'.
     ENDTRY.
 
-    lo_columns->set_optimize( abap_true ).
+    columns->set_optimize( abap_true ).
   ENDMETHOD.
 
   METHOD set_display.
-    DATA(lo_display) = lo_alv->get_display_settings( ).
+    DATA(display_settings) = alv->get_display_settings( ).
 
-    lo_display->set_list_header( 'SALV Report' ).
-    lo_display->set_striped_pattern( abap_true ).
+    display_settings->set_list_header( 'SALV Report' ).
+    display_settings->set_striped_pattern( abap_true ).
   ENDMETHOD.
 
   METHOD set_header.
-    DATA(lo_header) = NEW cl_salv_form_layout_grid( ).
+    DATA(header) = NEW cl_salv_form_layout_grid( ).
 
-    lo_header->create_label( row    = 1
+    header->create_label( row    = 1
                              column = 1 )->set_text( 'Header' ).
-    lo_header->create_flow( row    = 2
+    header->create_flow( row    = 2
                             column = 1 )->create_text( text = 'Subheader' ).
 
-    lo_alv->set_top_of_list( lo_header ).
+    alv->set_top_of_list( header ).
   ENDMETHOD.
 
   METHOD set_toolbar.
-    DATA(lo_functions) = lo_alv->get_functions( ).
+    DATA(functions) = alv->get_functions( ).
 
-    lo_functions->set_all( abap_true ).
-    lo_functions->set_sort_asc( abap_false ).
-    lo_functions->set_sort_desc( abap_false ).
+    functions->set_all( abap_true ).
+    functions->set_sort_asc( abap_false ).
+    functions->set_sort_desc( abap_false ).
   ENDMETHOD.
 
   METHOD show_data.
-    " Everything that depends on lo_alv must stay INSIDE the TRY - if factory( )
-    " raises, lo_alv is still initial and calling display( ) on it would dump.
+    " Everything that depends on alv must stay INSIDE the TRY - if factory( )
+    " raises, alv is still initial and calling display( ) on it would dump.
     TRY.
-        cl_salv_table=>factory( IMPORTING r_salv_table = lo_alv
-                                CHANGING  t_table      = lt_data ).
+        cl_salv_table=>factory( IMPORTING r_salv_table = alv
+                                CHANGING  t_table      = materials ).
 
         set_column( ).
         set_display( ).
         set_header( ).
         set_toolbar( ).
 
-        lo_alv->display( ).
+        alv->display( ).
 
-      CATCH cx_salv_msg INTO DATA(lx_msg).
-        MESSAGE lx_msg->get_text( ) TYPE 'E'.
+      CATCH cx_salv_msg INTO DATA(salv_error).
+        MESSAGE salv_error->get_text( ) TYPE 'E'.
     ENDTRY.
   ENDMETHOD.
 ENDCLASS.
@@ -115,26 +115,26 @@ The classic function-module approach, still very common in existing systems, off
 > Mixing them is one of the most common compile errors in ALV code. This section uses SLIS throughout; [Option 3](#-option-3--oop-alv-grid-cl_gui_alv_grid--full-interactive-control) uses LVC throughout.
 
 ```abap
-DATA gs_layout          TYPE slis_layout_alv.
-DATA gs_print           TYPE slis_print_alv.
-DATA gs_variant         TYPE disvariant.
-DATA gt_bseg            TYPE TABLE OF bseg.
-DATA gt_excluding       TYPE slis_t_extab.
-DATA gt_events          TYPE slis_t_event.
-DATA gt_fieldcat        TYPE slis_t_fieldcat_alv.
-DATA gt_filter          TYPE slis_t_filter_alv.
-DATA gt_list_commentary TYPE slis_t_listheader.
-DATA gt_sort            TYPE slis_t_sortinfo_alv.
-DATA gv_exit            TYPE char1.
-DATA gv_title           TYPE lvc_title.
+DATA layout             TYPE slis_layout_alv.
+DATA print_settings     TYPE slis_print_alv.
+DATA variant            TYPE disvariant.
+DATA line_items         TYPE TABLE OF bseg.
+DATA excluded_functions TYPE slis_t_extab.
+DATA events             TYPE slis_t_event.
+DATA field_catalog      TYPE slis_t_fieldcat_alv.
+DATA filter_criteria    TYPE slis_t_filter_alv.
+DATA list_header        TYPE slis_t_listheader.
+DATA sort_criteria      TYPE slis_t_sortinfo_alv.
+DATA f4_cancelled       TYPE char1.
+DATA grid_title         TYPE lvc_title.
 
 PARAMETERS p_variant TYPE disvariant-variant.
 
 INITIALIZATION.
-  gs_variant-report = sy-repid.
+  variant-report = sy-repid.
 
   CALL FUNCTION 'REUSE_ALV_VARIANT_DEFAULT_GET'
-    CHANGING   cs_variant    = gs_variant
+    CHANGING   cs_variant    = variant
     EXCEPTIONS wrong_input   = 1
                not_found     = 2
                program_error = 3
@@ -143,14 +143,14 @@ INITIALIZATION.
 " F4 help on the layout parameter - this event ONLY supplies a value.
 AT SELECTION-SCREEN ON VALUE-REQUEST FOR p_variant.
   CALL FUNCTION 'REUSE_ALV_VARIANT_F4'
-    EXPORTING  is_variant    = gs_variant
-    IMPORTING  e_exit        = gv_exit
-               es_variant    = gs_variant
+    EXPORTING  is_variant    = variant
+    IMPORTING  e_exit        = f4_cancelled
+               es_variant    = variant
     EXCEPTIONS not_found     = 1
                program_error = 2
                OTHERS        = 3.
-  IF sy-subrc = 0 AND gv_exit IS INITIAL.
-    p_variant = gs_variant-variant.
+  IF sy-subrc = 0 AND f4_cancelled IS INITIAL.
+    p_variant = variant-variant.
   ENDIF.
 
 " Data retrieval and display belong in the main processing block,
@@ -165,7 +165,7 @@ END-OF-SELECTION.
                i_structure_name       = 'BSEG'
                i_client_never_display = abap_true
                i_inclname             = sy-repid
-    CHANGING   ct_fieldcat            = gt_fieldcat
+    CHANGING   ct_fieldcat            = field_catalog
     EXCEPTIONS inconsistent_interface = 1
                program_error          = 2
                OTHERS                 = 3.
@@ -185,17 +185,17 @@ END-OF-SELECTION.
                i_callback_program      = sy-repid
                i_callback_top_of_page  = 'TOP_OF_PAGE'
                i_callback_user_command = 'USER_COMMAND'
-               i_grid_title            = gv_title
+               i_grid_title            = grid_title
                i_save                  = 'A'
-               is_layout               = gs_layout
-               is_print                = gs_print
-               is_variant              = gs_variant
-               it_excluding            = gt_excluding
-               it_events               = gt_events
-               it_fieldcat             = gt_fieldcat
-               it_filter               = gt_filter
-               it_sort                 = gt_sort
-    TABLES     t_outtab                = gt_bseg
+               is_layout               = layout
+               is_print                = print_settings
+               is_variant              = variant
+               it_excluding            = excluded_functions
+               it_events               = events
+               it_fieldcat             = field_catalog
+               it_filter               = filter_criteria
+               it_sort                 = sort_criteria
+    TABLES     t_outtab                = line_items
     EXCEPTIONS program_error           = 1
                OTHERS                  = 2.
 
@@ -204,79 +204,79 @@ END-OF-SELECTION.
   ENDIF.
 
 FORM set_color.
-  LOOP AT gt_out ASSIGNING FIELD-SYMBOL(<fs_table>).
-    IF <fs_table>-ebelp = '10'.
-      <fs_table>-line_color = 'C301'.
+  LOOP AT line_items ASSIGNING FIELD-SYMBOL(<line_item>).
+    IF <line_item>-ebelp = '10'.
+      <line_item>-line_color = 'C301'.
     ELSE.
-      APPEND INITIAL LINE TO <fs_table>-cell_color ASSIGNING FIELD-SYMBOL(<fs_cell_color>).
-      <fs_cell_color>-fieldname = 'MATNR'.
-      <fs_cell_color>-color-col = '3'.
-      <fs_cell_color>-color-int = '1'.
-      <fs_cell_color>-color-inv = '0'.
+      APPEND INITIAL LINE TO <line_item>-cell_color ASSIGNING FIELD-SYMBOL(<cell_color>).
+      <cell_color>-fieldname = 'MATNR'.
+      <cell_color>-color-col = '3'.
+      <cell_color>-color-int = '1'.
+      <cell_color>-color-inv = '0'.
     ENDIF.
   ENDLOOP.
 ENDFORM.
 
 FORM set_filter.
   APPEND VALUE #( fieldname = 'EBELP'
-                  tabname   = 'GT_BSEG'
+                  tabname   = 'LINE_ITEMS'
                   sign0     = 'I'
                   optio     = 'EQ'
-                  valuf_int = '20' ) TO gt_filter.
+                  valuf_int = '20' ) TO filter_criteria.
 ENDFORM.
 
 FORM set_events.
   APPEND VALUE #( name = slis_ev_top_of_page
-                  form = 'TOP_OF_PAGE' ) TO gt_events.
+                  form = 'TOP_OF_PAGE' ) TO events.
   APPEND VALUE #( name = slis_ev_end_of_list
-                  form = 'END_OF_LIST' ) TO gt_events.
+                  form = 'END_OF_LIST' ) TO events.
   APPEND VALUE #( name = slis_ev_pf_status_set
-                  form = 'PF_STATUS_SET' ) TO gt_events.
+                  form = 'PF_STATUS_SET' ) TO events.
 ENDFORM.
 
 FORM set_excluding.
-  APPEND VALUE #( fcode = '&INFO' ) TO gt_excluding.
+  APPEND VALUE #( fcode = '&INFO' ) TO excluded_functions.
 ENDFORM.
 
 FORM set_sort.
   APPEND VALUE #( down      = abap_true
                   fieldname = 'BSART'
                   spos      = 1
-                  tabname   = 'GT_BSEG' ) TO gt_sort.
+                  tabname   = 'LINE_ITEMS' ) TO sort_criteria.
   APPEND VALUE #( down      = abap_true
                   fieldname = 'MENGE'
                   spos      = 2
-                  tabname   = 'GT_BSEG' ) TO gt_sort.
+                  tabname   = 'LINE_ITEMS' ) TO sort_criteria.
 ENDFORM.
 
 FORM variant.
-  gs_variant-variant = p_variant.
+  variant-variant = p_variant.
 ENDFORM.
 
-FORM pf_status_set USING p_exttab TYPE slis_t_extab.
+FORM pf_status_set USING excluded TYPE slis_t_extab.
   SET PF-STATUS '0100'.
 ENDFORM.
 
 FORM top_of_page.
   " CLEAR first - this callback runs once per page, so without it the
   " commentary table grows on every page.
-  CLEAR gt_list_commentary.
+  CLEAR list_header.
 
   APPEND VALUE #( typ  = 'H'
-                  info = 'PO Report' ) TO gt_list_commentary.
+                  info = 'PO Report' ) TO list_header.
   APPEND VALUE #( typ  = 'S'
                   key  = 'Date'
-                  info = |{ sy-datum DATE = USER }| ) TO gt_list_commentary.
+                  info = |{ sy-datum DATE = USER }| ) TO list_header.
   APPEND VALUE #( typ  = 'A'
                   key  = 'Row count:'
-                  info = |{ lines( gt_bseg ) }| ) TO gt_list_commentary.
+                  info = |{ lines( line_items ) }| ) TO list_header.
 
   CALL FUNCTION 'REUSE_ALV_COMMENTARY_WRITE'
-    EXPORTING it_list_commentary = gt_list_commentary.
+    EXPORTING it_list_commentary = list_header.
 ENDFORM.
 
-FORM user_command USING p_ucomm     TYPE sy-ucomm
-                        ps_selfield TYPE slis_selfield.
+FORM user_command USING ucomm    TYPE sy-ucomm
+                        selfield TYPE slis_selfield.
   " Handle custom toolbar function codes here (e.g., navigate on double-click)
 ENDFORM.
 ```
@@ -288,33 +288,33 @@ This is the most powerful and flexible approach: a container-based grid with ric
 ```abap
 CLASS lcl_main DEFINITION DEFERRED.
 
-DATA go_container     TYPE REF TO cl_gui_custom_container.
-DATA go_document      TYPE REF TO cl_dd_document.
-DATA go_main          TYPE REF TO lcl_main.
-DATA go_grid          TYPE REF TO cl_gui_alv_grid.
-DATA go_splitter      TYPE REF TO cl_gui_splitter_container.
-DATA go_subcontainer1 TYPE REF TO cl_gui_container.
-DATA go_subcontainer2 TYPE REF TO cl_gui_container.
-DATA gt_out           TYPE TABLE OF zsm_t_table.
+DATA custom_container TYPE REF TO cl_gui_custom_container.
+DATA header_document  TYPE REF TO cl_dd_document.
+DATA main             TYPE REF TO lcl_main.
+DATA grid             TYPE REF TO cl_gui_alv_grid.
+DATA splitter         TYPE REF TO cl_gui_splitter_container.
+DATA header_container TYPE REF TO cl_gui_container.
+DATA grid_container   TYPE REF TO cl_gui_container.
+DATA deliveries       TYPE TABLE OF zsm_s_delivery.
 
 INITIALIZATION.
-  go_main = NEW #( ).
+  main = NEW #( ).
 
 START-OF-SELECTION.
-  go_main->start_of_selection( ).
+  main->start_of_selection( ).
 
 " Event handlers are declared as INSTANCE methods (METHODS, not CLASS-METHODS)
-" so they can be registered with SET HANDLER go_main->... FOR co_grid.
+" so they can be registered with SET HANDLER main->... FOR alv_grid.
 " A static handler would have to be registered as SET HANDLER lcl_main=>... .
 CLASS lcl_main DEFINITION.
   PUBLIC SECTION.
     METHODS start_of_selection.
 
-    METHODS show_alv IMPORTING iv_container_name TYPE char50
-                               iv_structure_name TYPE dd02l-tabname
-                     CHANGING  co_container      TYPE REF TO cl_gui_custom_container
-                               co_grid           TYPE REF TO cl_gui_alv_grid
-                               ct_data           TYPE STANDARD TABLE.
+    METHODS show_alv IMPORTING container_name TYPE char50
+                               structure_name TYPE dd02l-tabname
+                     CHANGING  container      TYPE REF TO cl_gui_custom_container
+                               alv_grid       TYPE REF TO cl_gui_alv_grid
+                               output_table   TYPE STANDARD TABLE.
 
     METHODS handle_after_user_command    FOR EVENT after_user_command    OF cl_gui_alv_grid IMPORTING e_ucomm e_saved e_not_processed.
     METHODS handle_button_click          FOR EVENT button_click          OF cl_gui_alv_grid IMPORTING es_col_id es_row_no.
@@ -333,16 +333,16 @@ CLASS lcl_main DEFINITION.
   PRIVATE SECTION.
     METHODS get_data.
     METHODS show_data.
-    METHODS set_dropdown RETURNING VALUE(rt_dropdown) TYPE lvc_t_drop.
+    METHODS set_dropdown RETURNING VALUE(result) TYPE lvc_t_drop.
 
-    METHODS set_fieldcatalog IMPORTING VALUE(iv_structure_name) TYPE dd02l-tabname
-                             RETURNING VALUE(rt_fieldcat)       TYPE lvc_t_fcat.
+    METHODS set_fieldcatalog IMPORTING VALUE(structure_name) TYPE dd02l-tabname
+                             RETURNING VALUE(result)         TYPE lvc_t_fcat.
 
-    METHODS set_filter     RETURNING VALUE(rt_filter)     TYPE lvc_t_filt.
-    METHODS set_layout     RETURNING VALUE(rs_layout_alv) TYPE lvc_s_layo.
-    METHODS set_sort       RETURNING VALUE(rt_sort)       TYPE lvc_t_sort.
-    METHODS set_variant    RETURNING VALUE(rs_variant)    TYPE disvariant.
-    METHODS set_toolbar_ex CHANGING  VALUE(ct_toolbar_ex) TYPE ui_functions.
+    METHODS set_filter     RETURNING VALUE(result) TYPE lvc_t_filt.
+    METHODS set_layout     RETURNING VALUE(result) TYPE lvc_s_layo.
+    METHODS set_sort       RETURNING VALUE(result) TYPE lvc_t_sort.
+    METHODS set_variant    RETURNING VALUE(result) TYPE disvariant.
+    METHODS set_toolbar_ex CHANGING  VALUE(excluded_functions) TYPE ui_functions.
 ENDCLASS.
 
 
@@ -350,7 +350,7 @@ CLASS lcl_main IMPLEMENTATION.
   METHOD start_of_selection.
     get_data( ).
 
-    IF gt_out IS INITIAL.
+    IF deliveries IS INITIAL.
       MESSAGE 'No records found.' TYPE 'S' DISPLAY LIKE 'E'.
       LEAVE LIST-PROCESSING.
     ENDIF.
@@ -359,47 +359,47 @@ CLASS lcl_main IMPLEMENTATION.
   ENDMETHOD.
 
   METHOD show_alv.
-    DATA lt_dropdown   TYPE lvc_t_drop.
-    DATA lt_fieldcat   TYPE lvc_t_fcat.
-    DATA lt_filter     TYPE lvc_t_filt.
-    DATA lt_sort       TYPE lvc_t_sort.
-    DATA lt_toolbar_ex TYPE ui_functions.
-    DATA ls_layout     TYPE lvc_s_layo.
-    DATA ls_variant    TYPE disvariant.
+    DATA dropdown_values    TYPE lvc_t_drop.
+    DATA field_catalog      TYPE lvc_t_fcat.
+    DATA filter_criteria    TYPE lvc_t_filt.
+    DATA sort_criteria      TYPE lvc_t_sort.
+    DATA excluded_functions TYPE ui_functions.
+    DATA layout             TYPE lvc_s_layo.
+    DATA variant            TYPE disvariant.
 
-    lt_dropdown = set_dropdown( ).
-    lt_fieldcat = set_fieldcatalog( iv_structure_name = iv_structure_name ).
-    lt_filter   = set_filter( ).
-    lt_sort     = set_sort( ).
-    ls_layout   = set_layout( ).
-    ls_variant  = set_variant( ).
+    dropdown_values = set_dropdown( ).
+    field_catalog   = set_fieldcatalog( structure_name = structure_name ).
+    filter_criteria = set_filter( ).
+    sort_criteria   = set_sort( ).
+    layout          = set_layout( ).
+    variant         = set_variant( ).
 
-    IF co_container IS INITIAL.
-      co_container = NEW #( container_name = iv_container_name ).
+    IF container IS INITIAL.
+      container = NEW #( container_name = container_name ).
 
-      IF co_grid IS INITIAL.
+      IF alv_grid IS INITIAL.
         " Screen with a named custom container
-        co_grid = NEW #( i_parent = co_container ).
+        alv_grid = NEW #( i_parent = container ).
 
         " Alternative (choose ONE): full-screen grid, no container needed.
         " Creating the grid twice would leak the first instance.
-        " co_grid = NEW #( i_parent = cl_gui_container=>screen0 ).
+        " alv_grid = NEW #( i_parent = cl_gui_container=>screen0 ).
 
-        set_toolbar_ex( CHANGING ct_toolbar_ex = lt_toolbar_ex ).
+        set_toolbar_ex( CHANGING excluded_functions = excluded_functions ).
 
-        co_grid->set_drop_down_table( it_drop_down = lt_dropdown ).
+        alv_grid->set_drop_down_table( it_drop_down = dropdown_values ).
 
-        co_grid->set_table_for_first_display(
+        alv_grid->set_table_for_first_display(
             EXPORTING  i_buffer_active               = space
-                       is_layout                     = ls_layout
-                       it_toolbar_excluding          = lt_toolbar_ex
+                       is_layout                     = layout
+                       it_toolbar_excluding          = excluded_functions
                        i_save                        = 'U'      " A -> All | U -> User Specific | X -> Standard | Space -> No Save Variant
-                       is_variant                    = ls_variant
+                       is_variant                    = variant
                        i_default                     = abap_true
-            CHANGING   it_sort                       = lt_sort
-                       it_filter                     = lt_filter
-                       it_outtab                     = ct_data
-                       it_fieldcatalog               = lt_fieldcat
+            CHANGING   it_sort                       = sort_criteria
+                       it_filter                     = filter_criteria
+                       it_outtab                     = output_table
+                       it_fieldcatalog               = field_catalog
             EXCEPTIONS invalid_parameter_combination = 1
                        program_error                 = 2
                        too_many_lines                = 3
@@ -409,37 +409,37 @@ CLASS lcl_main IMPLEMENTATION.
           MESSAGE ID sy-msgid TYPE sy-msgty NUMBER sy-msgno WITH sy-msgv1 sy-msgv2 sy-msgv3 sy-msgv4.
         ENDIF.
 
-        co_grid->register_edit_event( i_event_id = cl_gui_alv_grid=>mc_evt_enter ).
-        co_grid->register_edit_event( i_event_id = cl_gui_alv_grid=>mc_evt_modified ).
+        alv_grid->register_edit_event( i_event_id = cl_gui_alv_grid=>mc_evt_enter ).
+        alv_grid->register_edit_event( i_event_id = cl_gui_alv_grid=>mc_evt_modified ).
 
-        SET HANDLER go_main->handle_button_click          FOR co_grid.
-        SET HANDLER go_main->handle_data_changed          FOR co_grid.
-        SET HANDLER go_main->handle_data_changed_finished FOR co_grid.
-        SET HANDLER go_main->handle_double_click          FOR co_grid.
-        SET HANDLER go_main->handle_hotspot_click         FOR co_grid.
-        SET HANDLER go_main->handle_on_f4                 FOR co_grid.
-        SET HANDLER go_main->handle_toolbar               FOR co_grid.
-        SET HANDLER go_main->handle_top_of_page           FOR co_grid.
-        SET HANDLER go_main->handle_user_command          FOR co_grid.
+        SET HANDLER main->handle_button_click          FOR alv_grid.
+        SET HANDLER main->handle_data_changed          FOR alv_grid.
+        SET HANDLER main->handle_data_changed_finished FOR alv_grid.
+        SET HANDLER main->handle_double_click          FOR alv_grid.
+        SET HANDLER main->handle_hotspot_click         FOR alv_grid.
+        SET HANDLER main->handle_on_f4                 FOR alv_grid.
+        SET HANDLER main->handle_toolbar               FOR alv_grid.
+        SET HANDLER main->handle_top_of_page           FOR alv_grid.
+        SET HANDLER main->handle_user_command          FOR alv_grid.
 
-        co_grid->set_ready_for_input( i_ready_for_input = 1 ).
-        co_grid->set_toolbar_interactive( ).
+        alv_grid->set_ready_for_input( i_ready_for_input = 1 ).
+        alv_grid->set_toolbar_interactive( ).
       ELSE.
-        co_grid->refresh_table_display( is_stable      = VALUE lvc_s_stbl( col = abap_true
+        alv_grid->refresh_table_display( is_stable      = VALUE lvc_s_stbl( col = abap_true
                                                                            row = abap_true )
                                         i_soft_refresh = abap_true ).
       ENDIF.
     ELSE.
-      co_grid->refresh_table_display( is_stable      = VALUE lvc_s_stbl( col = abap_true
+      alv_grid->refresh_table_display( is_stable      = VALUE lvc_s_stbl( col = abap_true
                                                                          row = abap_true )
                                       i_soft_refresh = abap_true ).
     ENDIF.
   ENDMETHOD.
 
   METHOD handle_after_user_command.
-    go_grid->get_selected_rows( IMPORTING et_index_rows = DATA(lt_selected) ).
+    grid->get_selected_rows( IMPORTING et_index_rows = DATA(selected_rows) ).
 
-    IF lt_selected IS INITIAL.
+    IF selected_rows IS INITIAL.
       MESSAGE 'No rows selected.' TYPE 'I'.
       RETURN.
     ENDIF.
@@ -456,17 +456,17 @@ CLASS lcl_main IMPLEMENTATION.
 
         " Delete by DESCENDING index. Deleting ascending shifts every later
         " index by one and removes the wrong rows on a multi-row selection.
-        SORT lt_selected BY row_id DESCENDING.
+        SORT selected_rows BY row_id DESCENDING.
 
-        LOOP AT lt_selected INTO DATA(ls_selected).
-          DELETE gt_out INDEX ls_selected-row_id.
+        LOOP AT selected_rows INTO DATA(selected_row).
+          DELETE deliveries INDEX selected_row-row_id.
         ENDLOOP.
 
       WHEN 'EDIT'.
-        LOOP AT lt_selected INTO ls_selected.
-          READ TABLE gt_out ASSIGNING FIELD-SYMBOL(<ls_edit>) INDEX ls_selected-row_id.
+        LOOP AT selected_rows INTO selected_row.
+          READ TABLE deliveries ASSIGNING FIELD-SYMBOL(<edited_row>) INDEX selected_row-row_id.
           IF sy-subrc = 0.
-            <ls_edit>-pstyv = 'ZTAN'.
+            <edited_row>-pstyv = 'ZTAN'.
           ENDIF.
         ENDLOOP.
 
@@ -475,11 +475,11 @@ CLASS lcl_main IMPLEMENTATION.
         RETURN.
     ENDCASE.
 
-    go_grid->refresh_table_display( ).
+    grid->refresh_table_display( ).
   ENDMETHOD.
 
   METHOD handle_button_click.
-    READ TABLE gt_out INTO DATA(ls_out) INDEX es_row_no-row_id.
+    READ TABLE deliveries INTO DATA(delivery) INDEX es_row_no-row_id.
     IF sy-subrc = 0.
       CASE es_col_id-fieldname.
         WHEN 'BUTTON'.
@@ -501,10 +501,10 @@ CLASS lcl_main IMPLEMENTATION.
   ENDMETHOD.
 
   METHOD handle_data_changed.
-    LOOP AT er_data_changed->mt_good_cells REFERENCE INTO DATA(lr_cell).
-      CASE lr_cell->fieldname.
+    LOOP AT er_data_changed->mt_good_cells REFERENCE INTO DATA(cell).
+      CASE cell->fieldname.
         WHEN 'CHBOX'.
-          MESSAGE s001(zsm_msg) WITH lr_cell->row_id lr_cell->value.
+          MESSAGE s001(zsm_msg) WITH cell->row_id cell->value.
       ENDCASE.
     ENDLOOP.
   ENDMETHOD.
@@ -512,40 +512,40 @@ CLASS lcl_main IMPLEMENTATION.
   METHOD handle_data_changed_finished.
     CHECK e_modified IS NOT INITIAL.
 
-    IF sender <> go_grid.
+    IF sender <> grid.
       RETURN.
     ENDIF.
 
-    go_grid->get_current_cell( IMPORTING es_col_id = DATA(ls_current_col_id)
-                                         es_row_no = DATA(ls_current_row_no) ).
+    grid->get_current_cell( IMPORTING es_col_id = DATA(current_column)
+                                      es_row_no = DATA(current_row) ).
 
     " es_col_id is a STRUCTURE (lvc_s_col) - compare its FIELDNAME component,
     " not the structure itself.
-    CASE ls_current_col_id-fieldname.
+    CASE current_column-fieldname.
       WHEN 'LFIMG'.
         " ASSIGN is the one place where a table expression sets sy-subrc
         " instead of raising CX_SY_ITAB_LINE_NOT_FOUND.
-        ASSIGN gt_out[ ls_current_row_no-row_id ] TO FIELD-SYMBOL(<ls_out>).
+        ASSIGN deliveries[ current_row-row_id ] TO FIELD-SYMBOL(<delivery>).
         IF sy-subrc = 0.
-          <ls_out>-color = 'C610'.
+          <delivery>-color = 'C610'.
         ENDIF.
     ENDCASE.
 
-    go_grid->refresh_table_display( is_stable      = VALUE lvc_s_stbl( col = abap_true
+    grid->refresh_table_display( is_stable      = VALUE lvc_s_stbl( col = abap_true
                                                                        row = abap_true )
                                     i_soft_refresh = abap_true ).
   ENDMETHOD.
 
   METHOD handle_hotspot_click.
-    READ TABLE gt_out REFERENCE INTO DATA(lr_out) INDEX es_row_no-row_id.
+    READ TABLE deliveries REFERENCE INTO DATA(delivery) INDEX es_row_no-row_id.
     IF sy-subrc = 0 AND e_column_id-fieldname = 'VBELN'.
-      SET PARAMETER ID 'VL' FIELD lr_out->vbeln.
+      SET PARAMETER ID 'VL' FIELD delivery->vbeln.
 
       " Make the authorization decision explicit when navigating to a transaction
       TRY.
           CALL TRANSACTION 'VL03N' WITH AUTHORITY-CHECK AND SKIP FIRST SCREEN.
-        CATCH cx_sy_authorization_error INTO DATA(lx_auth).
-          MESSAGE lx_auth->get_text( ) TYPE 'S' DISPLAY LIKE 'E'.
+        CATCH cx_sy_authorization_error INTO DATA(authorization_error).
+          MESSAGE authorization_error->get_text( ) TYPE 'S' DISPLAY LIKE 'E'.
       ENDTRY.
     ENDIF.
   ENDMETHOD.
@@ -562,33 +562,33 @@ CLASS lcl_main IMPLEMENTATION.
   ENDMETHOD.
 
   METHOD handle_on_f4.
-    TYPES: BEGIN OF lty_value_tab,
+    TYPES: BEGIN OF item_category_value,
              pstyv TYPE pstyv,
-           END OF lty_value_tab.
+           END OF item_category_value.
 
-    DATA lt_return_tab TYPE TABLE OF ddshretval.
-    DATA lt_value_tab  TYPE TABLE OF lty_value_tab.
+    DATA returned_values      TYPE TABLE OF ddshretval.
+    DATA item_category_values TYPE TABLE OF item_category_value.
 
-    lt_value_tab = VALUE #( ( pstyv = 'ZTAN' )
+    item_category_values = VALUE #( ( pstyv = 'ZTAN' )
                             ( pstyv = 'ZTAX' )
                             ( pstyv = 'ZTAD' ) ).
 
     CALL FUNCTION 'F4IF_INT_TABLE_VALUE_REQUEST'
       EXPORTING retfield     = 'PSTYV'
                 window_title = 'PSTYV F4'
-      TABLES    value_tab    = lt_value_tab
-                return_tab   = lt_return_tab.
+      TABLES    value_tab    = item_category_values
+                return_tab   = returned_values.
 
-    IF line_exists( lt_return_tab[ fieldname = 'F0001' ] ).
-      IF line_exists( gt_out[ es_row_no-row_id ] ).
-        gt_out[ es_row_no-row_id ]-pstyv = lt_return_tab[ fieldname = 'F0001' ]-fieldval.
-        go_grid->refresh_table_display( ).
+    IF line_exists( returned_values[ fieldname = 'F0001' ] ).
+      IF line_exists( deliveries[ es_row_no-row_id ] ).
+        deliveries[ es_row_no-row_id ]-pstyv = returned_values[ fieldname = 'F0001' ]-fieldval.
+        grid->refresh_table_display( ).
       ENDIF.
     ENDIF.
   ENDMETHOD.
 
   METHOD handle_toolbar.
-    CHECK sender = go_grid.
+    CHECK sender = grid.
 
     APPEND VALUE #( function  = 'SEL_ALL'
                     quickinfo = TEXT-101
@@ -601,36 +601,36 @@ CLASS lcl_main IMPLEMENTATION.
   ENDMETHOD.
 
   METHOD handle_top_of_page.
-    go_document->add_text( text      = 'Header'
+    header_document->add_text( text      = 'Header'
                            sap_style = cl_dd_document=>heading ).
 
-    go_document->new_line( ).
+    header_document->new_line( ).
 
-    go_document->add_text( text         = 'Subheader'
+    header_document->add_text( text         = 'Subheader'
                            sap_color    = cl_dd_document=>list_positive
                            sap_fontsize = cl_dd_document=>medium ).
 
-    go_document->display_document( parent = go_subcontainer1 ).
+    header_document->display_document( parent = header_container ).
   ENDMETHOD.
 
   METHOD get_data.
-    " gt_out is TYPE TABLE OF zsm_t_table, a custom structure that carries both
+    " deliveries is TYPE TABLE OF zsm_s_delivery, a custom structure that carries both
     " the business fields and the ALV control columns (BUTTON, COLOR, STATU,
     " TLGHT, CELLCOLOR). Select only the columns you actually display.
     SELECT vbeln, posnr, matnr, pstyv, lfimg, vrkme
       FROM lips
       UP TO 20 ROWS
-      INTO CORRESPONDING FIELDS OF TABLE @gt_out.
+      INTO CORRESPONDING FIELDS OF TABLE @deliveries.
 
-    LOOP AT gt_out REFERENCE INTO DATA(lr_out) WHERE pstyv = 'ZTAN'.
-      lr_out->button = 'C710'.
-      lr_out->color  = 'C710'. " Row color:  C610 red | C310 yellow | C510 green
-      lr_out->statu  = '@01@'.
-      lr_out->tlght  = '2'.    " Traffic light: 1 red | 2 yellow | 3 green
+    LOOP AT deliveries REFERENCE INTO DATA(delivery) WHERE pstyv = 'ZTAN'.
+      delivery->button = 'C710'.
+      delivery->color  = 'C710'. " Row color:  C610 red | C310 yellow | C510 green
+      delivery->statu  = '@01@'.
+      delivery->tlght  = '2'.    " Traffic light: 1 red | 2 yellow | 3 green
       APPEND VALUE #( fname     = 'VBELN'
                       color-col = '5'
                       color-int = '1'
-                      color-inv = '1' ) TO lr_out->cellcolor.
+                      color-inv = '1' ) TO delivery->cellcolor.
     ENDLOOP.
   ENDMETHOD.
 
@@ -642,44 +642,44 @@ CLASS lcl_main IMPLEMENTATION.
     SELECT print_option
       FROM zsm_t_print
       WHERE active = @abap_true
-      INTO TABLE @DATA(lt_options).
+      INTO TABLE @DATA(print_options).
 
-    LOOP AT lt_options INTO DATA(ls_option).
+    LOOP AT print_options INTO DATA(print_option_row).
       APPEND VALUE #( handle = '1'
-                      value  = ls_option-print_option ) TO rt_dropdown.
+                      value  = print_option_row-print_option ) TO result.
     ENDLOOP.
   ENDMETHOD.
 
   METHOD set_fieldcatalog.
     CALL FUNCTION 'LVC_FIELDCATALOG_MERGE'
       EXPORTING i_bypassing_buffer = abap_true
-                i_structure_name   = iv_structure_name
-      CHANGING  ct_fieldcat        = rt_fieldcat.
+                i_structure_name   = structure_name
+      CHANGING  ct_fieldcat        = result.
 
-    LOOP AT rt_fieldcat REFERENCE INTO DATA(lr_fieldcat).
-      CASE lr_fieldcat->fieldname.
+    LOOP AT result REFERENCE INTO DATA(column).
+      CASE column->fieldname.
         WHEN 'BUTTON'.
-          lr_fieldcat->icon      = abap_true.
-          lr_fieldcat->scrtext_s = 'Button'.
-          lr_fieldcat->style     = cl_gui_alv_grid=>mc_style_button.
+          column->icon      = abap_true.
+          column->scrtext_s = 'Button'.
+          column->style     = cl_gui_alv_grid=>mc_style_button.
         WHEN 'CHBOX'.
-          lr_fieldcat->checkbox = abap_true.
-          lr_fieldcat->edit     = abap_true.
+          column->checkbox = abap_true.
+          column->edit     = abap_true.
         WHEN 'DROPDOWN'.
-          lr_fieldcat->drdn_hndl = 1.
-          lr_fieldcat->edit      = abap_true.
+          column->drdn_hndl = 1.
+          column->edit      = abap_true.
         WHEN 'LFIMG'.
-          lr_fieldcat->do_sum  = abap_true.
-          lr_fieldcat->edit    = abap_true.
-          lr_fieldcat->no_zero = abap_true.
+          column->do_sum  = abap_true.
+          column->edit    = abap_true.
+          column->no_zero = abap_true.
         WHEN 'PSTYV'.
-          lr_fieldcat->edit       = abap_true.
-          lr_fieldcat->f4availabl = abap_true.
+          column->edit       = abap_true.
+          column->f4availabl = abap_true.
         WHEN 'VBELN'.
-          lr_fieldcat->hotspot   = abap_true.
-          lr_fieldcat->key       = abap_true.
-          lr_fieldcat->ref_table = 'VBAK'.
-          lr_fieldcat->ref_field = 'VBELN'.
+          column->hotspot   = abap_true.
+          column->key       = abap_true.
+          column->ref_table = 'VBAK'.
+          column->ref_field = 'VBELN'.
       ENDCASE.
     ENDLOOP.
   ENDMETHOD.
@@ -688,21 +688,21 @@ CLASS lcl_main IMPLEMENTATION.
     APPEND VALUE #( fieldname = 'PSTYV'
                     sign      = 'E'
                     option    = 'EQ'
-                    low       = 'ZTAD' ) TO rt_filter.
+                    low       = 'ZTAD' ) TO result.
   ENDMETHOD.
 
   METHOD set_layout.
     " Settings actually used by THIS grid (editable, multi-select, coloured).
-    rs_layout_alv-ctab_fname = 'CELLCOLOR'.   " cell colour column, TYPE lvc_t_scol
-    rs_layout_alv-info_fname = 'COLOR'.       " row colour column
-    rs_layout_alv-stylefname = 'FIELD_STYLE'. " per-cell style, TYPE lvc_t_styl
-    rs_layout_alv-excp_fname = 'TLGHT'.       " traffic-light column
-    rs_layout_alv-excp_led   = abap_true.     " show an LED instead of a traffic light
-    rs_layout_alv-cwidth_opt = abap_true.     " optimise column width
-    rs_layout_alv-grid_title = TEXT-001.      " grid header
-    rs_layout_alv-smalltitle = abap_true.     " smaller header font
-    rs_layout_alv-sel_mode   = 'A'.           " multiple row selection
-    rs_layout_alv-zebra      = abap_true.     " alternating row shading
+    result-ctab_fname = 'CELLCOLOR'.   " cell colour column, TYPE lvc_t_scol
+    result-info_fname = 'COLOR'.       " row colour column
+    result-stylefname = 'FIELD_STYLE'. " per-cell style, TYPE lvc_t_styl
+    result-excp_fname = 'TLGHT'.       " traffic-light column
+    result-excp_led   = abap_true.     " show an LED instead of a traffic light
+    result-cwidth_opt = abap_true.     " optimise column width
+    result-grid_title = TEXT-001.      " grid header
+    result-smalltitle = abap_true.     " smaller header font
+    result-sel_mode   = 'A'.           " multiple row selection
+    result-zebra      = abap_true.     " alternating row shading
 
     " The options below are DELIBERATELY NOT SET here - each one contradicts
     " something this grid needs. Enable them only in a grid that does not:
@@ -723,31 +723,31 @@ ENDCLASS.
 " TYPES declares a type; the internal table is then declared from it.
 " (An older form, DATA BEGIN OF ... OCCURS 0, creates a table WITH A HEADER
 "  LINE - see the lifecycle note below.)
-TYPES: BEGIN OF ty_data,
+TYPES: BEGIN OF purchase_order_item,
          ebeln TYPE ekko-ebeln,   " note: '-' , not '~'. The tilde is the
          ebelp TYPE ekpo-ebelp,   " ABAP SQL component separator.
-       END OF ty_data.
+       END OF purchase_order_item.
 
-DATA gt_data          TYPE STANDARD TABLE OF ty_data WITH EMPTY KEY.
-DATA gt_fieldcat      TYPE lvc_t_fcat.
-DATA gt_field_catalog TYPE slis_t_fieldcat_alv.
-DATA gv_tabname       TYPE slis_tabname VALUE 'GT_DATA'.
+DATA purchase_order_items TYPE STANDARD TABLE OF purchase_order_item WITH EMPTY KEY.
+DATA lvc_field_catalog    TYPE lvc_t_fcat.
+DATA slis_field_catalog   TYPE slis_t_fieldcat_alv.
+DATA output_table_name    TYPE slis_tabname VALUE 'PURCHASE_ORDER_ITEMS'.
 
 " Declare an LVC field catalog manually
-gt_fieldcat = VALUE #( ( col_pos   = 1
+lvc_field_catalog = VALUE #( ( col_pos   = 1
                          fieldname = 'EBELN'
                          coltext   = 'PO Number'
                          scrtext_m = 'PO Number' ) ).
 
 " Append ANOTHER ROW. Note the single set of parentheses: APPEND VALUE #( ( ... ) )
 " would build a TABLE and try to append it as one row.
-APPEND VALUE #( col_pos   = lines( gt_fieldcat ) + 1
+APPEND VALUE #( col_pos   = lines( lvc_field_catalog ) + 1
                 fieldname = 'EBELP'
                 coltext   = 'Item'
-                scrtext_m = 'Item' ) TO gt_fieldcat.
+                scrtext_m = 'Item' ) TO lvc_field_catalog.
 
 " Declare an SLIS field catalog (function-module style) with various options
-gt_field_catalog = VALUE #( ( col_pos   = 1
+slis_field_catalog = VALUE #( ( col_pos   = 1
                               do_sum    = abap_true
                               edit      = abap_true
                               fieldname = 'EBELP'
@@ -760,19 +760,19 @@ gt_field_catalog = VALUE #( ( col_pos   = 1
 
 " Reusable macros to tweak an existing field catalog entry
 DEFINE checkbox.
-  MODIFY gt_fieldcat FROM VALUE #( checkbox = abap_true ) TRANSPORTING checkbox WHERE fieldname = &1.
+  MODIFY lvc_field_catalog FROM VALUE #( checkbox = abap_true ) TRANSPORTING checkbox WHERE fieldname = &1.
 END-OF-DEFINITION.
 
 DEFINE assign_key.
-  MODIFY gt_fieldcat FROM VALUE #( key = abap_true ) TRANSPORTING key WHERE fieldname = &1.
+  MODIFY lvc_field_catalog FROM VALUE #( key = abap_true ) TRANSPORTING key WHERE fieldname = &1.
 END-OF-DEFINITION.
 
 DEFINE change_color.
-  MODIFY gt_fieldcat FROM VALUE #( emphasize = &2 ) TRANSPORTING emphasize WHERE fieldname = &1.
+  MODIFY lvc_field_catalog FROM VALUE #( emphasize = &2 ) TRANSPORTING emphasize WHERE fieldname = &1.
 END-OF-DEFINITION.
 
 DEFINE change_text.
-  MODIFY gt_fieldcat FROM VALUE #( seltext_s    = &1
+  MODIFY lvc_field_catalog FROM VALUE #( seltext_s    = &1
                                    seltext_m    = &1
                                    seltext_l    = &1
                                    reptext_ddic = &1
@@ -780,11 +780,11 @@ DEFINE change_text.
 END-OF-DEFINITION.
 
 DEFINE clear_key.
-  MODIFY gt_fieldcat FROM VALUE #( key = abap_false ) TRANSPORTING key WHERE fieldname = &1.
+  MODIFY lvc_field_catalog FROM VALUE #( key = abap_false ) TRANSPORTING key WHERE fieldname = &1.
 END-OF-DEFINITION.
 
 DEFINE remove_output.
-  MODIFY gt_fieldcat FROM VALUE #( no_out = abap_true ) TRANSPORTING no_out WHERE fieldname = &1.
+  MODIFY lvc_field_catalog FROM VALUE #( no_out = abap_true ) TRANSPORTING no_out WHERE fieldname = &1.
 END-OF-DEFINITION.
 
 " Example usage
@@ -795,9 +795,9 @@ clear_key 'BUKRS'.
 " Or generate the field catalog automatically from a DDIC structure/internal table
 CALL FUNCTION 'REUSE_ALV_FIELDCATALOG_MERGE'
   EXPORTING i_program_name     = sy-repid
-            i_internal_tabname = gv_tabname
+            i_internal_tabname = output_table_name
             i_inclname         = sy-repid
-  CHANGING  ct_fieldcat        = gt_field_catalog.
+  CHANGING  ct_fieldcat        = slis_field_catalog.
 ```
 
 > **Lifecycle:** the macros above are `LEGACY / HISTORICAL REFERENCE`. They are shown because you will find exactly this pattern in existing ALV reports, and reading it is a real skill. For new code prefer a small private method per adjustment — macros bypass type checking and cannot be debugged line by line. See [09-Modularization](../09-Modularization/README.md#-macros-define--end-of-definition).
@@ -808,9 +808,9 @@ The two layout structures are **not interchangeable**: `lvc_s_layo` goes with `c
 
 ```abap
 " LVC layout - used with cl_gui_alv_grid
-DATA gs_layout_lvc TYPE lvc_s_layo.
+DATA lvc_layout TYPE lvc_s_layo.
 
-gs_layout_lvc = VALUE #( ctab_fname = 'CELLCOLOR'  " cell colour column
+lvc_layout = VALUE #( ctab_fname = 'CELLCOLOR'  " cell colour column
                          info_fname = 'COLOR'      " row colour column
                          excp_fname = 'TLGHT'      " traffic-light column
                          excp_led   = abap_true    " LED instead of traffic light
@@ -821,9 +821,9 @@ gs_layout_lvc = VALUE #( ctab_fname = 'CELLCOLOR'  " cell colour column
                          zebra      = abap_true ). " alternating row shading
 
 " SLIS layout - used with REUSE_ALV_GRID_DISPLAY / REUSE_ALV_LIST_DISPLAY
-DATA gs_layout_slis TYPE slis_layout_alv.
+DATA slis_layout TYPE slis_layout_alv.
 
-gs_layout_slis = VALUE #( box_fieldname     = 'SELKZ'
+slis_layout = VALUE #( box_fieldname     = 'SELKZ'
                           coltab_fieldname  = 'CELL_COLOR'
                           colwidth_optimize = abap_true ).
 ```
@@ -834,9 +834,9 @@ gs_layout_slis = VALUE #( box_fieldname     = 'SELKZ'
 " Exclude specific standard buttons from the grid toolbar.
 " The excluding table is TYPE ui_functions (a table of ui_func), not a
 " string table - it is passed to it_toolbar_excluding.
-DATA lt_toolbar_ex TYPE ui_functions.
+DATA excluded_functions TYPE ui_functions.
 
-lt_toolbar_ex = VALUE #( ( cl_gui_alv_grid=>mc_fc_refresh )
+excluded_functions = VALUE #( ( cl_gui_alv_grid=>mc_fc_refresh )
                          ( cl_gui_alv_grid=>mc_fc_loc_delete_row )
                          ( cl_gui_alv_grid=>mc_fc_loc_insert_row ) ).
 ```
@@ -855,10 +855,10 @@ lt_toolbar_ex = VALUE #( ( cl_gui_alv_grid=>mc_fc_refresh )
 
 - Forgetting to register edit events (`register_edit_event`) before expecting `data_changed`/`data_changed_finished` events to fire on an editable grid.
 - Mixing `lvc_*` and `slis_*` types between the two ALV families.
-- **Registering a static handler with an instance reference** (`SET HANDLER go_main->static_method`) — this does not compile.
+- **Registering a static handler with an instance reference** (`SET HANDLER main->static_method`) — this does not compile.
 - **Deleting multiple selected rows by ascending index**, which removes the wrong rows after the first deletion.
 - Comparing a structure (`es_col_id`) to a literal instead of its `-fieldname` component.
-- Calling `lo_alv->display( )` outside the `TRY` that created the object — if the factory raised, the reference is initial.
+- Calling `alv->display( )` outside the `TRY` that created the object — if the factory raised, the reference is initial.
 - Setting contradictory layout options (`no_rowmark` together with `sel_mode = 'A'`, or `no_toolbar` in a grid that adds toolbar buttons).
 - Not handling `sy-subrc` after `set_table_for_first_display`.
 - Using color codes (`C310`, `C610`, …) without a documented legend.
