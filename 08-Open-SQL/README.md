@@ -199,6 +199,7 @@ SELECT a~posnr,
   INTO TABLE @DATA(latest_orders).
 
 " Selecting all fields of one table plus specific fields of another (mara~*, marc~prctr)
+" Shows the syntax only; production code lists the fields it needs (Rule 7.7)
 SELECT mara~*,
        marc~prctr
   FROM marc
