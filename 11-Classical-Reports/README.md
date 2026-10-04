@@ -238,7 +238,7 @@ Downloading works the same way in reverse: `file_save_dialog` asks for the targe
 
 > 📝 **Excel files.** A tab-separated text file, which Excel can save directly, is the most robust upload format. Function modules such as `ALSM_EXCEL_TO_INTERNAL_TABLE` and `TEXT_CONVERT_XLS_TO_SAP` work through the desktop installation of Excel **[verify]** and share the limits of OLE automation described in [10-Objects](../10-Objects/README.md#-legacy--interop-objects-ole-odata-model). For `.xlsx` content, use an API that is available and released in your system **[verify]**.
 
-> 📝 Older programs use function modules such as `WS_FILENAME_GET`, `WS_UPLOAD`, `WS_DOWNLOAD` or `UPLOAD` for the same steps. New code uses `cl_gui_frontend_services`.
+> **Lifecycle:** `LEGACY / HISTORICAL REFERENCE` for the function modules `WS_FILENAME_GET`, `WS_UPLOAD`, `WS_DOWNLOAD` and `UPLOAD`, which older programs use for the same steps. The methods of `cl_gui_frontend_services` replace them. **[verify: obsolete flag in the function module attributes]** See [21-Classic-vs-Modern-ABAP](../21-Classic-vs-Modern-ABAP/README.md#-legacy--historical-reference).
 
 ## 🗄️ Writing a File on the Application Server
 
@@ -307,4 +307,4 @@ CLOSE DATASET file_path.
 - [12-Selection-Screens](../12-Selection-Screens/README.md) — parameters and value help
 - [13-ALV](../13-ALV/README.md) — the recommended list output
 - [14-Function-Modules](../14-Function-Modules/README.md) — batch input for uploaded data
-- [21-Classic-vs-Modern-ABAP](../21-Classic-vs-Modern-ABAP/README.md) — lifecycle of list processing and `END-OF-SELECTION`
+- [21-Classic-vs-Modern-ABAP](../21-Classic-vs-Modern-ABAP/README.md) — lifecycle of list processing, `END-OF-SELECTION` and the older frontend function modules
