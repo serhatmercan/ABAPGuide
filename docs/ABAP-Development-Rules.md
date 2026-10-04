@@ -2332,7 +2332,7 @@ Contextual snippets (0.5) are never claimed as checked: they are not complete ob
 
 An always-active breakpoint stops every dialog user who reaches it. According to the ABAP Keyword Documentation, always-active breakpoints are meant only for tests and are not allowed in production programs, and the extended program check reports `BREAK-POINT` without `ID` as an error. `BREAK` followed by a user name is a predefined macro, not a statement; it also puts a user name into the code.
 
-`BREAK-POINT ID` and `ASSERT ID`, controlled by a checkpoint group (2.6), may stay in released code. `LOG-POINT` always requires `ID`. `BREAK-POINT` is not allowed in ABAP for Cloud Development at all. Excluding the `BREAK` macro is a team rule.
+`BREAK-POINT ID` and `ASSERT ID`, controlled by a checkpoint group (2.6), may stay in released code; the ABAP Keyword Documentation names these two as the test statements that production programs may contain. The rule also covers `LOG-POINT`, although its title names only breakpoints: `LOG-POINT` always requires `ID`, the documentation describes it as a tool for tests, and it is removed before release. For logging without a code change, use dynamic logpoints (transaction `SDLP` or ADT). `BREAK-POINT` and `LOG-POINT` are not allowed in ABAP for Cloud Development at all. Excluding the `BREAK` macro is a team rule.
 
 ```abap
 " ✅ inactive until the checkpoint group activates it
@@ -2340,6 +2340,9 @@ BREAK-POINT ID zsm_cp_order.
 
 " ❌ always active
 BREAK-POINT.
+
+" ❌ a test tool left in released code
+LOG-POINT ID zsm_cp_order.
 ```
 
 ---
