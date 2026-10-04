@@ -418,7 +418,7 @@ START-OF-SELECTION.
 
 ### Confirmation Popup
 
-> 📝 **Contextual snippet** — the text symbols `p02` and `p03` hold the title and the question. **[verify: the answer values of `POPUP_TO_CONFIRM` in its function module documentation]**
+> 📝 **Contextual snippet** — the text symbols `p02` and `p03` hold the title and the question. `POPUP_TO_CONFIRM` initialises `answer` with `'A'` (cancel). **[verify: the answer values of the two buttons in its function module documentation]**
 
 ```abap
 DATA answer TYPE c LENGTH 1.
@@ -434,13 +434,13 @@ CALL FUNCTION 'POPUP_TO_CONFIRM'
     text_not_found        = 1
     OTHERS                = 2.
 
-" '1' = first button (yes), '2' = second button (no), 'A' = cancel
+" Continue only on the first button; 'A' means cancel
 IF sy-subrc <> 0 OR answer <> '1'.
   RETURN.
 ENDIF.
 ```
 
-> 📝 Older programs use `POPUP_CONTINUE_YES_NO`, `POPUP_TO_CONFIRM_STEP` or `POPUP_TO_CONFIRM_DATA_LOSS`, which answer with language-dependent codes such as `'J'` and `'N'` **[verify]**. Compare the answer with the codes the function module documents, never with a translated word.
+> 📝 Older popups such as `POPUP_CONTINUE_YES_NO`, `POPUP_TO_CONFIRM_STEP` or `POPUP_TO_CONFIRM_DATA_LOSS` use other answer codes; check their documentation. Compare the answer with the codes the function module documents, never with a translated word.
 
 ### Other Popup Function Modules
 
