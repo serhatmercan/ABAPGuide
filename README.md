@@ -15,7 +15,7 @@ That last part is the point. Real SAP systems run several generations of ABAP at
 ## ✨ Highlights
 
 - **22 structured chapters** plus a quick-reference Examples section
-- **100+ annotated ABAP examples** drawn from real project work
+- **100+ annotated ABAP code examples** written for this guide
 - **Explicit classic-to-modern lifecycle guidance** on every major technology
 - **Internal tables and modern expressions** — `VALUE`, `FOR`, `REDUCE`, `FILTER`, `COND`, table expressions, secondary keys
 - **ABAP SQL in depth** — joins, subqueries, aggregation, `FOR ALL ENTRIES` and its pitfalls, dynamic SQL
