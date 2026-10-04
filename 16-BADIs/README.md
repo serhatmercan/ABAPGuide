@@ -12,32 +12,32 @@ This example implements `IF_EX_ME_PROCESS_PO_CUST~PROCESS_ITEM`, a well-known Pu
 
 ```abap
 METHOD if_ex_me_process_po_cust~process_item.
-  CONSTANTS lc_doc_type_standard   TYPE esart VALUE 'NB'.
-  CONSTANTS lc_overdelivery_tol    TYPE uebto VALUE '8.0'.
+  CONSTANTS standard_order_type    TYPE esart VALUE 'NB'.
+  CONSTANTS overdelivery_tolerance TYPE uebto VALUE '8.0'.
 
-  DATA lo_header   TYPE REF TO if_purchase_order_mm.
-  DATA ls_header   TYPE mepoheader.
-  DATA ls_item     TYPE mepoitem.
-  DATA ls_previous TYPE mepoitem.
+  DATA header             TYPE REF TO if_purchase_order_mm.
+  DATA header_data        TYPE mepoheader.
+  DATA item_data          TYPE mepoitem.
+  DATA previous_item_data TYPE mepoitem.
 
-  lo_header = im_item->get_header( ).
-  ls_header = lo_header->get_data( ).
-  ls_item   = im_item->get_data( ).
+  header      = im_item->get_header( ).
+  header_data = header->get_data( ).
+  item_data   = im_item->get_data( ).
 
   " On a brand-new item there is no previous version yet
   TRY.
-      im_item->get_previous_data( IMPORTING ex_data = ls_previous ).
+      im_item->get_previous_data( IMPORTING ex_data = previous_item_data ).
     CATCH cx_sy_itab_line_not_found.
-      CLEAR ls_previous.
+      CLEAR previous_item_data.
   ENDTRY.
 
-  IF ls_header-bsart = lc_doc_type_standard AND ls_previous IS INITIAL.
-    ls_item-uebto = lc_overdelivery_tol.
-    ls_item-webre = abap_true.
+  IF header_data-bsart = standard_order_type AND previous_item_data IS INITIAL.
+    item_data-uebto = overdelivery_tolerance.
+    item_data-webre = abap_true.
 
-    " WRITE THE DATA BACK. get_data( ) returns a COPY - changing ls_item
+    " WRITE THE DATA BACK. get_data( ) returns a COPY - changing item_data
     " alone has no effect on the document.
-    im_item->set_data( ls_item ).
+    im_item->set_data( item_data ).
   ENDIF.
 ENDMETHOD.
 ```
@@ -48,10 +48,10 @@ ENDMETHOD.
 
 ## 🧠 How This BAdI Implementation Works
 
-1. `im_item->get_header( )` retrieves the PO header object, from which header-level data (`ls_header`, e.g. `bsart` — purchasing document type) can be read.
+1. `im_item->get_header( )` retrieves the PO header object, from which header-level data (`header_data`, e.g. `bsart` — purchasing document type) can be read.
 2. `im_item->get_data( )` retrieves the current item's data.
 3. `im_item->get_previous_data( )` retrieves the item's data **before** the current change — wrapped in `TRY...CATCH cx_sy_itab_line_not_found` because on a brand-new item, there is no "previous" version yet.
-4. The business logic then conditionally defaults fields (`uebto` — over-delivery tolerance, `webre` — GR-based invoice verification flag) only for new items (`ls_previous IS INITIAL`) of document type `'NB'` (standard PO).
+4. The business logic then conditionally defaults fields (`uebto` — over-delivery tolerance, `webre` — GR-based invoice verification flag) only for new items (`previous_item_data IS INITIAL`) of document type `'NB'` (standard PO).
 
 ## 🧱 BAdI Concepts Cheat Sheet
 
@@ -82,15 +82,15 @@ Two things are often conflated here, so keep them apart. **Which mechanism** a B
 
 ```abap
 " Calling a NEW BAdI from your own code
-DATA lo_badi TYPE REF TO zsm_badi_pricing.
+DATA pricing_badi TYPE REF TO zsm_badi_pricing.
 
 TRY.
-    GET BADI lo_badi
-      FILTERS doc_type = ls_header-bsart.
+    GET BADI pricing_badi
+      FILTERS doc_type = header_data-bsart.
 
-    CALL BADI lo_badi->adjust_price
-      EXPORTING is_item  = ls_item
-      CHANGING  cv_price = lv_price.
+    CALL BADI pricing_badi->adjust_price
+      EXPORTING item  = item_data
+      CHANGING  price = price.
 
   CATCH cx_badi_not_implemented.
     " no active implementation - continue with the standard price
