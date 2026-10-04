@@ -2,6 +2,8 @@
 
 ## 📖 Introduction
 
+> **Lifecycle:** labelled per technique in the table below, consistent with [21-Classic-vs-Modern-ABAP](../21-Classic-vs-Modern-ABAP/README.md): BAdIs `CURRENT / RECOMMENDED`, enhancement points and spots `CLASSIC BUT STILL RELEVANT`, user exits, customer exits and modifications `LEGACY / HISTORICAL REFERENCE`.
+
 Beyond BAdIs ([16-BADIs](../16-BADIs/README.md)), SAP provides several other **enhancement techniques** to add custom logic to standard programs without modifying them directly. This chapter is a conceptual overview to complement the BAdI chapter, since enhancements are a closely related and frequently confused topic.
 
 ## 🧭 Enhancement Techniques Overview
@@ -10,18 +12,20 @@ Beyond BAdIs ([16-BADIs](../16-BADIs/README.md)), SAP provides several other **e
 |---|---|---|---|---|---|
 | **User Exit** (`USEREXIT_*` form routines) | Oldest — classic SD | ⚠️ Effectively yes — you edit a delivered include | ❌ No | Classic SD enhancements in includes such as `MV45AFZZ` | `LEGACY / HISTORICAL REFERENCE` |
 | **Customer Exit / Function Exit** (`CALL CUSTOMER-FUNCTION`) | Classic (SMOD/CMOD) | ❌ No — a pre-planned hook | ❌ No (one CMOD project per enhancement) | Function, menu and screen exits in older modules | `LEGACY / HISTORICAL REFERENCE` |
-| **BAdI** (Business Add-In) | From SAP R/3 4.6 onward | ❌ No | ✅ Yes (multiple-use and/or filter-dependent) | The standard object-oriented extension point | `CURRENT / RECOMMENDED` |
-| **Enhancement Point / Section** (Enhancement Framework) | NetWeaver 7.0 / ECC 6.0 onward | ❌ No — inserted at explicit or implicit positions | ✅ Yes | Inserting code inside standard logic | `CLASSIC BUT STILL RELEVANT` |
-| **Explicit Enhancement Spot** | NetWeaver 7.0 / ECC 6.0 onward | ❌ No | ✅ Yes | Extension positions SAP designed deliberately | `CLASSIC BUT STILL RELEVANT` |
+| **BAdI** (Business Add-In) | Classic BAdIs replaced function exits; new BAdIs belong to the Enhancement Framework | ❌ No | ✅ Yes (multiple-use and/or filter-dependent) | The standard object-oriented extension point | `CURRENT / RECOMMENDED` |
+| **Enhancement Point / Section** (Enhancement Framework) | Enhancement Framework | ❌ No — inserted at explicit or implicit positions | ✅ Yes | Inserting code inside standard logic | `CLASSIC BUT STILL RELEVANT` |
+| **Explicit Enhancement Spot** | Enhancement Framework | ❌ No | ✅ Yes | Extension positions SAP designed deliberately | `CLASSIC BUT STILL RELEVANT` |
 | **Modification (access key)** | Classic | ✅ Yes — direct change to an SAP object | N/A | Last resort only | `LEGACY / HISTORICAL REFERENCE` |
 
-> 📝 **NEEDS OFFICIAL VERIFICATION** for the exact release in which each technique was introduced. The eras above are expressed deliberately loosely; check SAP Help for your target release before quoting a version number.
+> ⚠️ **VERSION-DEPENDENT: when each technique became available.** The table gives the order of the techniques, not release numbers. Check the [ABAP Keyword Documentation](https://help.sap.com/doc/abapdocu_latest_index_htm/latest/en-US/index.htm) and SAP Help for your target release before you quote a version.
 
 ## 🔧 User Exits vs. Customer Exits
 
 These two are constantly confused, including in job interviews. They are different mechanisms.
 
 **User exits** (classic SD) are empty `FORM` routines that SAP delivers inside modification-enabled includes such as `MV45AFZZ`. You write your code directly into the delivered include:
+
+> 📝 **Contextual snippet** — shows where the code goes, not what it does. **[verify: the include `MV45AFZZ` and its form `USEREXIT_SAVE_DOCUMENT_PREPARE` in your release]**
 
 ```abap
 " In include MV45AFZZ (delivered by SAP, intended to be edited)
@@ -38,32 +42,47 @@ Because you are editing an SAP object, these are registered as modifications in 
 " Inside standard SAP code (not modified by you):
 CALL CUSTOMER-FUNCTION '001'.
 
-" You implement the generated function module EXIT_SAPMV45A_001, whose
-" coding lives in a customer include such as ZXVVAU01, and activate the
-" containing enhancement through a CMOD project.
+" This calls the function module EXIT_<program>_001. You write its code in
+" the customer include (ZX...) that the function module contains, and
+" activate the enhancement through a CMOD project.
 ```
+
+> **Lifecycle:** `LEGACY / HISTORICAL REFERENCE`. The ABAP Keyword Documentation lists `CALL CUSTOMER-FUNCTION` among the obsolete calls and calls enhancements through `CMOD` obsolete; it names the Enhancement Framework and `CALL BADI` as the replacement. If the exit is not active, the statement is ignored and `sy-subrc` keeps its previous value. See [21-Classic-vs-Modern-ABAP](../21-Classic-vs-Modern-ABAP/README.md#-legacy--historical-reference).
+
+Customer exits come in three kinds: **function exits** (logic), **menu exits** (extra menu entries) and **screen exits**. A screen exit gives you a subscreen area on a standard screen: you create the subscreen with your fields in the exit's function group, write its PBO/PAI modules in the customer include, and pass the data through the accompanying function exits. The screen logic itself is ordinary dynpro programming — see [12-Selection-Screens](../12-Selection-Screens/README.md#-custom-screens-dynpros).
 
 ## 🧵 Enhancement Points & Implicit Enhancements
 
-Implicit enhancement points/options exist automatically at the start/end of nearly every `FORM`, `METHOD`, and `PROGRAM` in the SAP system, viewable directly in the ABAP Editor via **Edit → Enhancement Operations → Show Implicit Enhancement Options**.
+**Explicit** enhancement options are statements SAP placed in its own code: `ENHANCEMENT-POINT` marks a position where your code is inserted, and `ENHANCEMENT-SECTION … END-ENHANCEMENT-SECTION` marks a block that one implementation can replace. Your code goes into a source code plug-in (`ENHANCEMENT … ENDENHANCEMENT`), which the ABAP Workbench creates and stores in an include of its own; the statements cannot be typed in directly.
+
+> 📝 **Contextual snippet** — names are placeholders; the first part stands for SAP's code, the second for the plug-in the Workbench shows in your enhancement implementation.
 
 ```abap
+" In SAP's code: an explicit enhancement point belonging to a spot
 FORM check_document.
-  " ENHANCEMENT-POINT ep_check_document_01 SPOTS es_document_checks.
-  " your custom coding can be inserted here via an enhancement implementation
+  ENHANCEMENT-POINT ep_check_document_01 SPOTS es_document_checks.
 ENDFORM.
+
+" In your enhancement implementation: the source code plug-in
+ENHANCEMENT 1 zsm_ei_document_checks.
+  " your custom coding, ideally one call into your own class
+ENDENHANCEMENT.
 ```
+
+**Implicit** enhancement options need no statement. According to the ABAP Keyword Documentation they exist, among other places, at the start and end of procedures, after the last line of programs and includes, at the end of visibility sections and parameter lists of local classes, and before `END OF` in structure definitions — but not in AMDP methods. The ABAP Editor displays them through its enhancement operations.
+
+> 💡 Enhancement implementations and BAdI implementations can be assigned to switches of the Switch Framework; only implementations whose switch is on take effect.
 
 ## 🆚 Choosing Between Them
 
 - **User exit** (`USEREXIT_*`): oldest, procedural, one implementation, and you edit a delivered include — so it carries modification-like upgrade cost.
-- **Customer exit** (`CALL CUSTOMER-FUNCTION` + SMOD/CMOD): a real hook, but one active project per enhancement, and procedural.
+- **Customer exit** (`CALL CUSTOMER-FUNCTION` + SMOD/CMOD): a real hook, but one active project per enhancement, procedural, and obsolete according to the ABAP Keyword Documentation.
 - **BAdI**: object-oriented, can support multiple filter-dependent implementations. The standard answer for a planned extension point.
 - **Enhancement point/spot**: lets you insert code at explicit positions SAP designed, or at *implicit* positions that exist almost everywhere. Powerful, and correspondingly easy to abuse.
 
 ## ☁️ Under ABAP Cloud
 
-Most of this chapter describes on-premise techniques. In the ABAP Cloud development model the picture narrows sharply: extension happens through **released** extension points — released BAdIs, released APIs and the defined extensibility options — not through modifications, implicit enhancements, or edits to delivered includes. That is the practical meaning of "keep the core clean". The techniques above remain correct and necessary for the on-premise systems that run today; they simply are not the path for a cloud-model extension. See [21-Classic-vs-Modern-ABAP](../21-Classic-vs-Modern-ABAP/README.md).
+Most of this chapter describes on-premise techniques. In the ABAP Cloud development model the picture narrows sharply: according to the ABAP Keyword Documentation, only released APIs can be used or extended, so extension happens through **released** extension points — released BAdIs and released APIs — and through the extensibility options SAP documents for the cloud model. That is the practical meaning of "keep the core clean". The techniques above remain correct and necessary for the on-premise systems that run today; they simply are not the path for a cloud-model extension. See [21-Classic-vs-Modern-ABAP](../21-Classic-vs-Modern-ABAP/README.md#-what-changes-under-abap-cloud).
 
 ## ✅ Best Practices
 
@@ -71,7 +90,10 @@ Most of this chapter describes on-premise techniques. In the ABAP Cloud developm
 - Never modify standard SAP objects directly unless no other technique exists — modifications complicate every future upgrade and support package.
 - Prefer **explicit** enhancement spots over implicit enhancement options. Implicit enhancements attach to code SAP never designed as an interface, so they break silently when that code changes.
 - Document every enhancement with a comment referencing the business requirement or ticket.
-- Keep enhancement implementations thin — call out to your own Z classes rather than embedding large blocks of logic in an enhancement include.
+- Keep enhancement implementations thin — call out to your own Z classes, behind an interface where tests need a double, rather than embedding large blocks of logic in an enhancement include — [Rules 5.4](../docs/ABAP-Development-Rules.md#54-depend-on-interfaces-and-receive-dependencies-through-the-constructor) and [5.7](../docs/ABAP-Development-Rules.md#57-write-small-methods-that-do-one-thing-at-one-level-of-abstraction).
+- Never `COMMIT WORK` in an exit or enhancement; SAP's surrounding code owns the transaction — [Rule 7.10](../docs/ABAP-Development-Rules.md#710-let-the-top-level-caller-own-the-transaction-reusable-units-never-commit-work).
+- Report errors the way the hook provides (a return parameter, a message table, an exception); do not end SAP's processing with your own `MESSAGE … TYPE 'E'` unless the hook is meant for it — [section 6](../docs/ABAP-Development-Rules.md#6-error-handling).
+- Code in an enhancement that reads or changes business data needs its own authorization check; SAP's checks around the hook do not cover what you add — [Rule 8.1](../docs/ABAP-Development-Rules.md#81-check-authorization-wherever-business-data-is-read-or-changed-and-evaluate-sy-subrc).
 - Keep a register of your enhancements. They are the single easiest thing to lose track of before an upgrade.
 
 ## ⚠️ Common Mistakes
@@ -80,6 +102,7 @@ Most of this chapter describes on-premise techniques. In the ABAP Cloud developm
 - **Confusing user exits with customer exits** — different mechanisms, different upgrade consequences.
 - Forgetting that a customer exit (`SMOD`/`CMOD`) allows only **one active project** per enhancement, so two teams cannot implement it independently.
 - Relying on implicit enhancement options in code that SAP may restructure at any support package.
+- Committing inside an exit or enhancement, which closes SAP's transaction half-way.
 - Not testing the enhanced flow against the *unenhanced* standard flow.
 
 ## 🎤 Interview & Review Checkpoints
@@ -103,6 +126,7 @@ Most of this chapter describes on-premise techniques. In the ABAP Cloud developm
 
 ## 🔗 Related Chapters
 
-- [16-BADIs](../16-BADIs/README.md)
-- [10-Objects](../10-Objects/README.md)
-- [21-Classic-vs-Modern-ABAP](../21-Classic-vs-Modern-ABAP/README.md)
+- [16-BADIs](../16-BADIs/README.md) — the preferred enhancement technique
+- [10-Objects](../10-Objects/README.md) — interfaces for thin implementations
+- [12-Selection-Screens](../12-Selection-Screens/README.md) — dynpro logic for screen exits
+- [21-Classic-vs-Modern-ABAP](../21-Classic-vs-Modern-ABAP/README.md) — lifecycle of exits, enhancements and modifications
