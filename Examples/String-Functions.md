@@ -7,33 +7,33 @@ Common string manipulation patterns: concatenation with string templates, search
 ## 🧵 Concatenation
 
 ```abap
-DATA(lv_first_name) = `Ada`.
-DATA(lv_last_name)  = `Lovelace`.
+DATA(first_name) = `Ada`.
+DATA(last_name)  = `Lovelace`.
 
 " String templates, with && to concatenate two templates
-DATA(lv_full_name) = |My name is { lv_first_name }| && | { lv_last_name }|.
+DATA(full_name) = |My name is { first_name }| && | { last_name }|.
 
 " Building a URL from parts
-DATA(lv_link) = |{ lv_base_url }main/{ iv_company_code },{ iv_business_area }|.
+DATA(link) = |{ base_url }main/{ company_code },{ business_area }|.
 
 " Inserting a literal newline inside a string template
-DATA(lv_two_lines) = |{ lv_first_name }{ cl_abap_char_utilities=>newline }{ lv_last_name }|.
+DATA(two_lines) = |{ first_name }{ cl_abap_char_utilities=>newline }{ last_name }|.
 
 " COND inside a string template to build a combined display value.
 " Give COND an explicit type when the branches are literals - with # the type
 " is taken from the first THEN operand, which is easy to get wrong.
-DATA(lv_display) = COND string( WHEN ls_value-value IS INITIAL
-                                THEN ls_fallback-value
-                                ELSE |{ ls_value-value } / { ls_fallback-value }| ).
+DATA(display_value) = COND string( WHEN primary-value IS INITIAL
+                                   THEN fallback-value
+                                   ELSE |{ primary-value } / { fallback-value }| ).
 
 " Building a value from substring offsets
-DATA(lv_ship_point) = |{ ls_storage_location-werks+0(2) }01|.
+DATA(shipping_point) = |{ storage_location-werks+0(2) }01|.
 ```
 
 ## 🔎 Checking a Single Character (Offset Access)
 
 ```abap
-IF ls_data-waers+0(1) = 'A' OR ls_data-waers+0(1) = 'T'.
+IF payment-waers+0(1) = 'A' OR payment-waers+0(1) = 'T'.
 ENDIF.
 ```
 `field+offset(length)` extracts a substring — `waers+0(1)` is the first character of `waers`.
@@ -41,14 +41,14 @@ ENDIF.
 ## 🧹 CONDENSE
 
 ```abap
-CONDENSE lv_full_name NO-GAPS.
+CONDENSE full_name NO-GAPS.
 ```
 `NO-GAPS` removes **all** spaces (not just leading/trailing) — useful when building a compact key from concatenated text fields.
 
 ## 🔍 Pattern Matching — `CP` (Contains Pattern)
 
 ```abap
-IF lv_data CP 'P*'.
+IF text CP 'P*'.
 ENDIF.
 ```
 `CP` supports simple wildcards and is **case-insensitive**:
@@ -64,15 +64,15 @@ Use `#` to escape when the search term itself may contain `*` or `+`. For a case
 ## 📏 Length & Built-in String Functions
 
 ```abap
-DATA(lv_length)   = strlen( lv_text ).
-DATA(lv_upper)    = to_upper( lv_text ).
-DATA(lv_lower)    = to_lower( lv_text ).
-DATA(lv_trimmed)  = condense( lv_text ).
-DATA(lv_part)     = substring( val = lv_text off = 0 len = 4 ).
-DATA(lv_position) = find( val = lv_text sub = 'ABC' ).      " -1 if not found
-DATA(lv_count)    = count( val = lv_text sub = 'A' ).
-DATA(lv_replaced) = replace( val = lv_text sub = ',' with = '.' occ = 0 ).
-DATA(lv_joined)   = concat_lines_of( table = lt_parts sep = `, ` ).
+DATA(text_length)   = strlen( text ).
+DATA(upper_text)    = to_upper( text ).
+DATA(lower_text)    = to_lower( text ).
+DATA(trimmed_text)  = condense( text ).
+DATA(first_part)    = substring( val = text off = 0 len = 4 ).
+DATA(position)      = find( val = text sub = 'ABC' ).      " -1 if not found
+DATA(count_a)       = count( val = text sub = 'A' ).
+DATA(replaced_text) = replace( val = text sub = ',' with = '.' occ = 0 ).
+DATA(joined_text)   = concat_lines_of( table = parts sep = `, ` ).
 ```
 
 > 💡 The built-in functions are expressions: they return a value instead of modifying their argument in place, so they compose naturally inside string templates and other expressions. Prefer them over the older statement forms in new code.
@@ -80,39 +80,39 @@ DATA(lv_joined)   = concat_lines_of( table = lt_parts sep = `, ` ).
 ## 🔠 Case Conversion
 
 ```abap
-DATA lv_line TYPE c LENGTH 10 VALUE 'example'.
+DATA word TYPE c LENGTH 10 VALUE 'example'.
 
 " Statement form - operates in place, on a character-like field
-TRANSLATE lv_line TO UPPER CASE.
+TRANSLATE word TO UPPER CASE.
 
 " Functional forms
-DATA(lv_upper) = to_upper( lv_line ).
-DATA(lv_lower) = to_lower( lv_line ).
+DATA(upper_text) = to_upper( word ).
+DATA(lower_text) = to_lower( word ).
 
 " Inside a string template
-DATA(lv_line_upper) = |{ lv_line CASE = (cl_abap_format=>c_upper) }|.
-DATA(lv_line_lower) = |{ lv_line CASE = (cl_abap_format=>c_lower) }|.
+DATA(word_upper) = |{ word CASE = (cl_abap_format=>c_upper) }|.
+DATA(word_lower) = |{ word CASE = (cl_abap_format=>c_lower) }|.
 ```
 
 ## 🔎 FIND — Searching Text
 
 ```abap
 " Find a substring and get its position
-FIND 'Lovelace' IN lv_text
-     MATCH OFFSET DATA(lv_offset)
-     MATCH LENGTH DATA(lv_match_len).
+FIND 'Lovelace' IN text
+     MATCH OFFSET DATA(match_offset)
+     MATCH LENGTH DATA(match_length).
 
 IF sy-subrc = 0.
-  DATA(lv_found) = lv_text+lv_offset(lv_match_len).
+  DATA(found_text) = text+match_offset(match_length).
 ENDIF.
 
-" Case-insensitive search across every line of an internal table
-FIND FIRST OCCURRENCE OF 'error' IN TABLE lt_log
+" Case-insensitive search across every word of an internal table
+FIND FIRST OCCURRENCE OF 'error' IN TABLE log_lines
      IGNORING CASE
-     MATCH LINE DATA(lv_line_index).
+     MATCH LINE DATA(line_index).
 
 " Functional form - returns the offset, or -1 when not found
-DATA(lv_pos) = find( val = lv_text sub = 'Lovelace' ).
+DATA(position_of_name) = find( val = text sub = 'Lovelace' ).
 ```
 
 > **Lifecycle:** the older `SEARCH ... FOR` statement is `LEGACY / HISTORICAL REFERENCE` — it is documented as obsolete and superseded by `FIND`. You will meet it in existing code (it sets `sy-subrc` and `sy-fdpos`); write `FIND` in new code.
@@ -121,16 +121,16 @@ DATA(lv_pos) = find( val = lv_text sub = 'Lovelace' ).
 
 ```abap
 " Replace all occurrences of a literal in a single field
-REPLACE ALL OCCURRENCES OF ',' IN lv_text WITH '.'.
+REPLACE ALL OCCURRENCES OF ',' IN text WITH '.'.
 
-" Across every line of an internal table of strings
-REPLACE ALL OCCURRENCES OF 'old' IN TABLE lt_lines WITH 'new'.
+" Across every word of an internal table of strings
+REPLACE ALL OCCURRENCES OF 'old' IN TABLE text_lines WITH 'new'.
 
 " Functional form (occ = 0 means "all occurrences")
-DATA(lv_clean) = replace( val = lv_text sub = ',' with = '.' occ = 0 ).
+DATA(clean_text) = replace( val = text sub = ',' with = '.' occ = 0 ).
 
 " Regular expressions - see the note below on PCRE
-REPLACE ALL OCCURRENCES OF PCRE '\s+' IN lv_text WITH ` `.
+REPLACE ALL OCCURRENCES OF PCRE '\s+' IN text WITH ` `.
 ```
 
 > ⚠️ **VERSION-DEPENDENT:** newer releases provide the `PCRE` addition for regular expressions, and document the older `REGEX` addition as superseded. Check which is available on your target release before choosing. The obsolete short form `REPLACE f1 WITH f2 INTO g` also still appears in older code — recognise it, but write one of the forms above.
@@ -148,8 +148,8 @@ REPLACE ALL OCCURRENCES OF PCRE '\s+' IN lv_text WITH ` `.
 - Confusing `CONDENSE` (trim and collapse) with `CONDENSE ... NO-GAPS` (remove every space).
 - Assuming `CP` is case-sensitive. It is not — use `=` or `find( )` when case matters.
 - Using an unescaped `*` or `+` in a `CP` pattern built from user input.
-- Declaring a variable with the parenthesised length `DATA lv_x(10)` instead of `TYPE c LENGTH 10`. The parenthesised form is not obsolete, but the ABAP Keyword Documentation recommends `LENGTH` for legibility.
-- Reusing an inline-declared name (`DATA(lv_x)`) in a later snippet in the same program — each name may be declared only once.
+- Declaring a variable with the parenthesised length `DATA text(10)` instead of `TYPE c LENGTH 10`. The parenthesised form is not obsolete, but the ABAP Keyword Documentation recommends `LENGTH` for legibility.
+- Reusing an inline-declared name (`DATA(text)`) in a later snippet in the same program — each name may be declared only once.
 
 ## 🎤 Interview & Review Checkpoints
 

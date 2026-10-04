@@ -7,78 +7,78 @@ A grab-bag of frequently needed conversion patterns beyond the core `ALPHA`/`CON
 ## 🔢 ALPHA Conversion via a Data Element Constructor
 
 ```abap
-DATA lv_external TYPE string VALUE '12345'.
-DATA lv_internal TYPE string VALUE '000000000000012345'.
+DATA external_value TYPE string VALUE '12345'.
+DATA internal_value TYPE string VALUE '000000000000012345'.
 
 " ALPHA = IN  : external/display form -> internal form (pads leading zeros)
-DATA(lv_padded)   = |{ lv_external ALPHA = IN }|.
+DATA(padded_value) = |{ external_value ALPHA = IN }|.
 
 " ALPHA = OUT : internal form -> external/display form (strips leading zeros)
-DATA(lv_stripped) = |{ lv_internal ALPHA = OUT }|.
+DATA(stripped_value) = |{ internal_value ALPHA = OUT }|.
 
 " NEW <type>( ) creates an anonymous DATA OBJECT and returns a reference to it
-DATA(lr_docno) = NEW /scdl/dl_docno_int( CONV #( lv_padded ) ).
+DATA(document_number_ref) = NEW /scdl/dl_docno_int( CONV #( padded_value ) ).
 ```
 
 ## 🧩 CORRESPONDING with BASE
 
 ```abap
-TYPES: BEGIN OF ty_viqmel,
+TYPES: BEGIN OF notification,
          notif_no    TYPE char10,
          notif_type  TYPE char2,
          description TYPE char40,
-       END OF ty_viqmel.
+       END OF notification.
 
-DATA ls_viqmel TYPE ty_viqmel.
-DATA ls_data   TYPE ty_viqmel.
+DATA notification_data TYPE notification.
+DATA change_data       TYPE notification.
 
-ls_viqmel = VALUE ty_viqmel( notif_no    = '0000001234'
-                             notif_type  = 'M1'
-                             description = 'Initial Notification' ).
-ls_data   = VALUE ty_viqmel( notif_type  = 'M2'
-                             description = 'Updated Notification' ).
+notification_data = VALUE notification( notif_no    = '0000001234'
+                                        notif_type  = 'M1'
+                                        description = 'Initial Notification' ).
+change_data       = VALUE notification( notif_type  = 'M2'
+                                        description = 'Updated Notification' ).
 
 " BASE supplies the starting values; the source then overwrites EVERY
 " identically-named component - including with initial values.
-" Here notif_no is initial in ls_data, so it is CLEARED in the result.
-ls_viqmel = CORRESPONDING #( BASE ( ls_viqmel ) ls_data ).
+" Here notif_no is initial in change_data, so it is CLEARED in the result.
+notification_data = CORRESPONDING #( BASE ( notification_data ) change_data ).
 ```
 
 > ⚠️ **`CORRESPONDING #( BASE ( a ) b )` is not a "merge non-initial fields" operator.** It starts from `a` and then assigns *all* matching components from `b`, initial ones included. `BASE` is useful when the source structure has **fewer components** than the target — the extra target components keep their values. If you genuinely want "only overwrite where the source has a value", write that condition explicitly:
 > ```abap
-> IF ls_data-notif_no IS NOT INITIAL.
->   ls_viqmel-notif_no = ls_data-notif_no.
+> IF change_data-notif_no IS NOT INITIAL.
+>   notification_data-notif_no = change_data-notif_no.
 > ENDIF.
 > ```
 
 ## ⏱️ Timestamp ↔ Date/Time Conversion
 
 ```abap
-DATA lv_timestamp TYPE timestampl.
+DATA time_stamp TYPE timestampl.
 
 " Date + time -> timestamp
 CONVERT DATE sy-datum TIME sy-uzeit
-        INTO TIME STAMP lv_timestamp TIME ZONE sy-zonlo.
+        INTO TIME STAMP time_stamp TIME ZONE sy-zonlo.
 
 " Timestamp -> date + time, with inline declaration of the targets
-CONVERT TIME STAMP lv_timestamp TIME ZONE sy-zonlo
-        INTO DATE DATA(lv_datum) TIME DATA(lv_time).
+CONVERT TIME STAMP time_stamp TIME ZONE sy-zonlo
+        INTO DATE DATA(date) TIME DATA(time).
 ```
 > 💡 This is the standard conversion used when a UI/Gateway layer sends a `timestampl` value (for example `20240524131025.8750000`) that has to become a plain date on the ABAP side.
 
 ## 🔄 Explicit Type Conversion (`CONV`)
 
 ```abap
-DATA(lv_quantity) = CONV int4( ls_data-value ).
-DATA(lv_posnr)    = CONV zsm_e_posnr( '000010' ).
-DATA(ls_target)   = CORRESPONDING zsm_t_data( ls_source ).
+DATA(quantity)    = CONV int4( change_data-value ).
+DATA(item_number) = CONV zsm_e_posnr( '000010' ).
+DATA(target)      = CORRESPONDING zsm_s_target( source ).
 ```
 
 ## 🧱 `CONV` in a Parameter Position
 
 ```abap
 " CONV # works here because the target type comes from the parameter's type
-lo_validator->check_appointment( iv_person_id = CONV #( ls_order-person_id ) ).
+validator->check_appointment( person_id = CONV #( order-person_id ) ).
 ```
 
 ## ✅ Best Practices
