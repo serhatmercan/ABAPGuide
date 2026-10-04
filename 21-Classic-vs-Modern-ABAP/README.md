@@ -110,7 +110,7 @@ Superseded, but preserved in this guide because you will meet all of it. Knowing
 | **`TYPE-POOLS`** (obsolete) | Nothing — no longer required | The statement is checked for syntax but otherwise ignored. | 3.16 |
 | **`END-OF-SELECTION`** (obsolete) | No replacement needed; process in `START-OF-SELECTION` | Intended only for programs linked to a logical database; without one it is raised directly after `START-OF-SELECTION`. | 3.16 |
 | **User exits (`USEREXIT_*`)** | BAdIs, enhancement points | You edit a delivered include, so it carries modification-like upgrade cost. | — |
-| **Customer exits (SMOD/CMOD)** | BAdIs | One active project per enhancement; procedural; no filtering. | — |
+| **Customer exits (SMOD/CMOD)** (obsolete) | BAdIs | One active project per enhancement; procedural; no filtering. The ABAP Keyword Documentation lists `CALL CUSTOMER-FUNCTION` among the obsolete calls and names the Enhancement Framework and `CALL BADI` instead. | — |
 | **Modifications (access key)** | Any of the above | Every upgrade becomes an adjustment project. | — |
 | **Reading domain fixed values from `DD07L`/`DD07T` or with `DD_DOMVALUES_GET`** | RTTS (`get_ddic_fixed_values`) | RTTS reads the fixed values through the data element's own type description, without a table read or a function module call. | — |
 | **Frontend function modules `WS_FILENAME_GET`, `WS_UPLOAD`, `WS_DOWNLOAD`, `UPLOAD`** | Methods of `cl_gui_frontend_services` | One class covers the file dialogs and the transfer, with a typed signature and one exception per failure. Status in the function module attributes: [verify]. | — |
