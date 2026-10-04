@@ -168,11 +168,11 @@ SELECT MAX( posnr ) AS max_posnr
   INTO @DATA(max_item_number).
 ```
 
-> ⚠️ **Strict ABAP SQL and clause order.** Escaping host variables with `@` and comma-separated field lists switch on the strict syntax check; host variables without `@` are obsolete. Writing `INTO` as the **final clause** — after `FROM`, `WHERE`, `GROUP BY`, `HAVING`, `ORDER BY` and `UP TO n ROWS` — is also part of the strict syntax. This guide always writes `INTO` last — [Rule 7.1](../docs/ABAP-Development-Rules.md#71-write-strict-abap-sql-a-comma-separated-field-list--host-variables-into-after-the-query-clauses).
+> ⚠️ **Strict ABAP SQL and clause order.** Escaping host variables with `@` and comma-separated field lists switch on the strict syntax check; host variables without `@` are obsolete. Writing `INTO` after the query clauses — `FROM`, `WHERE`, `GROUP BY`, `HAVING` and `ORDER BY` — is also part of the strict syntax. Only `UP TO n ROWS`, `OFFSET` and the other ABAP-specific additions follow `INTO`; when `INTO` is the last clause, the ABAP Keyword Documentation requires them there. This guide always writes this order — [Rule 7.1](../docs/ABAP-Development-Rules.md#71-write-strict-abap-sql-a-comma-separated-field-list--host-variables-into-after-the-query-clauses).
 
 ## 🔗 Joins
 
-> 📝 **Contextual snippet** — assumes the variables `material`, `order_type`, `company_code`, `fiscal_year` and `ledger`, the ranges `billing_document_range` and `business_area_range`, and an internal table `gl_accounts`.
+> 📝 **Contextual snippet** — assumes the variables `material`, `order_type`, `plant`, `company_code`, `fiscal_year` and `ledger`, the ranges `billing_document_range` and `business_area_range`, and an internal table `gl_accounts`.
 
 ```abap
 " LEFT OUTER JOIN
@@ -205,7 +205,7 @@ SELECT mara~*,
   FROM marc
          INNER JOIN
            mara ON mara~matnr = marc~matnr
-  WHERE marc~is_default = @abap_true
+  WHERE marc~werks = @plant
   INTO TABLE @DATA(materials_with_profit_center).
 
 " A classic multi-table join
@@ -678,7 +678,7 @@ Where the key must be a readable running number, draw it from a number range obj
 
 ## ✅ Best Practices
 
-- Write strict ABAP SQL with `@` host variables and `INTO` last — [Rule 7.1](../docs/ABAP-Development-Rules.md#71-write-strict-abap-sql-a-comma-separated-field-list--host-variables-into-after-the-query-clauses).
+- Write strict ABAP SQL with `@` host variables and `INTO` after the query clauses, followed only by `UP TO` / `OFFSET` — [Rule 7.1](../docs/ABAP-Development-Rules.md#71-write-strict-abap-sql-a-comma-separated-field-list--host-variables-into-after-the-query-clauses).
 - Select only the fields you need — avoid `SELECT *` in production code, especially inside loops — [Rule 7.7](../docs/ABAP-Development-Rules.md#77-list-the-fields-you-need-instead-of-select-).
 - Always qualify `SELECT SINGLE` with a `WHERE` on the full key. Without one you get an arbitrary row — [Rule 7.5](../docs/ABAP-Development-Rules.md#75-use-select-single-only-with-the-full-primary-key).
 - Always check `IF driver_items IS NOT INITIAL` before `FOR ALL ENTRIES`, and de-duplicate the driver table first — [Rule 7.4](../docs/ABAP-Development-Rules.md#74-use-for-all-entries-only-with-a-non-empty-de-duplicated-driver-table).
@@ -695,7 +695,7 @@ Where the key must be a readable running number, draw it from a number range obj
 - Running `FOR ALL ENTRIES` with an **empty driver table** — silently selects everything.
 - Forgetting the implicit `DISTINCT` that `FOR ALL ENTRIES` applies, and losing rows from the result.
 - Filtering the optional side of a `LEFT OUTER JOIN` in the `WHERE` clause, turning it into an inner join.
-- Placing `INTO` in different positions across a program — write it as the final clause.
+- Placing `INTO` in different positions across a program — write it after the query clauses, followed only by `UP TO`, `OFFSET` and the other ABAP-specific additions.
 - Adding `ORDER BY` with columns to a `FOR ALL ENTRIES` select — only `ORDER BY PRIMARY KEY` is possible there; sort in ABAP.
 - Deriving a new key from `SELECT MAX( … ) + 1` — concurrent sessions get the same value.
 - Referring to the client column (`mandt`) explicitly instead of letting ABAP SQL handle it.
