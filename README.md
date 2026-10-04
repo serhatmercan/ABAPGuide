@@ -37,6 +37,7 @@ The chapter that ties the rest together: why productive landscapes contain sever
 | Read or write database data safely | [08](08-Open-SQL/README.md) · [15](15-BAPIs/README.md) |
 | Structure and reuse code | [09](09-Modularization/README.md) · [10](10-Objects/README.md) |
 | Build a report or a screen | [11](11-Classical-Reports/README.md) · [12](12-Selection-Screens/README.md) · [13](13-ALV/README.md) |
+| Run a report in the background or exchange files | [11](11-Classical-Reports/README.md) |
 | Integrate or extend standard SAP | [14](14-Function-Modules/README.md) · [15](15-BAPIs/README.md) · [16](16-BADIs/README.md) · [17](17-Enhancements/README.md) |
 | Handle errors, log, and tune | [18](18-Debugging/README.md) · [19](19-Performance/README.md) |
 | Review code against a checklist | [20](20-Best-Practices/README.md) |
@@ -68,7 +69,7 @@ Chapters and examples are labelled with one of these. Full definitions in [Chapt
 | [08-Open-SQL](08-Open-SQL/README.md) | ABAP SQL | `SELECT`, joins, aggregation, CRUD, **SAP LUW & transaction ownership** | Current + version-dependent |
 | [09-Modularization](09-Modularization/README.md) | Modularization | Function modules, conversion exits, RFC, macros, `SUBMIT` | Classic + legacy |
 | [10-Objects](10-Objects/README.md) | Objects / OOP | Classes, visibility, inheritance, static vs. instance | Current |
-| [11-Classical-Reports](11-Classical-Reports/README.md) | Classical Reports | List events, `WRITE`, dynamic tables + authorization | Classic |
+| [11-Classical-Reports](11-Classical-Reports/README.md) | Classical Reports | List events, `WRITE`, dynamic tables + authorization, background jobs, files | Classic |
 | [12-Selection-Screens](12-Selection-Screens/README.md) | Selection Screens & Dynpro | Selection screens, PBO/PAI, screen modification, popups | Classic |
 | [13-ALV](13-ALV/README.md) | ALV | `CL_SALV_TABLE`, `REUSE_ALV_*`, `CL_GUI_ALV_GRID`, field catalogs, events | Current + classic |
 | [14-Function-Modules](14-Function-Modules/README.md) | BDC / Batch Input | `CALL TRANSACTION`, BDC tables, message handling, authorization | Classic |
