@@ -48,8 +48,8 @@ CALL CUSTOMER-FUNCTION '001'.
 Implicit enhancement points/options exist automatically at the start/end of nearly every `FORM`, `METHOD`, and `PROGRAM` in the SAP system, viewable directly in the ABAP Editor via **Edit → Enhancement Operations → Show Implicit Enhancement Options**.
 
 ```abap
-FORM standard_form.
-  " ENHANCEMENT-POINT ep_standard_form_01 SPOTS es_standard_form.
+FORM check_document.
+  " ENHANCEMENT-POINT ep_check_document_01 SPOTS es_document_checks.
   " your custom coding can be inserted here via an enhancement implementation
 ENDFORM.
 ```
