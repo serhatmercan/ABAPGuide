@@ -248,6 +248,7 @@ The review checklist. Each item names the rule it comes from and the chapter tha
 - [ ] Dependencies come in through the constructor as interfaces — [Rule 5.4](../docs/ABAP-Development-Rules.md#54-depend-on-interfaces-and-receive-dependencies-through-the-constructor), [10-Objects](../10-Objects/README.md).
 - [ ] Exceptions are caught specifically; `cx_root` only at a boundary that logs or re-raises — [Rule 6.6](../docs/ABAP-Development-Rules.md#66-catch-specific-exceptions), [18-Debugging](../18-Debugging/README.md#-exception-handling).
 - [ ] No empty `CATCH`, and converted exceptions keep their cause — [Rules 6.7](../docs/ABAP-Development-Rules.md#67-never-leave-a-catch-block-empty) and [6.8](../docs/ABAP-Development-Rules.md#68-keep-the-cause-when-converting-an-exception-pass-it-as-previous), [18-Debugging](../18-Debugging/README.md#-exception-handling).
+- [ ] `ASSERT` guards only internal assumptions; anything a caller or user can act on raises an exception — [Rule 6.12](../docs/ABAP-Development-Rules.md#612-state-the-internal-assumptions-of-a-program-with-assert-raise-exceptions-for-situations-a-caller-or-user-can-act-on), [23-Debugging-Troubleshooting](../23-Debugging-Troubleshooting/README.md).
 - [ ] `MESSAGE` statements appear only in the UI layer — [Rule 6.11](../docs/ABAP-Development-Rules.md#611-use-message-statements-only-in-the-ui-layer), [18-Debugging](../18-Debugging/README.md).
 - [ ] `CHECK` only as an input check at the start of a method; loops use `IF` with `CONTINUE` — [Rule 3.17](../docs/ABAP-Development-Rules.md#317-use-check-only-as-an-input-check-at-the-start-of-a-method-prefer-if--return), [05-Control-Statements](../05-Control-Statements/README.md).
 - [ ] No new macros — [Rule 3.19](../docs/ABAP-Development-Rules.md#319-do-not-write-macros-use-methods-or-expressions), [09-Modularization](../09-Modularization/README.md).
@@ -256,6 +257,7 @@ The review checklist. Each item names the rule it comes from and the chapter tha
 
 **Quality**
 - [ ] New classes have ABAP Unit tests — [Rule 10.1](../docs/ABAP-Development-Rules.md#101-write-abap-unit-tests-for-every-new-class).
+- [ ] No always-active breakpoint (`BREAK-POINT` without `ID`, `BREAK` with a user name) and no `LOG-POINT` in released code — [Rule 13.6](../docs/ABAP-Development-Rules.md#136-release-no-always-active-breakpoint-no-break-point-without-id-and-no-break-user-macro).
 - [ ] Syntax check, ABAP Unit and ATC passed; every finding is fixed or exempted with a reason — [Rules 13.1](../docs/ABAP-Development-Rules.md#131-release-nothing-that-fails-the-syntax-check-abap-unit-or-atc-with-the-team-check-variant) and [13.2](../docs/ABAP-Development-Rules.md#132-fix-every-atc-finding-or-exempt-it-with-a-written-reason).
 - [ ] AI-generated code was reviewed against the checklist for generated ABAP — [Rule 15.2](../docs/ABAP-Development-Rules.md#152-review-generated-abap-against-this-checklist-before-accepting-it).
 
@@ -287,5 +289,6 @@ The review checklist. Each item names the rule it comes from and the chapter tha
 - [15-BAPIs](../15-BAPIs/README.md) — evaluating BAPI return tables and committing
 - [18-Debugging](../18-Debugging/README.md) — messages and exception handling
 - [19-Performance](../19-Performance/README.md) — measuring before optimising
+- [23-Debugging-Troubleshooting](../23-Debugging-Troubleshooting/README.md) — assertions, checkpoints and reading short dumps
 - [21-Classic-vs-Modern-ABAP](../21-Classic-vs-Modern-ABAP/README.md) — the lifecycle labels used in this chapter and the scope boundary
 - [ABAP Keyword Documentation](https://help.sap.com/doc/abapdocu_latest_index_htm/latest/en-US/index.htm) — the authority for syntax and release availability
