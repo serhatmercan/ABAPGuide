@@ -285,8 +285,8 @@ APPEND VALUE #( username = sy-uname
 For anything beyond a private audit trail, prefer SAP's standard **Application Log** over a custom Z-table: you get a display UI (`SLG1`), retention and deletion handling, and a consistent API.
 
 - **Log objects and sub-objects** are defined in transaction `SLG0`, and logs are displayed with `SLG1`.
-- The classic API is the **`BAL_*` function module family** — `BAL_LOG_CREATE` to open a log handle, `BAL_LOG_MSG_ADD` to add messages to it, and `BAL_DB_SAVE` to persist them **[verify: their parameters in `SE37`]**.
-- Newer releases also ship an **object-oriented API**, the `CL_BALI_*` classes (`CL_BALI_LOG` for the log itself, `CL_BALI_LOG_DB` for persistence, plus setter classes for messages, free text and exceptions). The list of released APIs in the ABAP Keyword Documentation shows `CL_BALI_LOG` and `CL_BALI_LOG_DB` as released for ABAP for Cloud Development **[verify: the methods and parameters of `CL_BALI_LOG` and `CL_BALI_LOG_DB` in `SE24`]**.
+- The classic API is the **`BAL_*` function module family** — `BAL_LOG_CREATE` to open a log handle (header `I_S_LOG`, handle `E_LOG_HANDLE`), `BAL_LOG_MSG_ADD` to add messages to it (`I_LOG_HANDLE`, `I_S_MSG`), and `BAL_DB_SAVE` to persist them (`I_T_LOG_HANDLE`).
+- Newer releases also ship an **object-oriented API**, the `CL_BALI_*` classes (`CL_BALI_LOG` for the log itself, `CL_BALI_LOG_DB` for persistence, plus setter classes for messages, free text and exceptions). The list of released APIs in the ABAP Keyword Documentation shows `CL_BALI_LOG` and `CL_BALI_LOG_DB` as released for ABAP for Cloud Development. A log is created with `cl_bali_log=>create( )` or `create_with_header( )`, filled with `add_item( )` or `add_messages_from_bapirettab( )`, and saved with `cl_bali_log_db=>get_instance( )->save_log( log = … )`; the methods raise `CX_BALI_RUNTIME`.
 
 > ⚠️ **VERSION-DEPENDENT: the `CL_BALI_*` API.** Whether it exists depends on the release; check the [ABAP Keyword Documentation](https://help.sap.com/doc/abapdocu_latest_index_htm/latest/en-US/index.htm) and the released-objects list of your system.
 
