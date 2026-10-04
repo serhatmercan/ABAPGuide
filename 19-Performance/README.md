@@ -42,7 +42,9 @@ ENDIF.
 >
 > For passing data within one call stack, prefer normal method parameters. Reserve ABAP Memory for genuinely decoupled program-to-program communication.
 
-> **Lifecycle:** `CLASSIC BUT STILL RELEVANT` — legitimate for `SUBMIT`-based decoupling on-premise. `EXPORT`/`IMPORT` without parameter names, `TO MEMORY` without `ID` and `FREE MEMORY` without `ID` are obsolete according to the ABAP Keyword Documentation. Which of these statements ABAP for Cloud Development allows is listed in the documentation's overview of language elements per language version **[verify]**.
+> **Lifecycle:** `CLASSIC BUT STILL RELEVANT` — legitimate for `SUBMIT`-based decoupling on-premise. `EXPORT`/`IMPORT` without parameter names, `TO MEMORY` without `ID` and `FREE MEMORY` without `ID` are obsolete according to the ABAP Keyword Documentation.
+
+> ⚠️ **VERSION-DEPENDENT: memory statements in ABAP for Cloud Development.** In the 7.58 overview of language elements per ABAP language version, ABAP for Cloud Development allows `EXPORT … TO MEMORY ID` and `IMPORT … FROM MEMORY ID`, but not `FREE MEMORY`, `DELETE FROM MEMORY`, `SET PARAMETER` or `GET PARAMETER`. Check the overview in the [ABAP Keyword Documentation](https://help.sap.com/doc/abapdocu_latest_index_htm/latest/en-US/index.htm) for your release.
 
 ## 🚀 Internal Table Performance
 
