@@ -8,7 +8,8 @@ Coding rules: docs/ABAP-Development-Rules.md. Cite rules by number (Rule 2.6).
 - Out of scope: RAP, CDS, AMDP/code pushdown, ABAP Cloud beyond the
   boundary in Chapter 21 "What Changes Under ABAP Cloud". Do not add
   chapters on these; link to Chapter 21 "Scope Boundary" instead.
-- An ABAP Unit chapter is planned.
+- ABAP Unit is Chapter 22 (`22-ABAP-Unit`); rule section 10 summarises,
+  the chapter teaches.
 - CDS appears in this guide only as a data source of ABAP SQL reads;
   anything beyond that links to CDSGuide
   (https://github.com/serhatmercan/CDSGuide).

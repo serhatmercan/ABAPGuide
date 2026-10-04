@@ -6,15 +6,15 @@ That last part is the point. Real SAP systems run several generations of ABAP at
 
 ### Scope
 
-- **Covers:** ABAP language fundamentals, internal tables, ABAP SQL, modularization, ABAP Objects, classical reports, selection screens and dynpro, three generations of ALV, BAPIs, BAdIs and the enhancement framework, messages and exceptions, and performance — including the modern (7.40-generation) expression syntax throughout.
-- **Does not cover:** RAP, CDS, AMDP, or ABAP Cloud beyond the boundary explained in [Chapter 21](21-Classic-vs-Modern-ABAP/README.md). That is a deliberate boundary, not an oversight. ABAP Unit is planned.
+- **Covers:** ABAP language fundamentals, internal tables, ABAP SQL, modularization, ABAP Objects, classical reports, selection screens and dynpro, three generations of ALV, BAPIs, BAdIs and the enhancement framework, messages and exceptions, performance, and ABAP Unit — including the modern (7.40-generation) expression syntax throughout.
+- **Does not cover:** RAP, CDS, AMDP, or ABAP Cloud beyond the boundary explained in [Chapter 21](21-Classic-vs-Modern-ABAP/README.md). That is a deliberate boundary, not an oversight.
 - **Coding rules:** new and changed examples follow [docs/ABAP-Development-Rules.md](docs/ABAP-Development-Rules.md).
 - **Examples are illustrative.** They are written to teach a pattern, not to be dropped into production unchanged. See [How to Use](#-how-to-use).
 - **Not official SAP documentation.** For anything version-sensitive, the [ABAP Keyword Documentation](https://help.sap.com/doc/abapdocu_latest_index_htm/latest/en-US/index.htm) is the authority.
 
 ## ✨ Highlights
 
-- **21 structured chapters** plus a quick-reference Examples section
+- **22 structured chapters** plus a quick-reference Examples section
 - **100+ annotated ABAP examples** drawn from real project work
 - **Explicit classic-to-modern lifecycle guidance** on every major technology
 - **Internal tables and modern expressions** — `VALUE`, `FOR`, `REDUCE`, `FILTER`, `COND`, table expressions, secondary keys
@@ -43,6 +43,7 @@ The chapter that ties the rest together: why productive landscapes contain sever
 | Report messages, raise exceptions and keep logs | [18](18-Debugging/README.md) · [15](15-BAPIs/README.md) |
 | Tune runtime and memory | [19](19-Performance/README.md) |
 | Review code against a checklist | [20](20-Best-Practices/README.md) |
+| Write unit tests and test doubles | [22](22-ABAP-Unit/README.md) |
 | Decide between classic and modern | [21](21-Classic-vs-Modern-ABAP/README.md) |
 
 ## 🏷️ Lifecycle Legend
@@ -82,6 +83,7 @@ Chapters and examples are labelled with one of these. Full definitions in [Chapt
 | [19-Performance](19-Performance/README.md) | Performance & Memory | Internal table tuning, ABAP Memory, database access | Current |
 | [20-Best-Practices](20-Best-Practices/README.md) | Best Practices & Clean ABAP | Clean ABAP naming, classic prefixes as a reading aid, rule summaries, refactoring example, review checklist | Current + classic |
 | [21-Classic-vs-Modern-ABAP](21-Classic-vs-Modern-ABAP/README.md) | **Classic vs Modern** | **Lifecycle map, ABAP Cloud boundary, decision table** | **Start here for context** |
+| [22-ABAP-Unit](22-ABAP-Unit/README.md) | ABAP Unit | Test classes, fixtures, assertions, test doubles, ABAP SQL test environment, test seams, running tests | Current |
 | [Examples](Examples/README.md) | Examples | Strings, dates/times, conversions | Current + legacy |
 
 ## 🚀 How to Use

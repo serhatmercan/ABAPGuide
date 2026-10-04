@@ -55,10 +55,10 @@ What a new on-premise development should look like today.
 | **Extensibility** | BAdIs — preferably released ones — over enhancement points, over exits, over modifications. | 1.3 | [16](../16-BADIs/README.md), [17](../17-Enhancements/README.md) |
 | **Reporting UI** | `cl_salv_table` for display-oriented reports; `cl_gui_alv_grid` where you genuinely need editable cells and rich events. | — | [13](../13-ALV/README.md) |
 | **Design for testability** | Small methods, dependencies passed in rather than reached for, `cl_abap_context_info` instead of `sy-` fields where it matters. | 5.4, 5.12 | [20](../20-Best-Practices/README.md) |
-| **ABAP Unit** | Local test classes for every new class, test doubles through interfaces, the ABAP SQL and CDS test environments for database access. | 10.1–10.10 | [20](../20-Best-Practices/README.md) |
+| **ABAP Unit** | Local test classes for every new class, test doubles through interfaces, the ABAP SQL and CDS test environments for database access. | 10.1–10.10 | [22](../22-ABAP-Unit/README.md) |
 | **Documentation in code** | ABAP Doc for public APIs; pragmas, each with a reason, instead of pseudo comments. | 11.4, 11.5 | [20](../20-Best-Practices/README.md) |
 
-> 📝 **On testing.** A dedicated ABAP Unit chapter is planned. Until it exists, [section 10 of the rules](../docs/ABAP-Development-Rules.md#10-testing) is the reference.
+> 📝 **On testing.** [22-ABAP-Unit](../22-ABAP-Unit/README.md) teaches ABAP Unit; [section 10 of the rules](../docs/ABAP-Development-Rules.md#10-testing) summarises the rules.
 
 ## 🟡 Classic but Still Relevant
 
@@ -85,7 +85,7 @@ These are not going away, they are not mistakes, and a technical lead who cannot
 | **`CHECK` outside the start of a method** | Common in existing loops and processing blocks. Its effect depends on where it stands, so new code uses `IF … RETURN` and, in loops, `IF` with `CONTINUE`. | 3.17 | [05](../05-Control-Statements/README.md) |
 | **`CREATE OBJECT`** | Not obsolete and found in most existing code. New code uses `NEW`. | 3.6 | [10](../10-Objects/README.md) |
 | **Length in parentheses** (`DATA text(10) TYPE c`) | Not classified as obsolete. The ABAP Keyword Documentation recommends `LENGTH` for legibility, so new code writes `DATA text TYPE c LENGTH 10`. Only length specifications for `d`, `f`, `i` and `t` are obsolete. | 3.16 | [02](../02-Data-Types/README.md) |
-| **Test seams** | A bridge for testing legacy code that cannot take a dependency yet, not a design for new code. | 10.7 | [20](../20-Best-Practices/README.md#-refactoring-legacy-code) |
+| **Test seams** | A bridge for testing legacy code that cannot take a dependency yet, not a design for new code. | 10.7 | [22](../22-ABAP-Unit/README.md#-test-seams-for-legacy-code), [20](../20-Best-Practices/README.md#-refactoring-legacy-code) |
 | **`*&` program header block** | Found at the top of many existing programs. New code states its purpose in a comment or ABAP Doc; the version history records author and date. | 11.4, 11.6 | [20](../20-Best-Practices/README.md#-comments-abap-doc-and-program-headers) |
 
 ## 🕰️ Legacy / Historical Reference

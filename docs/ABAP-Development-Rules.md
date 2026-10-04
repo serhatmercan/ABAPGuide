@@ -1889,7 +1889,7 @@ DATA quantities TYPE STANDARD TABLE OF zsm_s_material_quantity WITH DEFAULT KEY.
 
 ## 10 Testing
 
-> **Lifecycle:** `CURRENT / RECOMMENDED`. ABAP Unit is the test framework for ABAP code. An ABAPGuide chapter on ABAP Unit is planned. Until it exists, these rules are the reference.
+> **Lifecycle:** `CURRENT / RECOMMENDED`. ABAP Unit is the test framework for ABAP code. These rules summarise; [22-ABAP-Unit](../22-ABAP-Unit/README.md) teaches them step by step, with a complete example.
 
 ### 10.1 Write ABAP Unit tests for every new class
 
