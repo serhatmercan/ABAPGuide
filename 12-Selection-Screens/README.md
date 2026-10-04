@@ -304,6 +304,8 @@ ENDMODULE.
 
 > 📝 Assumes the customer append fields `zz_carrier` and `zz_product_code` on `QMEL`, placed on a screen of your own program.
 
+> 💡 The same modules are what a screen exit needs when custom fields go onto a standard SAP screen — see the screen exits in [17-Enhancements](../17-Enhancements/README.md#-user-exits-vs-customer-exits).
+
 **Flow logic (SE51):**
 
 ```abap
