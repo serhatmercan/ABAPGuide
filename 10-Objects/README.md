@@ -145,7 +145,7 @@ A redefinition stays in the visibility section where the superclass declares the
 
 ## 🔌 Interfaces
 
-An interface declares components — mostly methods — without implementing them. A class takes it over with `INTERFACES` in its public section and implements each method as `interface~method`. Callers that hold a reference typed with the interface work with every class that implements it; they see only the components the interface declares **[verify]**. That is polymorphism in ABAP Objects without inheritance, and it is how a test hands in a double instead of the database access — [Rule 5.4](../docs/ABAP-Development-Rules.md#54-depend-on-interfaces-and-receive-dependencies-through-the-constructor).
+An interface declares components — mostly methods — without implementing them. A class takes it over with `INTERFACES` in its public section and implements each method as `interface~method`. Callers that hold a reference typed with the interface work with every class that implements it; they see only the components the interface declares. That is polymorphism in ABAP Objects without inheritance, and it is how a test hands in a double instead of the database access — [Rule 5.4](../docs/ABAP-Development-Rules.md#54-depend-on-interfaces-and-receive-dependencies-through-the-constructor).
 
 > 📝 **Contextual snippet** — assumes the data elements `zsm_e_order_id` and `zsm_e_order_status` and a custom table `zsm_t_order`.
 
@@ -348,7 +348,7 @@ entity_type = model->get_entity_type( iv_entity_name = 'PurchaseOrder' ).
 
 - Making all attributes `PUBLIC` "for convenience" — this breaks encapsulation and makes future refactoring risky.
 - Misunderstanding the scope of static attributes. `CLASS-DATA` is shared by all instances **within the same internal session** — not across users, and not across external sessions (modes). Sharing state beyond the session requires shared-memory-enabled classes or the database; assuming `CLASS-DATA` does it is a subtle and expensive bug.
-- Using an unbound reference. Calling a method through it raises a catchable exception (`CX_SY_REF_IS_INITIAL` [verify]); reading an attribute through it ends the program with a runtime error that cannot be caught.
+- Using an unbound reference. Calling a method through it raises a catchable exception (`CX_SY_REF_IS_INITIAL`); reading an attribute through it ends the program with a runtime error that cannot be caught.
 - Adding `TYPE` to an inline `DATA(...)` declaration.
 - Expecting inline declarations in a functional method call or a `CALL FUNCTION`; only standalone method calls accept them for output parameters.
 - Reading data, posting or calling other systems in a constructor; it runs on every `NEW` and cannot be skipped in a test.
