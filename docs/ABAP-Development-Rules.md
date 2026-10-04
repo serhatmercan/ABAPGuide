@@ -2284,7 +2284,7 @@ Contextual snippets (0.5) are never claimed as checked: they are not complete ob
 
 ## 14 Deviations from Clean ABAP
 
-Rules 0–13 were compared against the current Clean ABAP text. The table lists only real contradictions. Points where Clean ABAP leaves the choice to the team, such as keyword case, are team additions; they are indexed after the table.
+Rules 0–13 were compared against the current Clean ABAP text. The table lists only real contradictions. Points where Clean ABAP leaves the choice to the team, such as keyword case, are team additions. They are indexed after the table, followed by the rules taken from the ABAP Programming Guidelines.
 
 | Rule | Clean ABAP says | We do | Why |
 |---|---|---|---|
@@ -2296,12 +2296,12 @@ Rules 0–13 were compared against the current Clean ABAP text. The table lists 
 
 ### Team additions
 
-These rules have no Clean ABAP counterpart, or they decide a point that Clean ABAP leaves open. Each is marked as a team rule where it is stated.
+These rules are decisions of the team: they have no basis in Clean ABAP or the ABAP Programming Guidelines, go beyond them, or decide a point that Clean ABAP leaves open. Each is marked as a team rule where it is stated.
 
 | Area | Rules |
 |---|---|
 | Language version | 1.3 |
-| Modern syntax | 3.8, 3.9, 3.18, 3.19 |
+| Modern syntax | 3.8, 3.9, 3.18, 3.19 (no new macros at all) |
 | Classes and methods | 5.12 |
 | Error handling | 6.2 (one abstract root per category), 6.6, 6.7, 6.11 |
 | Database access and SAP LUW | 7.13, 7.14, 7.15 |
@@ -2312,6 +2312,15 @@ These rules have no Clean ABAP counterpart, or they decide a point that Clean AB
 | Formatting | 12.1 |
 | Quality gates | 13.1, 13.2, 13.3, 13.4, 13.5 |
 | AI-assisted development | 15.1–15.5 |
+
+### Rules from the ABAP Programming Guidelines
+
+These rules have no Clean ABAP counterpart and are not team rules. They follow a recommendation of the ABAP Programming Guidelines.
+
+| Rule | Guideline recommendation |
+|---|---|
+| [3.19](#319-do-not-write-macros-use-methods-or-expressions) | Macros only in exceptional cases; methods or expressions instead; no new macros in type pools or `TRMAC`. The ban on all new macros is the team part. |
+| [9.8](#98-use-collect-only-with-hashed-tables-or-sorted-tables-with-a-unique-key) | `COLLECT` only for hashed tables or sorted tables with a unique key. |
 
 ---
 
