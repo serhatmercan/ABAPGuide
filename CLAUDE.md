@@ -12,6 +12,9 @@ Coding rules: docs/ABAP-Development-Rules.md. Cite rules by number (Rule 2.6).
   the chapter teaches.
 - Mail is Chapter 24 (`24-Mail`). A reusable mail component belongs to
   the future ABAP-Cookbook; the chapter describes its design only.
+- HTTP and REST is Chapter 25 (`25-HTTP-REST`). OData belongs to GWGuide
+  and the future RAPGuide; link them, do not cover OData. A reusable REST
+  client or handler component belongs to the future ABAP-Cookbook.
 - Debugging is Chapter 23 (`23-Debugging-Troubleshooting`). Keep the
   folder name `18-Debugging`; its title is "Messages, Exceptions &
   Logging".
