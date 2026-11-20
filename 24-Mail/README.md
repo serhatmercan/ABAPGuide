@@ -267,13 +267,18 @@ CLASS zcl_zsm_bcs_mail_sender IMPLEMENTATION.
   ENDMETHOD.
 
   METHOD document_type.
-    " The file extension serves as the document type, for example CSV
+    " The file extension serves as the document type, for example CSV.
+    " BCS document types have three characters, so a longer extension
+    " such as XLSX is cut to XLS; the attachment keeps its full file
+    " name through i_attachment_filename.
     result = to_upper( segment( val   = file_name
                                 sep   = `.`
                                 index = -1 ) ).
   ENDMETHOD.
 ENDCLASS.
 ```
+
+> 📝 The document type of a BCS attachment (`SO_OBJ_TP`) is a 3-character field, so `document_type` cuts an extension such as `XLSX` to `XLS`. The file name passed in `i_attachment_filename` stays complete. **[verify: whether BCS or the mail client uses the 3-character type or the file name when a longer extension is cut]**
 
 > ⚠️ **The adapter has no `COMMIT WORK`.** `send( )` only hands the request over. The commit belongs to the program that owns the transaction ([Rule 7.10](../docs/ABAP-Development-Rules.md#710-let-the-top-level-caller-own-the-transaction-reusable-units-never-commit-work)); see [When the Mail Is Actually Sent](#-when-the-mail-is-actually-sent).
 
