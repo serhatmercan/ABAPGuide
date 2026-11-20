@@ -305,7 +305,7 @@ Tests protect only when they run regularly, ideally without anyone having to rem
 | Where | How |
 |---|---|
 | **ADT for Eclipse** | From the context menu of a class or a package: *Run As → ABAP Unit Test* (`Ctrl+Shift+F10`), or *ABAP Unit Test With…* (`Ctrl+Shift+F12`) to choose the options first. *Coverage As → ABAP Unit Test* (`Ctrl+Shift+F11`) also measures which statements the tests reached. The same *Run As* menu starts the ABAP Test Cockpit (`Ctrl+Shift+F2`). Shortcuts as in the ADT version checked. |
-| **Visual Studio Code** | With ADT for VS Code installed and no system connected, the command palette offered no command for ABAP Unit; it showed ABAP Feeds and ABAP Cleaner commands. **[verify: how ADT for VS Code runs ABAP Unit with a connected system]** |
+| **Visual Studio Code** | SAP offers ABAP Development Tools for VS Code. **[verify: how ADT for VS Code runs ABAP Unit with a connected system]** |
 | **SAP GUI** | From the editor of the class or program; for larger sets, the ABAP Unit Browser in the Object Navigator (`SE80`). |
 | **ABAP Test Cockpit (ATC)** | ATC can run the ABAP Unit tests together with the static checks. Include ABAP Unit in the team's check variant ([Rule 13.1](../docs/ABAP-Development-Rules.md#131-release-nothing-that-fails-the-syntax-check-abap-unit-or-atc-with-the-team-check-variant)). |
 | **Continuous integration** | Where a pipeline exists, let it start the ATC run (with ABAP Unit) for every change, so a red test blocks the change before it is transported. |
