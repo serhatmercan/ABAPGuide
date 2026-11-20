@@ -1,6 +1,6 @@
 # ABAP Development Rules
 
-> 📝 **Status:** adopted; 2 statements still to be verified, marked **[verify]**.
+> 📝 **Status:** adopted; 1 statement still to be verified, marked **[verify]**.
 
 ## 0 Purpose and Status
 
@@ -213,7 +213,7 @@ A fixed infix per object type tells the reader what kind of object a name refers
 
 > 📝 Lock object names must start with `E`, so the lock object row puts `E` in front of the namespace instead of using a lower-case infix.
 
-> 📝 Checkpoint groups are maintained in transaction `SAAB` and control `ASSERT`, `BREAK-POINT` and `LOG-POINT` with the addition `ID` (6.12, 13.6). **[verify: the maximum length of a checkpoint group name]**
+> 📝 Checkpoint groups are maintained in transaction `SAAB` and control `ASSERT`, `BREAK-POINT` and `LOG-POINT` with the addition `ID` (6.12, 13.6). The name has at most 30 characters: the directory of checkpoint groups types it with the data element `AAB_ID_NAME`, `CHAR` of length 30.
 
 > 📝 Local types live inside one program, so they carry a short type prefix without the namespace. These prefixes are common SAP practice, and Clean ABAP itself names local test classes `ltc_` and test helpers `lth_`. Section 14 records this as a deviation.
 
