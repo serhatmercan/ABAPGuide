@@ -28,7 +28,9 @@ Every ABAP object has a language version, and the syntax check enforces it ([Rul
 
 > ⚠️ **VERSION-DEPENDENT: language elements per ABAP language version.** The table follows the 7.58 overview. Check the overview in the [ABAP Keyword Documentation](https://help.sap.com/doc/abapdocu_latest_index_htm/latest/en-US/index.htm) for your release.
 
-The tools differ as well. On-premise you can debug from ADT or from SAP GUI, and analyse short dumps in transaction `ST22`. In an SAP BTP ABAP environment, development and debugging take place in ADT. **[verify: the debugging and dump-analysis tools of your SAP BTP ABAP environment, and whether checkpoint groups for `ASSERT ID` can be created and activated there]**
+The tools differ as well. On-premise you can debug from ADT or from SAP GUI, and analyse short dumps in transaction `ST22`. In an SAP BTP ABAP environment, development, debugging and dump analysis take place in ADT. Where ADT shows a short dump differs between the two; see [Reading a Short Dump](#reading-a-short-dump).
+
+Checkpoint groups are repository objects of type `ACID`, maintained in Standard ABAP with transaction `SAAB`. In an SAP BTP ABAP environment, ADT for Eclipse offered no wizard for creating one (*File → New → Other*, search for "checkpoint"), and `ACID` is not among the object types that the ADT MCP server can create (checked on an on-premise system). **[verify: whether checkpoint groups for `ASSERT ID` can be created and activated in your SAP BTP ABAP environment by other means]**
 
 ## 🐞 The ABAP Debugger in ADT and SAP GUI
 
@@ -37,11 +39,27 @@ The debugger stops a program at a breakpoint and lets you step through it statem
 - **One statement per line.** The debugger and breakpoints work per line, so a chained or crowded line hides which part ran ([Rule 12.2](../docs/ABAP-Development-Rules.md#122-write-no-more-than-one-statement-per-line)).
 - **No macros.** A macro cannot be executed step by step ([Rule 3.19](../docs/ABAP-Development-Rules.md#319-do-not-write-macros-use-methods-or-expressions)).
 
-In ADT, you set a breakpoint in the source and run the object; the debugger opens in the debug perspective. In SAP GUI, you set it in the ABAP Editor, or switch debugging on for the next action by entering `/h` in the command field. **[verify: menu names, keyboard shortcuts and step commands in your ADT and SAP GUI versions]**
+In ADT, you set a breakpoint in the source and run the object; when the debugger stops, ADT for Eclipse asks to switch to the *Debug* perspective. In SAP GUI, you set it in the ABAP Editor, or switch debugging on for the next action by entering `/h` in the command field.
+
+The step commands of ADT for Eclipse are in the *Run* menu (shortcuts as in the ADT version checked):
+
+| Command | Shortcut |
+|---|---|
+| *Step Into* | `F5` |
+| *Step Over* | `F6` |
+| *Step Return* | `F7` |
+| *Resume* | `F8` |
+| *Run to Line* | `Ctrl+R` |
+| *Jump to Line* | `Shift+F12` |
+| *Suspend*, *Terminate*, *Disconnect* | — |
+
+The SAP GUI debugger uses the same function keys under other names: *Single Step* (`F5`), *Execute* (`F6`), *Return* (`F7`) and *Continue* (`F8`). Besides `/h`, it starts from the ABAP Editor with *Program → Test → Debugging*, and each debugging session opens in a session of its own.
+
+> ⚠️ **VERSION-DEPENDENT: SAP GUI debugger, job and process debugging.** The SAP GUI facts in this chapter follow the SAP Help Portal documentation of older releases. Check the documentation of your release and the [ABAP Keyword Documentation](https://help.sap.com/doc/abapdocu_latest_index_htm/latest/en-US/index.htm).
 
 According to the ABAP Keyword Documentation, breakpoints in system programs (names starting with `%_`) are respected only when system debugging is switched on, for example with `/hs` in the command field.
 
-> ⚠️ **Debugging in a production system is a controlled activity.** Changing a variable's value in the debugger bypasses every check of the application, so the authorization for it is a privileged permission, not a convenience. **[verify: the authorization that allows changing values in the debugger, and how such changes are recorded in your system]**
+> ⚠️ **Debugging in a production system is a controlled activity.** Changing a variable's value in the debugger bypasses every check of the application, so the authorization for it is a privileged permission, not a convenience. It is the authorization object `S_DEVELOP` with object type `DEBUG` and activity `02`; activity `03` allows debugging without changes. **[verify: how such changes are recorded in your system]**
 
 **Standard ABAP / ABAP for Cloud Development:** the debugger in ADT serves both; the SAP GUI debugger and `/h` need SAP GUI, which on-premise systems provide.
 
@@ -54,7 +72,8 @@ An interactive breakpoint has a **scope**, which decides in which sessions it ap
 | Scope | Applies to |
 |---|---|
 | Session breakpoint | the current session of your user |
-| External (user) breakpoint | sessions of your user that are started from outside, such as an RFC or HTTP call |
+| External (user) breakpoint | sessions of your user that are started from outside, such as an RFC or HTTP call; also future sessions, for a limited time |
+| Debugger breakpoint | only the running debugging session (set in the SAP GUI debugger) |
 
 It also has a **kind**, which decides when it stops:
 
@@ -66,7 +85,9 @@ It also has a **kind**, which decides when it stops:
 | Conditional breakpoint | the line is reached and a condition holds |
 | Watchpoint | the value of a variable changes, optionally only when a condition holds, for example a counter reaching a given value |
 
-**[verify: which of these kinds your ADT and SAP GUI versions offer, under which names, and where they are set]**
+In ADT for Eclipse, the submenu *Run → ABAP Breakpoints* offers *Toggle Breakpoint* (`Ctrl+Shift+B`, a line breakpoint), *Add Statement Breakpoint…*, *Add Exception Breakpoint…* and *Add Message Breakpoint…*. The ruler of the editor also offers *Toggle Soft Breakpoint* (`Alt+B`) and *Breakpoint Properties…*. The *Breakpoints* view shows an ADT breakpoint as set for the logon user. **[verify: conditional breakpoints and watchpoints in ADT]**
+
+The SAP GUI debugger sets breakpoints at a statement, a subroutine, function module or method, an exception or a message; a breakpoint can carry a condition in the *Breakpoints* tool. A watchpoint there can carry a condition as well and then stops only when the variable changes and the condition holds.
 
 > 💡 An exception breakpoint finds the place where an exception is **raised**, not where it is caught or where the program dumps. Use it when a short dump only shows the handler or the end of a long chain.
 
@@ -82,7 +103,13 @@ A breakpoint does not stop everywhere. The ABAP Keyword Documentation describes 
 | RFC | Stops in the SAP GUI debugger when an RFC dialog is possible; the ADT debugger can be shown even when it is not. |
 | HTTP (ICF) and APC | Stops only when external debugging is switched on, for a limited time (by default two hours) in transaction `SICF` or by setting an external breakpoint. ADT can show its debugger even without it. |
 
-**Background jobs and running processes** need their own approach: debug the job step on purpose, or attach the debugger to the running process from the work process overview. **[verify: how to debug a background job and how to attach to a running work process in your system]**
+**Background jobs and running processes** need their own approach: debug the job step on purpose, or attach the debugger to the running process from the work process overview. In SAP GUI:
+
+- **A job that has not run yet:** select it in the job overview (`SM37`) and enter `jdbg` in the command field. The job runs in a dialog process that simulates background processing (`sy-batch` is set).
+- **A running job:** *Job → Capture: active job* in `SM37`; you must be logged on to the server where the job runs.
+- **A running work process:** select it in the work process overview (`SM50`) and choose *Administration → Program → Debugging*.
+
+All three need the debug authorization described above. In ADT for Eclipse, no option for debugging background jobs was found in the menus and preferences checked.
 
 > ⚠️ **Do not step through a `SELECT … ENDSELECT` loop.** The documentation warns that a breakpoint in a `SELECT` loop can raise an exception because the database cursor is lost: debugging can trigger a database commit. Read the data into an internal table first and debug the loop over the table ([Rule 9.7](../docs/ABAP-Development-Rules.md#97-do-not-use-select--endselect-to-read-row-by-row)).
 
@@ -147,7 +174,7 @@ ENDCLASS.
 
 ### Checkpoint Groups
 
-With the addition `ID`, a **checkpoint group** controls a checkpoint from outside the program. A checkpoint group is a repository object, maintained in transaction `SAAB`, and named with `zsm_cp_` ([Rule 2.6](../docs/ABAP-Development-Rules.md#26-name-development-objects-by-the-object-naming-table)). According to the ABAP Keyword Documentation:
+With the addition `ID`, a **checkpoint group** controls a checkpoint from outside the program. A checkpoint group is a repository object of type `ACID`, maintained in transaction `SAAB`, and named with `zsm_cp_` ([Rule 2.6](../docs/ABAP-Development-Rules.md#26-name-development-objects-by-the-object-naming-table)). Its name has up to 30 characters: the directory of checkpoint groups types the name with the data element `AAB_ID_NAME`, `CHAR` of length 30. According to the ABAP Keyword Documentation:
 
 - an activation setting has a validity area (the checkpoints of the group, or of a compilation unit), a context (users, server instances) and an operation mode;
 - for assertions, the modes are *inactive*, *log* (write an entry and continue), *stop* (open the debugger in dialog; in background, update and HTTP processing the alternative "log" or "cancel" applies) and *cancel* (end with `ASSERTION_FAILED`);
@@ -269,11 +296,22 @@ Read a short dump from the top, and stop guessing as soon as it answers the ques
 4. **With which data?** The contents of the variables at that point, which often show the empty key or the zero divisor at once.
 5. **Why, originally?** For `RAISE SHORTDUMP` and converted exceptions, the chain of exception objects through `PREVIOUS` ([Rule 6.8](../docs/ABAP-Development-Rules.md#68-keep-the-cause-when-converting-an-exception-pass-it-as-previous)).
 
-**[verify: the section titles of a short dump in `ST22` and in the dump analysis of ABAP for Cloud Development]**
+In ADT, the run checks of E1, E3 and E4 produced short dumps with the same sections in Standard ABAP and in an SAP BTP ABAP environment: *Header Information*, *What happened?*, *Error analysis*, *Information on where terminated*, *Source Code Extract* and *Active Calls/Events*. For `RAISE SHORTDUMP` (E3), *Error analysis* named the `PREVIOUS` exception (`CX_SY_ITAB_LINE_NOT_FOUND`) with the program and line where it occurred and its reason; the chain had one level, so one previous exception was shown. **[verify: the section titles in `ST22`]**
+
+Where the dump appeared differed:
+
+| | Standard ABAP (on-premise) | SAP BTP ABAP environment |
+|---|---|---|
+| Console of the class run | a one-line notice that a runtime error occurred | for `ASSERTION_FAILED`, a message in the *Console* view |
+| Editor | no tab opened; the dump was opened by hand in ADT | the dumps of E3 and E4 opened in an editor tab titled with the runtime error name |
+| Feed *ABAP Runtime Errors* | listed every dump of the run checks | not checked |
+| Start of *Active Calls/Events* | the RFC entry program, because ADT reaches this system by RFC | the HTTP entry program |
+
+> 💡 In the feed, filter by date or runtime error. In the run checks, a filter on the object name did not find the dumps, while a filter on the date did.
 
 > 💡 A dump that names a standard program and an "internal error" is rarely fixed in your code. Search SAP's knowledge base with the runtime error name and the short text before you change anything.
 
-**Standard ABAP / ABAP for Cloud Development:** runtime errors and short dumps exist in both, and `RAISE SHORTDUMP` / `THROW SHORTDUMP` are allowed in both. Where the dump is analysed depends on the system (see the marker in the overview section).
+**Standard ABAP / ABAP for Cloud Development:** runtime errors and short dumps exist in both, and `RAISE SHORTDUMP` / `THROW SHORTDUMP` are allowed in both. Where the dump is shown depends on the system (see the table above).
 
 ## 🔎 A Troubleshooting Method
 
@@ -294,7 +332,7 @@ flowchart TD
 
 1. **Reproduce.** Find the input, user and step that trigger the symptom. A problem you cannot reproduce cannot be confirmed as fixed.
 2. **Isolate.** Shrink the case: one document instead of the whole job, one user, one step. A failing unit test is the best isolation there is ([22-ABAP-Unit](../22-ABAP-Unit/README.md)).
-3. **Read the evidence.** The short dump first, if there is one. Otherwise the logs: the application log the program writes ([18-Debugging](../18-Debugging/README.md#application-log-bal)), the job log of a background job, the system log, and the list of failed update requests. **[verify: the transactions for the job log, the system log and update requests in your system]**
+3. **Read the evidence.** The short dump first, if there is one. Otherwise the logs: the application log the program writes ([18-Debugging](../18-Debugging/README.md#application-log-bal)), the job log of a background job (`SM37`, *Goto → Job log*), the system log (`SM21`), and the failed update requests (`SM13`, status *Error*).
 4. **Form one hypothesis, and test it.** Set the breakpoint, watchpoint or exception breakpoint that confirms or refutes it, instead of stepping through everything.
 5. **Fix and protect.** Fix the cause, not the symptom, and keep the test that reproduced the problem ([Rule 10.1](../docs/ABAP-Development-Rules.md#101-write-abap-unit-tests-for-every-new-class)).
 
@@ -341,6 +379,8 @@ ENDIF.
 out->write( usd_rate ).
 ```
 
+> 📝 **Activation record.** E1, E3 (with `zcx_zsm_inconsistent_state` as a subclass of `CX_NO_CHECK`), E4 and E4 with the fix were activated in both ABAP language versions: Standard ABAP and ABAP for Cloud Development. E1 was run in both: unchanged it returned 4, 4 and 2 (in Standard ABAP checked with a unit test instead of the console); with the `APPEND` line commented out for the check, it ended in `ASSERTION_FAILED`. E3 and E4 were run in both and ended in `RAISE_SHORTDUMP` and `ITAB_LINE_NOT_FOUND`. E4 with the fix was run in ABAP for Cloud Development and wrote the "no rate" text; in Standard ABAP it was activated but not run. E2 was not run; what this chapter says about activatable checkpoints and `LOG-POINT` rests on the ABAP Keyword Documentation.
+
 ## 🧰 Common Errors and Fixes
 
 | Runtime error | Typical cause | Fix |
@@ -351,11 +391,11 @@ out->write( usd_rate ).
 | `RAISE_SHORTDUMP` | `RAISE SHORTDUMP` or `THROW SHORTDUMP` ended the program on purpose (E3). | Read the exception class, its text and the chain of `PREVIOUS` exceptions. |
 | `MESSAGE_TYPE_X` | A type `X` message was sent. | See [18-Debugging](../18-Debugging/README.md#-message-types); new code below the UI raises exceptions instead ([Rule 6.11](../docs/ABAP-Development-Rules.md#611-use-message-statements-only-in-the-ui-layer)). |
 | `TSV_TNEW_PAGE_ALLOC_FAILED` | An internal table outgrew the available memory. | Read and process in blocks; see [19-Performance](../19-Performance/README.md). |
-| `DYNPRO_SYNTAX_ERROR` | A screen could not be generated, for example the generated maintenance dialog of a table or view after the table or view was changed. | Regenerate the screen — for a maintenance dialog, regenerate it from the table maintenance generator. **[verify: the regeneration steps in your system]** |
+| `DYNPRO_SYNTAX_ERROR` | A screen could not be generated, for example the generated maintenance dialog of a table or view after the table or view was changed. | Regenerate the screen — for a maintenance dialog, change the function group in the table maintenance generator (`SE54`) and regenerate selectively, leaving out screens or programs you changed by hand. |
 | (no fixed name) | Stepping through a `SELECT … ENDSELECT` loop in the debugger loses the database cursor. | Read into an internal table first, then debug the loop over the table. |
 | Errors in standard code ("internal error", missing screen labels after an upgrade) | Usually a known problem of the standard software or of a generated screen. | Search SAP's knowledge base by runtime error name and short text; apply the correction it names. |
 
-The names `COMPUTE_INT_ZERODIVIDE`, `ASSERTION_FAILED` and `RAISE_SHORTDUMP` are taken from the ABAP Keyword Documentation. **[verify: the names `ITAB_LINE_NOT_FOUND`, `MESSAGE_TYPE_X`, `TSV_TNEW_PAGE_ALLOC_FAILED` and `DYNPRO_SYNTAX_ERROR` in your system]**
+The names `COMPUTE_INT_ZERODIVIDE`, `ASSERTION_FAILED` and `RAISE_SHORTDUMP` are taken from the ABAP Keyword Documentation. `ASSERTION_FAILED`, `RAISE_SHORTDUMP` and `ITAB_LINE_NOT_FOUND` also appeared in the run checks of E1, E3 and E4, in Standard ABAP and in ABAP for Cloud Development. `MESSAGE_TYPE_X` is named in the documentation of `MESSAGE`, and `TSV_TNEW_PAGE_ALLOC_FAILED` in the SAP Help Portal as a memory-related runtime error. **[verify: the name `DYNPRO_SYNTAX_ERROR` in your system]**
 
 ## 🧭 Scope Note
 
