@@ -370,3 +370,4 @@ Interactive debugging, the checkpoint statements `BREAK-POINT`, `ASSERT` and `LO
 - [19-Performance](../19-Performance/README.md) — runtime analysis and memory
 - [21-Classic-vs-Modern-ABAP](../21-Classic-vs-Modern-ABAP/README.md) — classic and class-based exceptions
 - [23-Debugging-Troubleshooting](../23-Debugging-Troubleshooting/README.md) — the debugger, checkpoints and short dumps
+- [24-Mail](../24-Mail/README.md) — converting mail API exceptions and logging failed mails

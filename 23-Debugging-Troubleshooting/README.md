@@ -452,3 +452,4 @@ The names `COMPUTE_INT_ZERODIVIDE`, `ASSERTION_FAILED` and `RAISE_SHORTDUMP` are
 - [20-Best-Practices](../20-Best-Practices/README.md) — refactoring legacy code with tests in place
 - [21-Classic-vs-Modern-ABAP](../21-Classic-vs-Modern-ABAP/README.md) — language versions and the scope boundary
 - [22-ABAP-Unit](../22-ABAP-Unit/README.md) — reproducing a defect as a test
+- [24-Mail](../24-Mail/README.md) — the next chapter: sending mail, and where to look when a mail did not arrive

@@ -56,6 +56,7 @@ What a new on-premise development should look like today.
 | **Reporting UI** | `cl_salv_table` for display-oriented reports; `cl_gui_alv_grid` where you genuinely need editable cells and rich events. | — | [13](../13-ALV/README.md) |
 | **Design for testability** | Small methods, dependencies passed in rather than reached for, `cl_abap_context_info` instead of `sy-` fields where it matters. | 5.4, 5.12 | [20](../20-Best-Practices/README.md) |
 | **ABAP Unit** | Local test classes for every new class, test doubles through interfaces, the ABAP SQL and CDS test environments for database access. | 10.1–10.10 | [22](../22-ABAP-Unit/README.md) |
+| **Sending mail** | Compose the mail in your own class and send it through an interface; the released mail API `CL_BCS_MAIL_MESSAGE` behind it *(VERSION-DEPENDENT in Standard ABAP)*; addresses from configuration. | 7.10, 8.11, 8.12 | [24](../24-Mail/README.md) |
 | **Documentation in code** | ABAP Doc for public APIs; pragmas, each with a reason, instead of pseudo comments. | 11.4, 11.5 | [20](../20-Best-Practices/README.md) |
 
 > 📝 **On testing.** [22-ABAP-Unit](../22-ABAP-Unit/README.md) teaches ABAP Unit; [section 10 of the rules](../docs/ABAP-Development-Rules.md#10-testing) summarises the rules.
@@ -83,6 +84,7 @@ These are not going away, they are not mistakes, and a technical lead who cannot
 | **Dynamic programming** (`ASSIGN`, RTTS, dynamic SQL) | Powerful and necessary for generic frameworks — and security-sensitive. | 8.4 | [07](../07-Internal-Tables/README.md), [11](../11-Classical-Reports/README.md) |
 | **Prefix notation** (`lv_`, `lt_`, `iv_` …) | Everywhere in existing code, so it must be read fluently. New code uses Clean ABAP names; a change inside a prefixed object keeps that object's style. | 2.1, 2.5 | [20](../20-Best-Practices/README.md#-reading-classic-prefix-notation) |
 | **`CHECK` outside the start of a method** | Common in existing loops and processing blocks. Its effect depends on where it stands, so new code uses `IF … RETURN` and, in loops, `IF` with `CONTINUE`. | 3.17 | [05](../05-Control-Statements/README.md) |
+| **BCS (`CL_BCS`, `CL_DOCUMENT_BCS`, address classes)** | The mail API of existing Standard ABAP code, monitored in `SOST`. SAP's object classification lists it as a classic API with `CL_BCS_MAIL_MESSAGE` as successor; not released for ABAP for Cloud Development. | 7.10 | [24](../24-Mail/README.md#-sending-mail-with-bcs) |
 | **`CREATE OBJECT`** | Not obsolete and found in most existing code. New code uses `NEW`. | 3.6 | [10](../10-Objects/README.md) |
 | **Length in parentheses** (`DATA text(10) TYPE c`) | Not classified as obsolete. The ABAP Keyword Documentation recommends `LENGTH` for legibility, so new code writes `DATA text TYPE c LENGTH 10`. Only length specifications for `d`, `f`, `i` and `t` are obsolete. | 3.16 | [02](../02-Data-Types/README.md) |
 | **Test seams** | A bridge for testing legacy code that cannot take a dependency yet, not a design for new code. | 10.7 | [22](../22-ABAP-Unit/README.md#-test-seams-for-legacy-code), [20](../20-Best-Practices/README.md#-refactoring-legacy-code) |
@@ -117,6 +119,7 @@ Superseded, but preserved in this guide because you will meet all of it. Knowing
 | **Reading domain fixed values from `DD07L`/`DD07T` or with `DD_DOMVALUES_GET`** | RTTS (`get_ddic_fixed_values`) | RTTS reads the fixed values through the data element's own type description, without a table read or a function module call. | — |
 | **Frontend function modules `WS_FILENAME_GET`, `WS_UPLOAD`, `WS_DOWNLOAD`, `UPLOAD`** | Methods of `cl_gui_frontend_services` | One class covers the file dialogs and the transfer, with a typed signature and one exception per failure. | — |
 | **OLE automation (`ole2_object`)** | Server-side file generation | Requires SAP GUI for Windows on the user's desktop; fails in background jobs and over RFC. | — |
+| **`SO_NEW_DOCUMENT_SEND_API1`, `SO_NEW_DOCUMENT_ATT_SEND_API1`, `SO_DOCUMENT_SEND_API1`** | BCS, or the mail API `CL_BCS_MAIL_MESSAGE` | Tables of header, body and packing-list lines instead of typed objects; classic exceptions; a parameter that commits inside the call. SAP lists them as classic APIs with `CL_BCS_MAIL_MESSAGE` as successor. | 7.10 |
 | **`SELECT ... ENDSELECT`** row by row | `SELECT ... INTO TABLE` | Row-by-row round trips to the database. `PACKAGE SIZE` with `ENDSELECT` for very large volumes remains accepted. | 9.7 |
 
 > 💡 **Historical knowledge has real value.** When you are debugging a twelve-year-old pricing routine at two in the morning, being fluent in header lines and `PERFORM ... USING` is worth considerably more than knowing the newest constructor expression. Keep both.
@@ -138,6 +141,7 @@ Superseded, but preserved in this guide because you will meet all of it. Knowing
 - **Not allowed in ABAP for Cloud Development:** dynpro statements, classical list output (`WRITE`), selection screens (`PARAMETERS`, `SELECT-OPTIONS`), `CALL TRANSACTION` and therefore BDC, macros (`DEFINE`), and header-line tables (`WITH HEADER LINE`, `OCCURS`). These belong to the on-premise model.
 - **`FORM` / `PERFORM`:** obsolete; technically allowed in ABAP for Cloud Development; not written in new code.
 - **`REUSE_ALV_*` and `CL_GUI_ALV_GRID`:** these are APIs, not statements, so the language version alone does not decide. `CL_GUI_ALV_GRID` and `CL_SALV_TABLE` are not in the list of released APIs of the ABAP Keyword Documentation *(VERSION-DEPENDENT: the list changes with the release)*. **[verify: the release state of the `REUSE_ALV_*` function modules for ABAP for Cloud Development]**
+- **Mail:** the BCS classes (`CL_BCS`, `CL_DOCUMENT_BCS`, `CL_CAM_ADDRESS_BCS`, `CL_SAPUSER_BCS`, `CX_BCS`) are classified as not to be released; the released mail API `CL_BCS_MAIL_MESSAGE` with `CX_BCS_MAIL` replaces them ([24-Mail](../24-Mail/README.md#-sending-mail-with-the-mail-api)).
 - **Checkpoint statements:** `BREAK-POINT` and `LOG-POINT` are not allowed in ABAP for Cloud Development; `ASSERT`, `RAISE SHORTDUMP` and `THROW SHORTDUMP` are, according to the overview of language elements per language version in the [ABAP Keyword Documentation](https://help.sap.com/doc/abapdocu_latest_index_htm/latest/en-US/index.htm) *(VERSION-DEPENDENT)*. See [23-Debugging-Troubleshooting](../23-Debugging-Troubleshooting/README.md).
 - **Carries over:** ABAP Objects, modern expressions and modern ABAP SQL. Individual additions can still differ, so check the language-element list for your release.
 - **Direct access to SAP standard tables** is replaced by released APIs, for example released CDS views ([Rule 7.2](../docs/ABAP-Development-Rules.md#72-read-through-released-cds-views-where-they-exist)).
@@ -216,4 +220,5 @@ Every chapter in this guide carries a lifecycle note that points back here:
 - [16-BADIs](../16-BADIs/README.md) — classic and new BAdIs
 - [17-Enhancements](../17-Enhancements/README.md) — exits, enhancement points and modifications
 - [20-Best-Practices](../20-Best-Practices/README.md) — the review checklist that applies all of this
+- [24-Mail](../24-Mail/README.md) — BCS, the released mail API and the legacy send function modules
 - [docs/ABAP-Development-Rules.md](../docs/ABAP-Development-Rules.md) — the rules every classification cites

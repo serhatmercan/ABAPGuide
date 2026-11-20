@@ -14,7 +14,7 @@ That last part is the point. Real SAP systems run several generations of ABAP at
 
 ## ✨ Highlights
 
-- **23 structured chapters** plus a quick-reference Examples section
+- **24 structured chapters** plus a quick-reference Examples section
 - **100+ annotated ABAP code examples** written for this guide
 - **Explicit classic-to-modern lifecycle guidance** on every major technology
 - **Internal tables and modern expressions** — `VALUE`, `FOR`, `REDUCE`, `FILTER`, `COND`, table expressions, secondary keys
@@ -45,6 +45,7 @@ The chapter that ties the rest together: why productive landscapes contain sever
 | Review code against a checklist | [20](20-Best-Practices/README.md) |
 | Write unit tests and test doubles | [22](22-ABAP-Unit/README.md) |
 | Debug a problem or read a short dump | [23](23-Debugging-Troubleshooting/README.md) · [18](18-Debugging/README.md) |
+| Send a mail with attachments | [24](24-Mail/README.md) · [11](11-Classical-Reports/README.md) |
 | Decide between classic and modern | [21](21-Classic-vs-Modern-ABAP/README.md) |
 
 ## 🏷️ Lifecycle Legend
@@ -86,6 +87,7 @@ Chapters and examples are labelled with one of these. Full definitions in [Chapt
 | [21-Classic-vs-Modern-ABAP](21-Classic-vs-Modern-ABAP/README.md) | **Classic vs Modern** | **Lifecycle map, ABAP Cloud boundary, decision table** | **Start here for context** |
 | [22-ABAP-Unit](22-ABAP-Unit/README.md) | ABAP Unit | Test classes, fixtures, assertions, test doubles, ABAP SQL test environment, test seams, running tests | Current |
 | [23-Debugging-Troubleshooting](23-Debugging-Troubleshooting/README.md) | Debugging & Troubleshooting | ABAP Debugger, breakpoints and watchpoints, `BREAK-POINT`/`ASSERT`/`LOG-POINT` and checkpoint groups, short dumps, troubleshooting method, common runtime errors | Current |
+| [24-Mail](24-Mail/README.md) | Mail (BCS) | Sending mail through an interface, BCS and the released mail API, HTML bodies, attachments, commit and monitoring, addresses from configuration, testing without sending | Current + classic + cloud |
 | [Examples](Examples/README.md) | Examples | Strings, dates/times, conversions | Current + legacy |
 
 ## 🚀 How to Use

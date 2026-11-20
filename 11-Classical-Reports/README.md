@@ -308,3 +308,4 @@ CLOSE DATASET file_path.
 - [13-ALV](../13-ALV/README.md) — the recommended list output
 - [14-Function-Modules](../14-Function-Modules/README.md) — batch input for uploaded data
 - [21-Classic-vs-Modern-ABAP](../21-Classic-vs-Modern-ABAP/README.md) — lifecycle of list processing, `END-OF-SELECTION` and the older frontend function modules
+- [24-Mail](../24-Mail/README.md) — sending the result of a background job by mail

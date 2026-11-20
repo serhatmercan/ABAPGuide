@@ -242,6 +242,8 @@ The review checklist. Each item names the rule it comes from and the chapter tha
 - [ ] `CALL TRANSACTION` uses `WITH AUTHORITY-CHECK`, or `WITHOUT` with a comment — [Rule 8.9](../docs/ABAP-Development-Rules.md#89-call-transactions-with-authority-check), [14-Function-Modules](../14-Function-Modules/README.md).
 - [ ] RFC entry points check business authorizations themselves — [Rule 8.10](../docs/ABAP-Development-Rules.md#810-check-business-authorizations-at-every-rfc-entry-point), [14-Function-Modules](../14-Function-Modules/README.md).
 - [ ] Logs contain no secrets and no unneeded personal data — [Rule 8.8](../docs/ABAP-Development-Rules.md#88-log-no-secrets-and-no-personal-data-beyond-what-the-purpose-needs).
+- [ ] Mail addresses come from configuration, never from code — [Rule 8.11](../docs/ABAP-Development-Rules.md#811-take-mail-recipients-and-senders-from-configuration-never-write-addresses-into-code), [24-Mail](../24-Mail/README.md).
+- [ ] Mails carry identifiers and links, not personal data — [Rule 8.12](../docs/ABAP-Development-Rules.md#812-put-no-personal-data-into-a-mail-beyond-what-the-recipient-needs-send-identifiers-and-links-instead-of-payloads), [24-Mail](../24-Mail/README.md).
 
 **Structure & error handling**
 - [ ] Classes are `FINAL` and methods small and single-purpose — [Rules 5.2](../docs/ABAP-Development-Rules.md#52-make-classes-final-unless-they-are-designed-for-inheritance) and [5.7](../docs/ABAP-Development-Rules.md#57-write-small-methods-that-do-one-thing-at-one-level-of-abstraction), [10-Objects](../10-Objects/README.md).
