@@ -372,3 +372,4 @@ ENDIF.
 - [14-Function-Modules](../14-Function-Modules/README.md) — batch input and `CALL TRANSACTION`
 - [15-BAPIs](../15-BAPIs/README.md) — BAPI calls and their commit protocol
 - [21-Classic-vs-Modern-ABAP](../21-Classic-vs-Modern-ABAP/README.md) — the lifecycle labels used in this chapter
+- [25-HTTP-REST](../25-HTTP-REST/README.md) — HTTP destinations in `SM59` and calling REST services

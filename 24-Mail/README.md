@@ -636,3 +636,4 @@ The adapters E1 and E2 are not unit-tested: what they do is call the mail API, a
 - [21-Classic-vs-Modern-ABAP](../21-Classic-vs-Modern-ABAP/README.md) — where BCS, the mail API and the legacy function modules sit in the lifecycle map
 - [22-ABAP-Unit](../22-ABAP-Unit/README.md) — test doubles for the sender and the settings
 - [23-Debugging-Troubleshooting](../23-Debugging-Troubleshooting/README.md) — finding out why something failed
+- [25-HTTP-REST](../25-HTTP-REST/README.md) — the next chapter: the same design for HTTP calls

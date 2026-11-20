@@ -549,3 +549,4 @@ ENDCLASS.
 - [21-Classic-vs-Modern-ABAP](../21-Classic-vs-Modern-ABAP/README.md) — where ABAP Unit and test seams sit in the lifecycle map
 - [23-Debugging-Troubleshooting](../23-Debugging-Troubleshooting/README.md) — finding a defect, then keeping it fixed with a test
 - [24-Mail](../24-Mail/README.md) — testing mail code with doubles, without sending
+- [25-HTTP-REST](../25-HTTP-REST/README.md) — testing REST clients with a transport double, without network calls

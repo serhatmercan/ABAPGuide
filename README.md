@@ -14,7 +14,7 @@ That last part is the point. Real SAP systems run several generations of ABAP at
 
 ## ✨ Highlights
 
-- **24 structured chapters** plus a quick-reference Examples section
+- **25 structured chapters** plus a quick-reference Examples section
 - **100+ annotated ABAP code examples** written for this guide
 - **Explicit classic-to-modern lifecycle guidance** on every major technology
 - **Internal tables and modern expressions** — `VALUE`, `FOR`, `REDUCE`, `FILTER`, `COND`, table expressions, secondary keys
@@ -46,6 +46,7 @@ The chapter that ties the rest together: why productive landscapes contain sever
 | Write unit tests and test doubles | [22](22-ABAP-Unit/README.md) |
 | Debug a problem or read a short dump | [23](23-Debugging-Troubleshooting/README.md) · [18](18-Debugging/README.md) |
 | Send a mail with attachments | [24](24-Mail/README.md) · [11](11-Classical-Reports/README.md) |
+| Call or provide an HTTP/REST service | [25](25-HTTP-REST/README.md) · [09](09-Modularization/README.md) |
 | Decide between classic and modern | [21](21-Classic-vs-Modern-ABAP/README.md) |
 
 ## 🏷️ Lifecycle Legend
@@ -88,6 +89,7 @@ Chapters and examples are labelled with one of these. Full definitions in [Chapt
 | [22-ABAP-Unit](22-ABAP-Unit/README.md) | ABAP Unit | Test classes, fixtures, assertions, test doubles, ABAP SQL test environment, test seams, running tests | Current |
 | [23-Debugging-Troubleshooting](23-Debugging-Troubleshooting/README.md) | Debugging & Troubleshooting | ABAP Debugger, breakpoints and watchpoints, `BREAK-POINT`/`ASSERT`/`LOG-POINT` and checkpoint groups, short dumps, troubleshooting method, common runtime errors | Current |
 | [24-Mail](24-Mail/README.md) | Mail (BCS) | Sending mail through an interface, BCS and the released mail API, HTML bodies, attachments, commit and monitoring, addresses from configuration, testing without sending | Current + classic + cloud |
+| [25-HTTP-REST](25-HTTP-REST/README.md) | HTTP and REST | Calling and providing HTTP services through an interface, classic and released client and handler APIs, destinations instead of URLs, CSRF tokens, JSON, security in handlers, testing without network calls | Current + classic + cloud |
 | [Examples](Examples/README.md) | Examples | Strings, dates/times, conversions | Current + legacy |
 
 ## 🚀 How to Use

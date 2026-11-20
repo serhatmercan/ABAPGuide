@@ -453,3 +453,4 @@ The names `COMPUTE_INT_ZERODIVIDE`, `ASSERTION_FAILED` and `RAISE_SHORTDUMP` are
 - [21-Classic-vs-Modern-ABAP](../21-Classic-vs-Modern-ABAP/README.md) — language versions and the scope boundary
 - [22-ABAP-Unit](../22-ABAP-Unit/README.md) — reproducing a defect as a test
 - [24-Mail](../24-Mail/README.md) — the next chapter: sending mail, and where to look when a mail did not arrive
+- [25-HTTP-REST](../25-HTTP-REST/README.md) — handlers whose requests come from outside the system

@@ -243,6 +243,7 @@ The review checklist. Each item names the rule it comes from and the chapter tha
 - [ ] RFC entry points check business authorizations themselves — [Rule 8.10](../docs/ABAP-Development-Rules.md#810-check-business-authorizations-at-every-rfc-entry-point), [14-Function-Modules](../14-Function-Modules/README.md).
 - [ ] Logs contain no secrets and no unneeded personal data — [Rule 8.8](../docs/ABAP-Development-Rules.md#88-log-no-secrets-and-no-personal-data-beyond-what-the-purpose-needs).
 - [ ] Mail addresses come from configuration, never from code — [Rule 8.11](../docs/ABAP-Development-Rules.md#811-take-mail-recipients-and-senders-from-configuration-never-write-addresses-into-code), [24-Mail](../24-Mail/README.md).
+- [ ] HTTP handlers check business authorizations, and no service stores logon data — [Rule 8.13](../docs/ABAP-Development-Rules.md#813-check-business-authorizations-in-every-http-handler-and-store-no-logon-data-in-a-service), [25-HTTP-REST](../25-HTTP-REST/README.md).
 - [ ] Mails carry identifiers and links, not personal data — [Rule 8.12](../docs/ABAP-Development-Rules.md#812-put-no-personal-data-into-a-mail-beyond-what-the-recipient-needs-send-identifiers-and-links-instead-of-payloads), [24-Mail](../24-Mail/README.md).
 
 **Structure & error handling**
