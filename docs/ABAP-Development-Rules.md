@@ -1629,6 +1629,16 @@ DATA(condition) = |{ requested_column } = '{ user_input }'|.
 
 > 📝 **Contextual snippet** — `allowed_columns` is of type `string_hashed_table`. A name that is not on the list raises `cx_abap_not_in_whitelist`.
 
+The same applies to data that you insert into HTML, for example the body of a mail. Escape each value with `escape( )` and an HTML format of `cl_abap_format`: `e_html_text` for element content, which replaces `&`, `<` and `>`, and one of the `e_html_attr` formats inside attribute values, because `e_html_text` leaves quotes unchanged. See [24-Mail](../24-Mail/README.md#-plain-text-and-html-bodies).
+
+```abap
+" ✅ a note typed by a user cannot add markup
+DATA(cell) = |<td>{ escape( val = order-note format = cl_abap_format=>e_html_text ) }</td>|.
+
+" ❌ the note becomes part of the HTML
+DATA(cell) = |<td>{ order-note }</td>|.
+```
+
 ### 8.5 Never hard-code credentials, hosts or destinations
 
 Values written into code end up in transports and in version history. They are also identical in every system, which is wrong for a target that differs between development and production.
@@ -1776,6 +1786,47 @@ FUNCTION zsm_fm_read_orders.
     WHERE customer_id = @customer_id
     INTO TABLE @orders.
 ENDFUNCTION.
+```
+
+### 8.11 Take mail recipients and senders from configuration; never write addresses into code
+
+The reasoning of 8.5 applies to mail addresses as well. An address in a literal travels with every transport, so a test system mails the production recipients. And every change of a recipient becomes a code change.
+
+Read recipients and senders from configuration: a Customizing table behind a settings interface, a distribution list, or an SAP user. Test code uses addresses of a domain reserved for documentation, such as `example.com`. See [24-Mail](../24-Mail/README.md#-addresses-from-configuration).
+
+This is a team rule.
+
+```abap
+" ✅
+sender->send( VALUE #( sender     = settings->sender_address( )
+                       recipients = settings->order_desk_recipients( )
+                       subject    = subject
+                       html_body  = body ) ).
+
+" ❌
+request->add_recipient( cl_cam_address_bcs=>create_internet_address( 'order.desk@<company>' ) ).
+```
+
+> 📝 **Contextual snippet** — `sender` implements `zif_zsm_mail_sender` and `settings` implements `zif_zsm_mail_settings`, as in [24-Mail](../24-Mail/README.md#-design-compose-the-mail-send-it-through-an-interface); `request` is a BCS send request.
+
+### 8.12 Put no personal data into a mail beyond what the recipient needs; send identifiers and links instead of payloads
+
+A mail leaves the system's authorization checks. It is forwarded, stored in mailboxes for years, and read on private devices. 8.8 limits what goes into logs; the same limit applies to mail.
+
+- Send identifiers and a link into the application, not names, addresses, bank details or salaries.
+- Keep personal and customer data out of the subject.
+- Attach data only when the recipient needs it outside the system, and then only the fields they need.
+
+See [24-Mail](../24-Mail/README.md#-personal-data-in-mail-content).
+
+This is a team rule.
+
+```abap
+" ✅
+subject = |Order { order_id } is { days_late } days late|.
+
+" ❌
+subject = |Order for { customer-name }, { customer-street } is late, amount { order-net_amount }|.
 ```
 
 ---
@@ -2370,7 +2421,7 @@ These rules are decisions of the team: they have no basis in Clean ABAP or the A
 | Classes and methods | 5.12 |
 | Error handling | 6.2 (one abstract root per category), 6.6, 6.7, 6.11, 6.12 (the split between `ASSERT`, `CX_NO_CHECK` and `RAISE SHORTDUMP`) |
 | Database access and SAP LUW | 7.13, 7.14, 7.15 |
-| Security | 8.2, 8.3, 8.9, 8.10 |
+| Security | 8.2, 8.3, 8.9, 8.10, 8.11, 8.12 |
 | Performance | 9.1 |
 | Testing | 10.1, 10.2 (default risk level and duration), 10.10 |
 | Comments | 11.5 (reason for each pragma), 11.6 |
