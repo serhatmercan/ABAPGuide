@@ -51,7 +51,9 @@ The prefixes come from the naming table: `ltc_` for test classes and `lth_` for 
 
 ## 🧪 Test Methods and Fixtures
 
-A test method is an instance method declared with `FOR TESTING`. It has no parameters, and it is private, because only the test runner calls it. `RAISING cx_static_check` lets a test pass checked exceptions on, so the test does not have to catch exceptions it never expects. **[verify: how ABAP Unit reports an exception that leaves a test method; the ABAP Keyword Documentation only says that `RAISING` works as for other instance methods]**
+A test method is an instance method declared with `FOR TESTING`. It has no parameters, and it is private, because only the test runner calls it. `RAISING cx_static_check` lets a test pass checked exceptions on, so the test does not have to catch exceptions it never expects.
+
+If such an exception does leave a test method, ABAP Unit does not count the test as a failed assertion. It reports an exception error instead: the result names the exception class, says the test method ended with an exception, and points to the line that raised it. A run check showed this in Standard ABAP and in ABAP for Cloud Development; only the language of the texts differed.
 
 Four optional private methods with fixed names prepare and clean up the test environment, the **fixture**:
 
@@ -95,7 +97,9 @@ The checks are static methods of `cl_abap_unit_assert` ([Rule 10.9](../docs/ABAP
 | `assert_subrc` | `sy-subrc` has the expected value |
 | `fail` | — it always fails; used where the code must not arrive |
 
-> ⚠️ **Do not pass system fields such as `sy-subrc` to the assertion methods.** The documentation advises against it, because the call itself can change them. Use `assert_subrc`, or copy the value into a variable first.
+The class has more checks than these, among them `assert_true` / `assert_false`, `assert_differs`, `assert_equals_float` (with the tolerances `atol` and `rtol`), `assert_table_contains`, `assert_text_matches`, `assert_number_between` and `assert_that`. The `assert_…` methods share the optional parameters `msg`, `level` and `quit`, and return a flag `assertion_failed`. The class also has `skip` and a group of `assume_…` methods; see the class documentation for when to use them.
+
+> ⚠️ **Do not pass system fields such as `sy-subrc` to the assertion methods.** The documentation advises against it, because the call itself can change them. Use `assert_subrc`, which takes `sy-subrc` as the default of its actual value (`act`) and `0` as the default of the expected value (`exp`), or copy the value into a variable first.
 
 An expected exception is tested with `fail` after the call: if the call returns normally, the test fails; if the exception arrives, the `CATCH` block checks it.
 
@@ -137,7 +141,19 @@ CLASS lth_order_repository DEFINITION FINAL FOR TESTING.
 ENDCLASS.
 ```
 
-**The ABAP test double framework.** `cl_abap_testdouble` creates a double for an interface at runtime. The test configures an answer and then calls the method once with the arguments the answer applies to; the framework records that call as the configuration. **[verify: the methods of `cl_abap_testdouble` (`create`, `configure_call`, `returning` and the others) and its release state for ABAP for Cloud Development]**
+**The ABAP test double framework.** `cl_abap_testdouble` creates a double for an interface at runtime. The test configures an answer and then calls the method once with the arguments the answer applies to; the framework records that call as the configuration.
+
+The class is itself defined `FOR TESTING` (and `CREATE PRIVATE`), so only test code can use it, and it is released for ABAP for Cloud Development. Its public methods are all static:
+
+| Method | Parameters |
+|---|---|
+| `create` | the name of the type to double (`object_name`), optionally a name for the double (`double_name`); returns the double as a generic object reference (`REF TO object`), which the test casts to the interface |
+| `configure_call` | the double; returns a configuration object of type `if_abap_testdouble_config` |
+| `verify_expectations` | the double |
+
+The answer itself — `returning` in the example below — is a method of the configuration interface `if_abap_testdouble_config`, not of `cl_abap_testdouble`.
+
+According to the class documentation, the framework cannot double every type. It does not work for local classes and interfaces, for types whose methods use classic exceptions, for classes that are final, defined `FOR TESTING`, have only static components or allow no instances from outside (`CREATE PRIVATE`), and for some constructors, for example ones with mandatory parameters. For such cases, write the double by hand.
 
 > 📝 **Contextual snippet** — the interface and class of the [complete example](#-complete-example); `tax_rates` is declared as `REF TO zif_zsm_tax_rates`.
 
@@ -170,7 +186,15 @@ ENDMETHOD.
 
 A test that reads real table contents passes or fails with whatever the system contains, and a test that writes can damage it ([Rule 10.8](../docs/ABAP-Development-Rules.md#108-isolate-database-access-with-the-abap-sql-and-cds-test-double-frameworks-never-use-real-data)). The preferred design keeps ABAP SQL in a repository class behind an interface (see [08-Open-SQL](../08-Open-SQL/README.md) for the statements), so that the business logic is tested with a double as above.
 
-The repository class itself is tested with the **ABAP SQL test environment**. `cl_osql_test_environment=>create` takes the database tables to replace in `i_dependency_list`. While the environment is active, the ABAP SQL statements of the code under test read and write test doubles of these tables instead of the real ones, and the test fills them with its own rows. The class is `CREATE PRIVATE FOR TESTING`, so only test code can use it.
+The repository class itself is tested with the **ABAP SQL test environment**. `cl_osql_test_environment=>create` takes the database tables to replace in `i_dependency_list`. While the environment is active, the ABAP SQL statements of the code under test read and write test doubles of these tables instead of the real ones, and the test fills them with its own rows. The class is `CREATE PRIVATE FOR TESTING`, so only test code can use it. `create` has `i_dependency_list` as its only public parameter and returns the environment in `r_result`, as a reference to the interface `if_osql_test_environment`. The example uses three of its methods:
+
+| Method | Parameters | Used in the example |
+|---|---|---|
+| `insert_test_data` | `i_data` (any table) is the only mandatory parameter, so it can be passed without a name | in the test method, to fill the double |
+| `clear_doubles` | none | in `setup` |
+| `destroy` | none | in `class_teardown` |
+
+The interface has further methods, among them `get_double` (by name) and `enable_double_redirection` / `disable_double_redirection`.
 
 > 📝 **Contextual snippet** — `zcl_zsm_order_db_repository` implements the placeholder interface `zif_zsm_order_repository`, whose method `read_open` returns the table type `zif_zsm_order_repository=>orders` with the line type of the placeholder table `zsm_t_order`; status `'O'` means open.
 
@@ -280,8 +304,8 @@ Tests protect only when they run regularly, ideally without anyone having to rem
 
 | Where | How |
 |---|---|
-| **ADT for Eclipse** | Run the tests of the open object or of a whole package from the context menu (*Run As → ABAP Unit Test*); a coverage run shows which statements the tests reached. **[verify: menu names and keyboard shortcuts in your ADT version]** |
-| **Visual Studio Code** | **[verify: the SAP tooling for ABAP in Visual Studio Code available to you, and how it runs ABAP Unit]** |
+| **ADT for Eclipse** | From the context menu of a class or a package: *Run As → ABAP Unit Test* (`Ctrl+Shift+F10`), or *ABAP Unit Test With…* (`Ctrl+Shift+F12`) to choose the options first. *Coverage As → ABAP Unit Test* (`Ctrl+Shift+F11`) also measures which statements the tests reached. The same *Run As* menu starts the ABAP Test Cockpit (`Ctrl+Shift+F2`). Shortcuts as in the ADT version checked. |
+| **Visual Studio Code** | With ADT for VS Code installed and no system connected, the command palette offered no command for ABAP Unit; it showed ABAP Feeds and ABAP Cleaner commands. **[verify: how ADT for VS Code runs ABAP Unit with a connected system]** |
 | **SAP GUI** | From the editor of the class or program; for larger sets, the ABAP Unit Browser in the Object Navigator (`SE80`). |
 | **ABAP Test Cockpit (ATC)** | ATC can run the ABAP Unit tests together with the static checks. Include ABAP Unit in the team's check variant ([Rule 13.1](../docs/ABAP-Development-Rules.md#131-release-nothing-that-fails-the-syntax-check-abap-unit-or-atc-with-the-team-check-variant)). |
 | **Continuous integration** | Where a pipeline exists, let it start the ATC run (with ABAP Unit) for every change, so a red test blocks the change before it is transported. |
