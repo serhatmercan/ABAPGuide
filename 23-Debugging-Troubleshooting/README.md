@@ -30,7 +30,7 @@ Every ABAP object has a language version, and the syntax check enforces it ([Rul
 
 The tools differ as well. On-premise you can debug from ADT or from SAP GUI, and analyse short dumps in transaction `ST22`. In an SAP BTP ABAP environment, development, debugging and dump analysis take place in ADT. Where ADT shows a short dump differs between the two; see [Reading a Short Dump](#reading-a-short-dump).
 
-Checkpoint groups are repository objects of type `ACID`, maintained in Standard ABAP with transaction `SAAB`. In an SAP BTP ABAP environment, ADT for Eclipse offered no wizard for creating one (*File → New → Other*, search for "checkpoint"), and `ACID` is not among the object types that the ADT MCP server can create (checked on an on-premise system). **[verify: whether checkpoint groups for `ASSERT ID` can be created and activated in your SAP BTP ABAP environment by other means]**
+Checkpoint groups are repository objects of type `ACID`, maintained in Standard ABAP with transaction `SAAB`. In an SAP BTP ABAP environment, ADT for Eclipse offered no wizard for creating one (*File → New → Other*, search for "checkpoint"). **[verify: whether checkpoint groups for `ASSERT ID` can be created and activated in your SAP BTP ABAP environment by other means]**
 
 ## 🐞 The ABAP Debugger in ADT and SAP GUI
 
@@ -59,7 +59,7 @@ The SAP GUI debugger uses the same function keys under other names: *Single Step
 
 According to the ABAP Keyword Documentation, breakpoints in system programs (names starting with `%_`) are respected only when system debugging is switched on, for example with `/hs` in the command field.
 
-> ⚠️ **Debugging in a production system is a controlled activity.** Changing a variable's value in the debugger bypasses every check of the application, so the authorization for it is a privileged permission, not a convenience. It is the authorization object `S_DEVELOP` with object type `DEBUG` and activity `02`; activity `03` allows debugging without changes. **[verify: how such changes are recorded in your system]**
+> ⚠️ **Debugging in a production system is a controlled activity.** Changing a variable's value in the debugger bypasses every check of the application, so the authorization for it is a privileged permission, not a convenience. It is the authorization object `S_DEVELOP` with object type `DEBUG` and activity `02`; activity `03` allows debugging without changes. **[verify: whether newer releases use a dedicated authorization object for debugging]** **[verify: how such changes are recorded in your system]**
 
 **Standard ABAP / ABAP for Cloud Development:** the debugger in ADT serves both; the SAP GUI debugger and `/h` need SAP GUI, which on-premise systems provide.
 
@@ -306,8 +306,6 @@ Where the dump appeared differed:
 | Editor | no tab opened; the dump was opened by hand in ADT | the dumps of E3 and E4 opened in an editor tab titled with the runtime error name |
 | Feed *ABAP Runtime Errors* | listed every dump of the run checks | not checked |
 | Start of *Active Calls/Events* | the RFC entry program, because ADT reaches this system by RFC | the HTTP entry program |
-
-> 💡 In the feed, filter by date or runtime error. In the run checks, a filter on the object name did not find the dumps, while a filter on the date did.
 
 > 💡 A dump that names a standard program and an "internal error" is rarely fixed in your code. Search SAP's knowledge base with the runtime error name and the short text before you change anything.
 
