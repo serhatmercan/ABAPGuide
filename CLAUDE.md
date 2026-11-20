@@ -10,6 +10,8 @@ Coding rules: docs/ABAP-Development-Rules.md. Cite rules by number (Rule 2.6).
   chapters on these; link to Chapter 21 "Scope Boundary" instead.
 - ABAP Unit is Chapter 22 (`22-ABAP-Unit`); rule section 10 summarises,
   the chapter teaches.
+- Mail is Chapter 24 (`24-Mail`). A reusable mail component belongs to
+  the future ABAP-Cookbook; the chapter describes its design only.
 - Debugging is Chapter 23 (`23-Debugging-Troubleshooting`). Keep the
   folder name `18-Debugging`; its title is "Messages, Exceptions &
   Logging".
@@ -75,5 +77,9 @@ Coding rules: docs/ABAP-Development-Rules.md. Cite rules by number (Rule 2.6).
 - For version questions link the ABAP Keyword Documentation (latest index
   URL as in the root README).
 - External links are limited to official SAP documentation (help.sap.com,
-  ABAP Keyword Documentation), SAP's Clean ABAP style guide, and the
-  sibling guides in github.com/serhatmercan.
+  ABAP Keyword Documentation), SAP's Clean ABAP style guide, the sibling
+  guides in github.com/serhatmercan, and the established open-source ABAP
+  projects listed here:
+  - abap2xlsx (https://github.com/abap2xlsx/abap2xlsx)
+  Link such a project instead of copying its code; add a project to this
+  list before linking it.
