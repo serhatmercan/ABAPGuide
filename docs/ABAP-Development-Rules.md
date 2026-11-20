@@ -1643,7 +1643,7 @@ DATA(cell) = |<td>{ order-note }</td>|.
 
 Values written into code end up in transports and in version history. They are also identical in every system, which is wrong for a target that differs between development and production.
 
-Connection details belong in an RFC destination (Standard ABAP) or a communication arrangement (ABAP Cloud). The name of the destination comes from configuration.
+Connection details belong in an RFC destination (Standard ABAP) or a communication arrangement (ABAP Cloud). The name of the destination comes from configuration. For HTTP calls, see [25-HTTP-REST](../25-HTTP-REST/README.md#-destinations-credentials-and-tokens).
 
 ```abap
 " ✅
@@ -1828,6 +1828,34 @@ subject = |Order { order_id } is { days_late } days late|.
 " ❌
 subject = |Order for { customer-name }, { customer-street } is late, amount { order-net_amount }|.
 ```
+
+### 8.13 Check business authorizations in every HTTP handler, and store no logon data in a service
+
+An HTTP handler is an entry point, like an RFC function module (8.10). The logon to the service decides who may call it, not which data the caller may read or change.
+
+- The handler, or the class it delegates to, checks the business authorizations before it reads or changes data (8.1). In guide examples, mark the place (8.2).
+- Store no user and password in the logon data of a service. According to SAP's documentation, logon data stored in an `SICF` service node applies to that node and the nodes below it, and requests then run as that user without any logon. Every caller then acts with that user's authorizations.
+- Validate every input of the request before it is used (8.4).
+
+See [25-HTTP-REST](../25-HTTP-REST/README.md#-security-in-handlers).
+
+This is a team rule.
+
+```abap
+" ✅ the handler checks before it reads
+METHOD if_http_service_extension~handle_request.
+  " >>> Authorization check for the requested data belongs here (8.2);
+  "     answer 403 when it fails.
+  response->set_text( rates_as_json( ) ).
+ENDMETHOD.
+
+" ❌ the handler relies on the service logon alone
+METHOD if_http_service_extension~handle_request.
+  response->set_text( rates_as_json( ) ).
+ENDMETHOD.
+```
+
+> 📝 **Contextual snippet** — `rates_as_json` is a placeholder method of the handler class that returns the requested data as JSON.
 
 ---
 
@@ -2421,7 +2449,7 @@ These rules are decisions of the team: they have no basis in Clean ABAP or the A
 | Classes and methods | 5.12 |
 | Error handling | 6.2 (one abstract root per category), 6.6, 6.7, 6.11, 6.12 (the split between `ASSERT`, `CX_NO_CHECK` and `RAISE SHORTDUMP`) |
 | Database access and SAP LUW | 7.13, 7.14, 7.15 |
-| Security | 8.2, 8.3, 8.9, 8.10, 8.11, 8.12 |
+| Security | 8.2, 8.3, 8.9, 8.10, 8.11, 8.12, 8.13 |
 | Performance | 9.1 |
 | Testing | 10.1, 10.2 (default risk level and duration), 10.10 |
 | Comments | 11.5 (reason for each pragma), 11.6 |
