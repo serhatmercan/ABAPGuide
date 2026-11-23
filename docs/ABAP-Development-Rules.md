@@ -210,6 +210,9 @@ A fixed infix per object type tells the reader what kind of object a name refers
 | Transaction | `zsm_` | `zsm_ord_prio` |
 | Lock object | `EZSM_` | `EZSM_ORDER` |
 | Checkpoint group | `zsm_cp_` | `zsm_cp_order` |
+| Form (Adobe form) | `zsm_af_` | `zsm_af_order` |
+| Form interface | `zsm_afi_` | `zsm_afi_order` |
+| Smart Form (existing code only) | `zsm_sf_` | `zsm_sf_order` |
 | Local class | `lcl_` | `lcl_main` |
 | Local interface | `lif_` | `lif_order_source` |
 | Local test class | `ltc_` | `ltc_release` |
@@ -220,6 +223,8 @@ A fixed infix per object type tells the reader what kind of object a name refers
 > 📝 Lock object names must start with `E`, so the lock object row puts `E` in front of the namespace instead of using a lower-case infix.
 
 > 📝 Checkpoint groups are maintained in transaction `SAAB` and control `ASSERT`, `BREAK-POINT` and `LOG-POINT` with the addition `ID` (6.12, 13.6). The name has at most 30 characters: the directory of checkpoint groups types it with the data element `AAB_ID_NAME`, `CHAR` of length 30.
+
+> 📝 Form and form interface names have at most 30 characters: the domain `FPNAME` is `CHAR` of length 30.
 
 > 📝 Local types live inside one program, so they carry a short type prefix without the namespace. These prefixes are common SAP practice, and Clean ABAP itself names local test classes `ltc_` and test helpers `lth_`. Section 14 records this as a deviation.
 
@@ -953,6 +958,29 @@ METHOD constructor.
   orders = repository->read_open( ).
   send_reminders( orders ).
 ENDMETHOD.
+```
+
+### 5.13 Prepare form data in ABAP; keep selections and business logic out of form code and layout scripts
+
+A form interface can select data in its initialization code and form routines, and a layout can run scripts. Logic there runs only when the form is rendered, cannot be unit-tested, and is invisible to the program that calls the form.
+
+- Read, check and compute the data in a class, and pass the result through the import parameters of the form interface.
+- Use initialization code only to arrange what was passed in: filter, sort, group.
+- Keep layout scripts to presentation: show, hide, format.
+
+This is a team rule. See [28-Adobe-Forms](../28-Adobe-Forms/README.md#-form-interface-form-and-context-sfp).
+
+> 📝 **Contextual snippet** — the initialization code of a form interface with the import parameter `items` and the global data `printed_items`; `zsm_t_order_item` is a placeholder table.
+
+```abap
+" ✅ arrange what the program passed in
+printed_items = VALUE #( FOR item IN items WHERE ( quantity > 0 )
+                         ( item ) ).
+
+" ❌ the form reads and decides on its own
+SELECT * FROM zsm_t_order_item
+  WHERE order_id = @order_id
+  INTO TABLE @printed_items.
 ```
 
 ---
@@ -2008,6 +2036,25 @@ ENDIF.
 
 > 📝 Authorization groups are assigned in `SE54` when the dialog is generated, not in code. The example shows the check a program needs when it offers table access of its own.
 
+### 8.15 Take output devices and form names from configuration; never hard-code a printer
+
+Printers and forms differ per company, country, plant or document type, and they change without a release. A device or form name in code sends documents to the wrong printer or in the wrong layout as soon as the landscape changes.
+
+- Read form names and output devices from a settings table or interface (7.16), or use the user's defaults.
+- Leave the ADS connection empty so that the system default applies (8.5).
+
+This is a team rule. See [28-Adobe-Forms](../28-Adobe-Forms/README.md#-calling-a-form-in-standard-abap).
+
+> 📝 **Contextual snippet** — `settings` is a placeholder settings interface that reads the output device per document type.
+
+```abap
+" ✅
+output_parameters-dest = settings->output_device( document_type ).
+
+" ❌
+output_parameters-dest = 'LP01'.
+```
+
 ---
 
 ## 9 Performance
@@ -2597,10 +2644,10 @@ These rules are decisions of the team: they have no basis in Clean ABAP or the A
 |---|---|
 | Language version | 1.3 |
 | Modern syntax | 3.8, 3.9, 3.18, 3.19 (no new macros at all) |
-| Classes and methods | 5.12 |
+| Classes and methods | 5.12, 5.13 |
 | Error handling | 6.2 (one abstract root per category), 6.6, 6.7, 6.11, 6.12 (the split between `ASSERT`, `CX_NO_CHECK` and `RAISE SHORTDUMP`) |
 | Database access and SAP LUW | 7.13, 7.14, 7.15, 7.16, 7.17, 7.18, 7.19 |
-| Security | 8.2, 8.3, 8.9, 8.10, 8.11, 8.12, 8.13, 8.14 |
+| Security | 8.2, 8.3, 8.9, 8.10, 8.11, 8.12, 8.13, 8.14, 8.15 |
 | Performance | 9.1 |
 | Testing | 10.1, 10.2 (default risk level and duration), 10.10 |
 | Comments | 11.5 (reason for each pragma), 11.6 |
