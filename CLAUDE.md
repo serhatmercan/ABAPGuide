@@ -38,6 +38,12 @@ Coding rules: docs/ABAP-Development-Rules.md. Cite rules by number (Rule 2.6).
   Cleaner, abapGit, AI assistants and MCP servers for ADT. Observed tool
   behaviour is VERSION-DEPENDENT and carries no system details or dates;
   community MCP servers are not named.
+- Business workflow is Chapter 31 (`31-Business-Workflow`): SAP Business
+  Workflow, BOR and IF_WORKFLOW classes, events and linkages, agents,
+  work items, flexible workflow, and testing without a workflow. The My
+  Inbox task UI belongs to UIGuide, RAP business events to RAPGuide, and
+  SAP Build Process Automation to the SAP-Architecture-Guide; the chapter
+  describes the hand-over only.
 - Debugging is Chapter 23 (`23-Debugging-Troubleshooting`). Keep the
   folder name `18-Debugging`; its title is "Messages, Exceptions &
   Logging".
