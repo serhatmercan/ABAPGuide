@@ -23,6 +23,11 @@ Coding rules: docs/ABAP-Development-Rules.md. Cite rules by number (Rule 2.6).
 - Lock objects are Chapter 27 (`27-Lock-Objects`): the SAP lock concept,
   generated ENQUEUE_/DEQUEUE_ modules and the released lock API. Locking
   in RAP belongs to the future RAPGuide; the chapter names the terms only.
+- Adobe forms are Chapter 28 (`28-Adobe-Forms`): form interface and form in
+  SFP, calling a form and getting the PDF, ADS as a prerequisite, and the
+  released forms API of ABAP for Cloud Development. Layout design, ADS
+  configuration and output management (NAST, PPF, BRF+ determination) stay
+  out of scope; Smart Forms and SAPscript appear as lifecycle reference only.
 - Debugging is Chapter 23 (`23-Debugging-Troubleshooting`). Keep the
   folder name `18-Debugging`; its title is "Messages, Exceptions &
   Logging".
