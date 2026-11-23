@@ -16,9 +16,8 @@ A shared rule set keeps code consistent when readers move between guides. The ru
 
 - ABAPGuide
 - GWGuide
-- ABAP-Cookbook
 - ABAP code in CDSGuide and CDS-Cookbook
-- RAPGuide and HANAGuide, once they exist
+- ABAP-Cookbook, RAPGuide and HANAGuide, once they exist
 
 Existing code is not rewritten just to comply. It is aligned when it is next changed, or in the planned pass for each guide.
 
@@ -1591,6 +1590,8 @@ The delivery class decides how the entries of a table are treated by the transpo
 - Temporary data and logs that must never travel get L.
 - Set the class when you create the table: ADT starts a new table with A.
 
+A Customizing table is where values that differ per system or organisational unit live; one case of [8.5](#85-never-hard-code-credentials-hosts-or-destinations).
+
 This is a team rule. See [26-Maintenance-Views](../26-Maintenance-Views/README.md#-customizing-tables-delivery-class-and-client).
 
 ```abap
@@ -1827,9 +1828,20 @@ DATA(cell) = |<td>{ order-note }</td>|.
 
 ### 8.5 Never hard-code credentials, hosts or destinations
 
-Values written into code end up in transports and in version history. They are also identical in every system, which is wrong for a target that differs between development and production.
+Values written into code end up in transports and in version history. They are also identical in every system, which is wrong for any value that differs between development and production, between clients or organisational units, or between users. Every such value comes from configuration; credentials, hosts and destinations are the case this rule states first.
 
-Connection details belong in an RFC destination (Standard ABAP) or a communication arrangement (ABAP Cloud). The name of the destination comes from configuration. For HTTP calls, see [25-HTTP-REST](../25-HTTP-REST/README.md#-destinations-credentials-and-tokens).
+| Value | Comes from | Rule |
+|---|---|---|
+| Connection details and credentials | RFC destination or communication arrangement | 8.5 |
+| Server file paths | Logical file names | [8.7](#87-resolve-and-validate-file-paths-through-logical-file-names) |
+| Business settings and thresholds | A Customizing table behind a settings interface | [7.16](#716-give-every-custom-table-the-delivery-class-of-the-people-who-own-its-data-c-for-customizing-a-for-application-data) |
+| Mail recipients and senders | Configuration, a distribution list or an SAP user | [8.11](#811-take-mail-recipients-and-senders-from-configuration-never-write-addresses-into-code) |
+| Output devices and form names | A settings table or the user's defaults | [8.15](#815-take-output-devices-and-form-names-from-configuration-never-hard-code-a-printer) |
+| Workflow agents | Agent rules and organizational assignments | [8.16](#816-determine-workflow-agents-through-rules-and-organizational-assignments-never-hard-code-user-ids) |
+
+Connection details belong in an RFC destination (Standard ABAP) or a communication arrangement (SAP BTP ABAP environment and ABAP for Cloud Development). The name of the destination comes from configuration. For HTTP calls, see [25-HTTP-REST](../25-HTTP-REST/README.md#-destinations-credentials-and-tokens).
+
+Extending this rule from connection details to every value that differs per system or user is a team rule.
 
 ```abap
 " ✅
@@ -1884,6 +1896,8 @@ DATA(one_time_code) = cl_abap_random_int=>create( seed = seed
 ### 8.7 Resolve and validate file paths through logical file names
 
 A path taken from input can point anywhere the application server can reach (directory traversal). A logical file name restricts it to a maintained directory. Logical file names are maintained in transactions `FILE` and `SF01`.
+
+One case of [8.5](#85-never-hard-code-credentials-hosts-or-destinations): server paths differ per system.
 
 The ABAP Keyword Documentation names two function modules:
 
@@ -1976,9 +1990,7 @@ ENDFUNCTION.
 
 ### 8.11 Take mail recipients and senders from configuration; never write addresses into code
 
-The reasoning of 8.5 applies to mail addresses as well. An address in a literal travels with every transport, so a test system mails the production recipients. And every change of a recipient becomes a code change.
-
-Read recipients and senders from configuration: a Customizing table behind a settings interface, a distribution list, or an SAP user. Test code uses addresses of a domain reserved for documentation, such as `example.com`. See [24-Mail](../24-Mail/README.md#-addresses-from-configuration).
+Applies 8.5 to mail addresses: a hard-coded address makes a test system mail the production recipients. Test code uses addresses of a domain reserved for documentation, such as `example.com`. See [24-Mail](../24-Mail/README.md#-addresses-from-configuration).
 
 This is a team rule.
 
@@ -2068,10 +2080,7 @@ ENDIF.
 
 ### 8.15 Take output devices and form names from configuration; never hard-code a printer
 
-Printers and forms differ per company, country, plant or document type, and they change without a release. A device or form name in code sends documents to the wrong printer or in the wrong layout as soon as the landscape changes.
-
-- Read form names and output devices from a settings table or interface (7.16), or use the user's defaults.
-- Leave the ADS connection empty so that the system default applies (8.5).
+Applies 8.5 to output devices and form names, which differ per company, country, plant or document type. Leave the ADS connection empty so that the system default applies.
 
 This is a team rule. See [28-Adobe-Forms](../28-Adobe-Forms/README.md#-calling-a-form-in-standard-abap).
 
@@ -2087,9 +2096,8 @@ output_parameters-dest = 'LP01'.
 
 ### 8.16 Determine workflow agents through rules and organizational assignments; never hard-code user IDs
 
-People change roles, go on leave and leave the company. A user ID in code or in a workflow definition sends work to whoever held it when the code was written.
+Applies 8.5 to workflow agents: a user ID in code or in a workflow definition sends work to whoever held it when the code was written.
 
-- Determine agents with rules that read organizational assignments or configuration.
 - Let a rule report that it found nobody (for a rule function module, the exception `nobody_found`) instead of returning an empty result.
 - Keep user IDs out of code, tests and reports (15.5).
 
@@ -2697,7 +2705,7 @@ These rules are decisions of the team: they have no basis in Clean ABAP or the A
 | Classes and methods | 5.12, 5.13, 5.14 |
 | Error handling | 6.2 (one abstract root per category), 6.6, 6.7, 6.11, 6.12 (the split between `ASSERT`, `CX_NO_CHECK` and `RAISE SHORTDUMP`) |
 | Database access and SAP LUW | 7.13, 7.14, 7.15, 7.16, 7.17, 7.18, 7.19, 7.20, 7.21 |
-| Security | 8.2, 8.3, 8.9, 8.10, 8.11, 8.12, 8.13, 8.14, 8.15, 8.16 |
+| Security | 8.2, 8.3, 8.5 (extension to every value that differs per system or user), 8.9, 8.10, 8.11, 8.12, 8.13, 8.14, 8.15, 8.16 |
 | Performance | 9.1 |
 | Testing | 10.1, 10.2 (default risk level and duration), 10.10 |
 | Comments | 11.5 (reason for each pragma), 11.6 |
