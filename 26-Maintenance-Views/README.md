@@ -269,9 +269,9 @@ The full list is in SAP's documentation of extended table maintenance events, an
 
 The routines run inside the generated program and work with its global data:
 
-- the internal tables `TOTAL` (all entries read from the database) and `EXTRACT` (the entries currently displayed) **[verify: how `TOTAL` and `EXTRACT` are declared in your generated dialog]**;
-- field symbols such as `<vim_total_struc>` (the table fields of the current `TOTAL` line), `<action>` (what happened to that line) and `<mark>` (whether it is marked);
-- action values defined by the framework as constants, among them `neuer_eintrag` (`N`, new), `aendern` (`U`, changed), `geloescht` (`D`, deleted), `update_geloescht` (`Y`, changed and then deleted) and `neuer_geloescht` (`X`, new and then deleted, so nothing to save);
+- the internal tables `TOTAL` (all entries read from the database) and `EXTRACT` (the entries currently displayed). They are `TABLES` parameters of the generated function module `TABLEPROC_<table or view>`, typed as generic standard tables, so each has a header line; `LOOP AT total` fills the header line of `TOTAL`;
+- field symbols for the current line of each table: `<vim_total_struc>` (the table fields of the current `TOTAL` line), `<action>` (what happened to that line) and `<mark>` (whether it is marked); for the current `EXTRACT` line, the framework uses `<xact>` and `<xmark>`;
+- action values defined by the framework as constants, among them `neuer_eintrag` (`N`, new), `aendern` (`U`, changed), `geloescht` (`D`, deleted), `update_geloescht` (`Y`, changed and then deleted), `neuer_geloescht` (`X`, new and then deleted, so nothing to save) and `leer` (`L`, an empty line offered for a new entry);
 - the flag `vim_abort_saving`: when an event 01 routine sets it, the dialog does not save.
 
 These names come from SAP's maintenance framework (function group `SVIM`), read on the on-premise system used for this chapter. They are not a released API; check them in your release before you rely on one.
@@ -411,7 +411,7 @@ ENDCLASS.
 
 **Example E4b — the event 01 routine.** It collects the new, changed and deleted entries, asks the class, and stops the save when needed. The dialog then writes, records and commits, or does nothing.
 
-> 📝 **Contextual snippet** — assumes the generated dialog of `zsm_t_ord_prio` with this routine registered for event 01, a message class `zsm_msg` with messages 010 and 011, a text symbol `q01` with the question, and the framework names described above; `POPUP_TO_CONFIRM` returns `1` for the first button **[verify]**.
+> 📝 **Contextual snippet** — assumes the generated dialog of `zsm_t_ord_prio` with this routine registered for event 01, a message class `zsm_msg` with messages 010 and 011, a text symbol `q01` with the question, and the framework names described above; `POPUP_TO_CONFIRM` sets `answer` to `1` for the function code `OPT1` and to `A` for cancel **[verify: that the first button carries `OPT1`]**.
 
 ```abap
 " Event 01: runs before the dialog saves; setting vim_abort_saving
@@ -468,13 +468,14 @@ The routine never touches the database. Everything it knows about rules comes fr
 
 Sometimes a field should be ready for input only in some lines, for example `escalate` only in new entries. That needs a module in the flow logic of a generated screen.
 
-> 📝 **Contextual snippet** — a PBO module of the generated function group, called inside the generated `LOOP AT EXTRACT` of the overview screen, so that `<action>` refers to the current line **[verify]**; screen field names follow the pattern `table-field`.
+> 📝 **Contextual snippet** — a PBO module of the generated function group, called inside the generated `LOOP AT EXTRACT` of the overview screen after the generated module `LISTE_SHOW_LISTE`. Inside that loop the framework's own module reads the current line through `<xact>` and `<xmark>`, not through `<action>`, which belongs to `TOTAL`. Screen field names follow the pattern `table-field`. **[verify: which action value a newly typed line carries in `EXTRACT` before it is first saved]**
 
 ```abap
 MODULE zsm_escalate_only_when_new OUTPUT.
   " Escalation is decided when the rule is created, not changed later
   LOOP AT SCREEN INTO DATA(screen_field).
-    IF screen_field-name = 'ZSM_T_ORD_PRIO-ESCALATE' AND <action> <> neuer_eintrag.
+    IF screen_field-name = 'ZSM_T_ORD_PRIO-ESCALATE'
+       AND <xact> <> neuer_eintrag AND <xact> <> leer.
       screen_field-input = 0.
       MODIFY SCREEN FROM screen_field.
     ENDIF.
