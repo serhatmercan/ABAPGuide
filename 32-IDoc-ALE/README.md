@@ -70,7 +70,7 @@ An outbound IDoc starts in one of three ways:
 - **Change pointers** for master data: according to SAP's documentation, change pointers are switched on in general (`BD61`) and per message type (`BD50`); the program `RBDMIDOC` (or `BD21`) reads them, creates IDocs and marks the pointers as processed, usually as a scheduled job with a variant per message type. `RBDCPCLR` (`BD22`) deletes processed and obsolete change pointers, so that the change pointer tables stay small.
 - **Directly from ABAP** with `MASTER_IDOC_DISTRIBUTE`: the program passes a control record template (`MASTER_IDOC_CONTROL`) and the data records (`MASTER_IDOC_DATA`); the function module determines the receivers and returns one control record per IDoc created (`COMMUNICATION_IDOC_CONTROL`). Its classic exceptions are `ERROR_IN_IDOC_CONTROL`, `ERROR_WRITING_IDOC_STATUS`, `ERROR_IN_IDOC_DATA` and `SENDING_LOGICAL_SYSTEM_UNKNOWN`.
 
-Whether an IDoc is passed to the port at once or collected and sent later by `RSEOUT00` is set in the partner profile **[verify: immediate and collected dispatch, and whether the dispatch waits for the caller's COMMIT WORK]**. Either way, a reusable unit never commits; the program that owns the transaction does ([Rule 7.10](../docs/ABAP-Development-Rules.md#710-let-the-top-level-caller-own-the-transaction-reusable-units-never-commit-work)).
+Whether an IDoc is passed to the port at once or collected and sent later by `RSEOUT00` is set in the partner profile; SAP's support content (*IDoc Statuses List*) shows a collected IDoc in status 30 until `RSEOUT00` runs **[verify: immediate and collected dispatch, and whether the dispatch waits for the caller's COMMIT WORK]**. Either way, a reusable unit never commits; the program that owns the transaction does ([Rule 7.10](../docs/ABAP-Development-Rules.md#710-let-the-top-level-caller-own-the-transaction-reusable-units-never-commit-work)).
 
 **Example E1 — sending an order.** Target: interface and exception class Standard ABAP and ABAP for Cloud Development; the implementation Standard ABAP.
 
@@ -289,7 +289,12 @@ The partner profile assigns an inbound **process code** (`WE42`) to a message ty
 | `RETURN_VARIABLES` (`BDWFRETVAR`) | TABLES | IDoc and document numbers for the workflow, for example as `Processed_IDOCs` or `Error_IDOCs` |
 | `SERIALIZATION_INFO` (`BDI_SER`) | TABLES | Serialization data |
 
-The module reads the data records of each IDoc, posts the business document and writes a status record. According to SAP's documentation, status **53** means the application document was posted and **51** that it was not; **64** means ready to be passed to the application, and **63** an error passing it **[verify: the complete list of status values in your system]**.
+The module reads the data records of each IDoc, posts the business document and writes a status record. According to SAP's documentation, status **53** means the application document was posted and **51** that it was not; **64** means ready to be passed to the application, and **63** an error passing it. SAP's support content (*IDoc Statuses List*) names table `TEDS1` as the complete list of status values and groups the common ones:
+
+| Direction | Status values |
+|---|---|
+| Outbound | 01 created, 30 ready for dispatch (waits for `RSEOUT00`), 03 transmitted, 12 dispatch OK; errors such as 02 (passing to the port), 26 (syntax check) and 29 (ALE service) |
+| Inbound | 50 added, 64 ready for the application (passed by `RBDAPP01`), 53 posted; errors such as 51 (not posted), 60 (syntax check), 63 (passing to the application) and 65 (ALE service, often the partner profile) |
 
 **Posting through BAPIs.** SAP's documentation describes how inbound processing calls a BAPI from the IDoc's data: if the BAPI's return table contains a message of type `A` or `E`, the IDoc gets status 51; otherwise status 53, and the framework commits. A posting through a BAPI follows [15-BAPIs](../15-BAPIs/README.md#-commit--rollback): the BAPI never commits, the caller does.
 
