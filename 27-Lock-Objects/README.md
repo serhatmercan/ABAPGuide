@@ -85,6 +85,10 @@ The lock object is a form-based object in ADT, so it has no source code. Its set
 
 > 📝 The field `version` is not needed for locking. It serves the optimistic check in [Pessimistic and Optimistic Locking](#-pessimistic-and-optimistic-locking).
 
+> ⚠️ **An empty lock mode activates, but locks nothing.** If the lock mode of the primary table is left empty, the lock object still activates. The generated `ENQUEUE_` and `DEQUEUE_` modules then have no `MODE_<table>` parameter, and their body only states that no table can be locked, so a call locks nothing. ADT shows warnings for this state, but they do not stop the activation. After activating, check that the lock mode is set and that `ENQUEUE_<name>` has the parameter `MODE_<table>`. This was observed in Standard ABAP and in ABAP for Cloud Development; the warnings were seen in the ADT editor in ABAP for Cloud Development.
+
+> ⚠️ **VERSION-DEPENDENT: the lock mode in the ABAP file format.** In the lock object's file in the ABAP file format, the lock mode reads `"exclusive"` for an empty mode as well; `exclusive` is the default of that field in the format's schema. A review of that file therefore cannot tell an empty mode from a write lock; check the generated module instead. Observed in the systems used for this chapter.
+
 ## 🎚️ Lock Modes
 
 The mode decides which other locks a lock collides with. According to the ABAP Keyword Documentation and SAP's documentation:
@@ -170,7 +174,7 @@ ENDCLASS.
 
 The classic exceptions become a class-based exception at this boundary, with the lock message attached ([Rule 6.9](../docs/ABAP-Development-Rules.md#69-turn-sy-subrc-and-bapi-return-tables-into-exceptions-at-the-boundary)). The interface `zif_zsm_order_lock` and the exception class are part of E4.
 
-> 📝 The modules generated for `EZSM_ORDER` could not be displayed through the ADT tools used for this chapter. The parameter names in E2 follow the pattern of the generated module that was read; activation does not check the parameters of a `CALL FUNCTION` with a literal name. **[verify: the interface of `ENQUEUE_EZSM_ORDER` in `SE37`]**
+> 📝 The interface of `ENQUEUE_EZSM_ORDER`, read in ABAP for Cloud Development after the write lock was set: the importing parameters `MODE_ZSM_T_ORDER` (type `ENQMODE`, default `'E'`), `CLIENT`, `ORDER_ID`, `X_ORDER_ID`, `_SCOPE`, `_WAIT` and `_COLLECT`, and the exceptions `FOREIGN_LOCK` and `SYSTEM_FAILURE`. E2 leaves `MODE_ZSM_T_ORDER` and `CLIENT` at their defaults. Activation does not check the parameters of a `CALL FUNCTION` with a literal name, so compare E2 with the module in `SE37` after every change to the lock object.
 
 ## ☁️ The Released Lock API
 
@@ -671,7 +675,7 @@ ENDCLASS.
 
 **To try it:** create E1, E4's four objects with the test include, and E3 or E2 as local objects; activate and run the tests of `zcl_zsm_order_status_service`. All five pass without a single real lock and without a single row in the real table. Then remove the `AND version = @expected_version` line and watch `rejects_stale_version` fail.
 
-> 📝 **Activation record.** E1 (`zsm_t_order` and the lock object `EZSM_ORDER`), E3 (`zcl_zsm_order_lock`) and E4 (`zcx_zsm_order_lock_failed`, `zcx_zsm_order_not_found`, `zif_zsm_order_lock`, `zcl_zsm_order_status_service` with its test include, including the optimistic method) were activated in both ABAP language versions: Standard ABAP and ABAP for Cloud Development. The 5 test methods of `zcl_zsm_order_status_service` were run in both versions, and the test run passed. E2 (`zcl_zsm_order_lock_classic`) was activated in Standard ABAP. E2 and E3 were not run, and no code that sets a real lock was executed. No table entry was written outside the ABAP SQL test double, and nothing was transported.
+> 📝 **Activation record.** E1 (`zsm_t_order` and the lock object `EZSM_ORDER`), E3 (`zcl_zsm_order_lock`) and E4 (`zcx_zsm_order_lock_failed`, `zcx_zsm_order_not_found`, `zif_zsm_order_lock`, `zcl_zsm_order_status_service` with its test include, including the optimistic method) were activated in both ABAP language versions: Standard ABAP and ABAP for Cloud Development. The 5 test methods of `zcl_zsm_order_status_service` were run in both versions, and the test run passed. E2 (`zcl_zsm_order_lock_classic`) was activated in Standard ABAP. The first activation of `EZSM_ORDER` left the lock mode of the primary table empty in both versions: activation reported success, but the generated modules locked nothing (see [An empty lock mode](#-lock-objects-in-the-abap-dictionary)). With the write lock set explicitly, the generated modules were complete; this was checked in ABAP for Cloud Development, and the lock object in Standard ABAP was not re-checked. The unit tests use a lock double and are not affected. E2 and E3 were not run, and no code that sets a real lock was executed. No table entry was written outside the ABAP SQL test double, and nothing was transported.
 
 ## 🧭 Scope Note
 
@@ -694,6 +698,7 @@ ENDCLASS.
 
 ## ⚠️ Common Mistakes
 
+- Leaving the lock mode of the primary table empty. The lock object activates, but the generated modules have no `MODE_<table>` parameter and lock nothing.
 - Changing data without asking for the lock, because "the other program locks". A lock protects only against programs that also ask for it.
 - Passing an empty key and locking every order of the client.
 - Passing the client explicitly, or a hard-coded client, instead of leaving it to the default.
