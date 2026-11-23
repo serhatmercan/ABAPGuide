@@ -2,6 +2,8 @@
 
 ## 📖 Introduction
 
+> **Lifecycle:** labelled per approach in the table below, consistent with [21-Classic-vs-Modern-ABAP](../21-Classic-vs-Modern-ABAP/README.md): `cl_salv_table` `CURRENT / RECOMMENDED`, `REUSE_ALV_*` and `cl_gui_alv_grid` `CLASSIC BUT STILL RELEVANT`.
+
 ALV is the standard SAP grid control for displaying tabular data with sorting, filtering, totals, and export capabilities built in. There are three common ways to build an ALV report, from simplest to most flexible:
 
 | Approach | Class/FM | Complexity | Flexibility | Lifecycle |

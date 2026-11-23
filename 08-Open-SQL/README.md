@@ -712,6 +712,15 @@ Where the key must be a readable running number, draw it from a number range obj
 - Show why a `WHERE` predicate on the right-hand table of a `LEFT OUTER JOIN` changes the result set.
 - Explain the performance implications of `SELECT *` and of `INTO CORRESPONDING FIELDS`.
 
+## 🖥️ Related Transaction Codes
+
+| T-Code | Purpose |
+|---|---|
+| SE11 | Data Dictionary (table/structure maintenance) |
+| SE16N | Table data browser |
+| ST05 | SQL Trace (analyze SELECT performance) |
+| SE30 / SAT | Runtime analysis |
+
 ## 🔗 Related Chapters
 
 - [06-Loops](../06-Loops/README.md) — range tables used in `WHERE ... IN`
@@ -723,12 +732,3 @@ Where the key must be a readable running number, draw it from a number range obj
 - [21-Classic-vs-Modern-ABAP](../21-Classic-vs-Modern-ABAP/README.md) — lifecycle context
 - [26-Maintenance-Views](../26-Maintenance-Views/README.md) — Customizing tables: delivery class, client and maintenance
 - [27-Lock-Objects](../27-Lock-Objects/README.md) — lock objects, lock modes and optimistic locking
-
-## 🖥️ Related Transaction Codes
-
-| T-Code | Purpose |
-|---|---|
-| SE11 | Data Dictionary (table/structure maintenance) |
-| SE16N | Table data browser |
-| ST05 | SQL Trace (analyze SELECT performance) |
-| SE30 / SAT | Runtime analysis |

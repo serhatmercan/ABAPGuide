@@ -318,6 +318,10 @@ ENDCASE.
 
 > ⚠️ **`CHECK` is not a general-purpose guard.** `CHECK <cond>` leaves the current processing block when the condition is **false** (inside a loop, it skips to the next pass). A statement such as `CHECK sy-subrc <> 0 AND data IS NOT INITIAL.` therefore exits on the *success* path, which is almost never what the author intended. Use `CHECK` only as an input check at the start of a method, and `IF … RETURN` or `IF … CONTINUE` everywhere else ([Rule 3.17](../docs/ABAP-Development-Rules.md#317-use-check-only-as-an-input-check-at-the-start-of-a-method-prefer-if--return)).
 
+## 🧭 Scope Note
+
+Interactive debugging, the checkpoint statements `BREAK-POINT`, `ASSERT` and `LOG-POINT`, and reading short dumps are covered in [23-Debugging-Troubleshooting](../23-Debugging-Troubleshooting/README.md).
+
 ## ✅ Best Practices
 
 - **Catch the specific exceptions you can handle.** Order `CATCH` clauses most-specific first. Use a `cx_root` catch only at an outermost boundary, and make it log and re-raise — [Rule 6.6](../docs/ABAP-Development-Rules.md#66-catch-specific-exceptions).
@@ -350,10 +354,6 @@ ENDCASE.
 - Know how to propagate a caught exception's message text (`error->get_text( )`).
 - Explain what `error_message` catches in a function module call, and what happens to `X` messages.
 - Explain how you would log a mass-processing run so that every failed record is traceable afterwards.
-
-## 🐞 Debugger — Scope Note
-
-Interactive debugging, the checkpoint statements `BREAK-POINT`, `ASSERT` and `LOG-POINT`, and reading short dumps are covered in [23-Debugging-Troubleshooting](../23-Debugging-Troubleshooting/README.md).
 
 ## 🖥️ Related Transaction Codes
 
