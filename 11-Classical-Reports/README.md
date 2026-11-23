@@ -234,9 +234,22 @@ START-OF-SELECTION.
 
 Downloading works the same way in reverse: `file_save_dialog` asks for the target path, and `gui_download` writes the table, with `write_field_separator` for tab-separated columns.
 
+> **Lifecycle:** `CLASSIC BUT STILL RELEVANT` for the function modules `GUI_UPLOAD` and `GUI_DOWNLOAD`, which much existing code calls directly. SAP's object classification lists them as classic APIs, like `cl_gui_frontend_services` itself, so neither is the older of the two in SAP's terms. New code uses the class's methods as shown: the file dialogs and the transfer then come from one class. See [21-Classic-vs-Modern-ABAP](../21-Classic-vs-Modern-ABAP/README.md#-classic-but-still-relevant).
+
 > ⚠️ **A background job has no SAP GUI.** `gui_upload` and `gui_download` fail there. Check with the function module `GUI_IS_AVAILABLE` first if the report can also run in the background, or use a file on the application server (next section).
 
-> 📝 **Excel files.** A tab-separated text file, which Excel can save directly, is the most robust upload format. `ALSM_EXCEL_TO_INTERNAL_TABLE` reads the file through OLE automation — its exception `UPLOAD_OLE` reports a failed OLE upload — and shares the limits described in [10-Objects](../10-Objects/README.md#-legacy--interop-objects-ole-odata-model). Check how any other Excel function module reads the file before you rely on it in a report that may run without SAP GUI. For `.xlsx` content, look for a released API in the released-objects list of your release (ABAP Development Tools, or the list of released APIs in the [ABAP Keyword Documentation](https://help.sap.com/doc/abapdocu_latest_index_htm/latest/en-US/index.htm)).
+> 📝 **Excel files.** A tab-separated text file, which Excel can save directly, is the most robust upload format. `ALSM_EXCEL_TO_INTERNAL_TABLE` reads the file through OLE automation — its exception `UPLOAD_OLE` reports a failed OLE upload — and shares the limits described in [10-Objects](../10-Objects/README.md#-legacy--interop-objects-ole-odata-model). Check how any other Excel function module reads the file before you rely on it in a report that may run without SAP GUI.
+
+Two further Excel function modules appear in many existing reports. Both were read in the on-premise system used for this chapter:
+
+| Function module | Interface | How it reads the file |
+|---|---|---|
+| `TEXT_CONVERT_XLS_TO_SAP` | The raw file content (`I_TAB_RAW_DATA`), an optional header-line flag and separator; the result in the generic table `I_TAB_CONVERTED_DATA`; exception `CONVERSION_FAILED` | Through SAP GUI's Office integration (a custom container and an Office control) |
+| `UPLOAD_XLS_FILE_2_ITAB` | A file name (`I_FILENAME`); the result in the generic table `E_ITAB`; exception `FILE_ERROR` | Through a custom container as well; its own comment limits it to flat sheets whose columns match the target table |
+
+> **Lifecycle:** `CLASSIC BUT STILL RELEVANT` for `TEXT_CONVERT_XLS_TO_SAP`, `UPLOAD_XLS_FILE_2_ITAB` and `ALSM_EXCEL_TO_INTERNAL_TABLE` in existing code. SAP's lists neither release nor classify them, and all three need SAP GUI, so they fail in a background job. See [21-Classic-vs-Modern-ABAP](../21-Classic-vs-Modern-ABAP/README.md).
+
+> **Lifecycle:** `ABAP CLOUD / MODERN CONTEXT` for `.xlsx` content. SAP releases the XCO XLSX API: `XCO_CP_XLSX=>document` returns a document factory with `empty( )` for a new workbook and `for_file_content( iv_file_content )` for an `xstring` that holds an existing one, followed by read and write access interfaces. It works on the file content, not on a file, so it runs without SAP GUI once the content is there. SAP's list for Standard ABAP marks it as released as well, and the on-premise system used for this chapter contained it; `VERSION-DEPENDENT` for your release. **[verify: the read and write calls of the XCO XLSX API in your release]**
 
 > **Lifecycle:** `LEGACY / HISTORICAL REFERENCE` for the function modules `WS_FILENAME_GET`, `WS_UPLOAD`, `WS_DOWNLOAD` and `UPLOAD`, older function modules that programs used for the same steps. The methods of `cl_gui_frontend_services` supersede them. See [21-Classic-vs-Modern-ABAP](../21-Classic-vs-Modern-ABAP/README.md#-legacy--historical-reference).
 
@@ -269,6 +282,71 @@ CLOSE DATASET file_path.
 
 > 💡 Write `ENCODING UTF-8` explicitly. The documentation treats `DEFAULT` as the same thing, but the explicit form tells the reader which encoding the receiving system has to expect.
 
+### Reading a File
+
+A file is read with `OPEN DATASET … FOR INPUT`, then `READ DATASET` in a loop. According to the ABAP Keyword Documentation, in text mode each `READ DATASET` reads one line, up to the next end-of-line marker, and `sy-subrc` 4 means that a read was attempted after the end of the file. Reading a file that is not open raises a catchable exception (`CX_SY_FILE_OPEN_MODE`).
+
+> 📝 **Contextual snippet** — assumes a `file_path` resolved from a logical file name ([Rule 8.7](../docs/ABAP-Development-Rules.md#87-resolve-and-validate-file-paths-through-logical-file-names)) and a table `file_lines` of strings; `zsm_msg` is the placeholder message class.
+
+```abap
+DATA os_message TYPE string.
+DATA file_line  TYPE string.
+
+OPEN DATASET file_path FOR INPUT IN TEXT MODE ENCODING UTF-8
+     MESSAGE os_message.
+IF sy-subrc <> 0.
+  MESSAGE e081(zsm_msg) WITH os_message.
+ENDIF.
+
+DO.
+  READ DATASET file_path INTO file_line.
+  " sy-subrc 4: the end of the file was reached
+  IF sy-subrc <> 0.
+    EXIT.
+  ENDIF.
+  INSERT file_line INTO TABLE file_lines.
+ENDDO.
+
+CLOSE DATASET file_path.
+```
+
+### Moving a File Between the Application Server and the PC
+
+Transactions `CG3Y` (download a file) and `CG3Z` (upload a file) copy a file between the application server and the user's PC. They are tools for administrators and support, not part of a program.
+
+In code, two function modules appear for the same task, `ARCHIVFILE_SERVER_TO_CLIENT` and `ARCHIVFILE_CLIENT_TO_SERVER`. Read in the on-premise system used for this chapter, both take the source `PATH` and the `TARGETPATH`, raise `ERROR_FILE` and `NO_AUTHORIZATION`, check the file authorization with `AUTHORITY_CHECK_DATASET`, and validate the server path against the logical file name `ARCHIVLINK_SERVERPATH`, which belongs to ArchiveLink **[verify: whether `CG3Y` and `CG3Z` use these function modules]**.
+
+> **Lifecycle:** `CLASSIC BUT STILL RELEVANT` for `ARCHIVFILE_SERVER_TO_CLIENT` and `ARCHIVFILE_CLIENT_TO_SERVER` in existing code. SAP's lists neither release nor classify them, and their path check is tied to an ArchiveLink logical file name, not to the logical file names of your own interface. New code combines the statements and the class of this chapter.
+
+A program that hands a server file to the user reads it in binary mode and downloads the bytes:
+
+> 📝 **Contextual snippet** — dialog processing only; `file_path` is resolved from a logical file name, `target_file` comes from `file_save_dialog`, and `zsm_msg` is the placeholder message class. The function module `GUI_DOWNLOAD` has the parameters `BIN_FILESIZE`, `FILENAME` and `FILETYPE`; the method is assumed to take the same names **[verify: the binary parameters of `cl_gui_frontend_services=>gui_download`, and whether `READ DATASET` fills an `xstring` with the whole file in one read in your release]**.
+
+```abap
+DATA os_message   TYPE string.
+DATA file_content TYPE xstring.
+
+OPEN DATASET file_path FOR INPUT IN BINARY MODE MESSAGE os_message.
+IF sy-subrc <> 0.
+  MESSAGE e081(zsm_msg) WITH os_message.
+ENDIF.
+READ DATASET file_path INTO file_content.
+CLOSE DATASET file_path.
+
+" The frontend services transfer binary content as a table of raw lines
+DATA(binary_lines) = cl_bcs_convert=>xstring_to_solix( file_content ).
+
+cl_gui_frontend_services=>gui_download(
+  EXPORTING  bin_filesize = xstrlen( file_content )
+             filename     = target_file
+             filetype     = 'BIN'
+  CHANGING   data_tab     = binary_lines
+  EXCEPTIONS OTHERS       = 1 ).
+IF sy-subrc <> 0.
+  MESSAGE e082(zsm_msg) WITH target_file.
+ENDIF.
+```
+
 ## ✅ Best Practices
 
 - Use classical `WRITE`-based reports only for simple, short-lived tools — prefer ALV ([13-ALV](../13-ALV/README.md)) for anything user-facing or long-term.
@@ -279,6 +357,8 @@ CLOSE DATASET file_path.
 - Start background work with `JOB_OPEN`, `SUBMIT ... VIA JOB ... AND RETURN` and `JOB_CLOSE`, and check `sy-subrc` after each step.
 - Take application server paths from logical file names, never from user input or a literal — [Rule 8.7](../docs/ABAP-Development-Rules.md#87-resolve-and-validate-file-paths-through-logical-file-names).
 - Use `cl_gui_frontend_services` for files on the user's PC, and only in dialog processing.
+- Read server files line by line until `READ DATASET` returns `sy-subrc` 4, and always close the file.
+- For `.xlsx` content, prefer the released XCO XLSX API over function modules that need SAP GUI.
 
 ## ⚠️ Common Mistakes
 
@@ -289,6 +369,8 @@ CLOSE DATASET file_path.
 - **Validating existence and calling it security.** Existence and authorization are two different checks; a generic reader needs both.
 - Calling `gui_upload` or `gui_download` in a report that also runs as a background job.
 - Hard-coding a server path, or carrying on after `OPEN DATASET` returned a non-zero `sy-subrc`.
+- Reading Excel files with function modules that need SAP GUI in a report that also runs as a background job.
+- Using the ArchiveLink transfer modules for an interface's own files, whose paths belong to a logical file name of their own.
 
 ## 🎤 Interview & Review Checkpoints
 
