@@ -4,11 +4,11 @@
 
 ## 📖 Introduction
 
-Every ABAP program (report, class pool, or function pool) is built from a set of well-known **building blocks**: declarations, processing blocks (events), and statements. This chapter covers the skeleton of a classic ABAP report and the fundamental syntax you will see everywhere else in this guide.
+Every ABAP program (report, class pool, or function pool) is built from a set of well-known **building blocks**: declarations, processing blocks (events), and statements. This chapter covers the skeleton of a classic ABAP report, the console class that is the first program in ABAP for Cloud Development, and the fundamental syntax you will see everywhere else in this guide.
 
 > This chapter intentionally keeps a **local class + event blocks** structure, since that is the most common real-world pattern for OOP-based reports (see [13-ALV](../13-ALV/README.md) for the program this example is based on).
 
-> 📝 **Target:** Standard ABAP. Executable programs and their reporting events exist only in Standard ABAP: ABAP for Cloud Development does not allow `REPORT`, `PROGRAM`, `INITIALIZATION`, `START-OF-SELECTION` or the selection-screen events. Class pools, function pools, `LOAD-OF-PROGRAM` and `CLASS … DEFINITION DEFERRED` are allowed there — see [Rule 1.4](../docs/ABAP-Development-Rules.md#14-state-the-target-language-version-when-it-matters).
+> 📝 **Target:** Standard ABAP, except for the console application, which works in both language versions. Executable programs and their reporting events exist only in Standard ABAP: ABAP for Cloud Development does not allow `REPORT`, `PROGRAM`, `INITIALIZATION`, `START-OF-SELECTION` or the selection-screen events. Class pools, function pools, `LOAD-OF-PROGRAM` and `CLASS … DEFINITION DEFERRED` are allowed there — see [Rule 1.4](../docs/ABAP-Development-Rules.md#14-state-the-target-language-version-when-it-matters).
 
 ## 🗃️ Program Types
 
@@ -29,6 +29,74 @@ Each of these statements must be the first statement of its program after includ
 | Global declarations | `DATA`, `CLASS ... DEFINITION` | Data and class definitions valid for the whole program |
 | Event blocks | `LOAD-OF-PROGRAM`, `INITIALIZATION`, `AT SELECTION-SCREEN`, `START-OF-SELECTION`, `END-OF-SELECTION` (obsolete) | Control the flow of a classical report |
 | Implementation | `CLASS ... IMPLEMENTATION` | Method bodies |
+
+## ▶️ A Console Application in ADT
+
+> **Lifecycle:** `CURRENT / RECOMMENDED`. A global class that implements `if_oo_adt_classrun` is the first program in ABAP for Cloud Development, where `REPORT` does not exist, and it works the same way in Standard ABAP. SAP's release information lists `if_oo_adt_classrun` and its output interface `if_oo_adt_classrun_out` as released.
+
+The class implements the interface method `if_oo_adt_classrun~main`. ADT calls it when the class is run as a console application. The method gets an output object `out`, and `out->write( )` sends a value to the ADT console **[verify: the menu entry and shortcut that run a class as a console application in your ADT version]**.
+
+Use it to try something out or to call your logic once. It is not a user interface, and the console has no input. Keep the logic in normal methods, so that a unit test can check it without the console.
+
+**Example E1 — a first program.** Target: Standard ABAP and ABAP for Cloud Development.
+
+```abap
+"! First program in ABAP for Cloud Development, run from ADT as a console application.
+CLASS zcl_zsm_hello_console DEFINITION
+  PUBLIC
+  FINAL
+  CREATE PUBLIC.
+
+  PUBLIC SECTION.
+    INTERFACES if_oo_adt_classrun.
+
+    "! Builds the greeting for one name.
+    "! @parameter name   | Name to greet
+    "! @parameter result | Greeting text
+    METHODS greeting
+      IMPORTING name          TYPE string
+      RETURNING VALUE(result) TYPE string.
+ENDCLASS.
+
+
+CLASS zcl_zsm_hello_console IMPLEMENTATION.
+  METHOD if_oo_adt_classrun~main.
+    " The console only shows output; the logic sits in a testable method
+    out->write( greeting( `ABAP` ) ).
+    out->write( |System date: { cl_abap_context_info=>get_system_date( ) DATE = ISO }| ).
+  ENDMETHOD.
+
+  METHOD greeting.
+    result = |Hello, { name }!|.
+  ENDMETHOD.
+ENDCLASS.
+```
+
+The test include checks the method, not the console:
+
+```abap
+CLASS ltc_hello_console DEFINITION FINAL FOR TESTING
+  RISK LEVEL HARMLESS
+  DURATION SHORT.
+
+  PRIVATE SECTION.
+    METHODS greets_the_given_name FOR TESTING.
+ENDCLASS.
+
+
+CLASS ltc_hello_console IMPLEMENTATION.
+  METHOD greets_the_given_name.
+    DATA(console) = NEW zcl_zsm_hello_console( ).
+
+    cl_abap_unit_assert=>assert_equals( act = console->greeting( `Ada` )
+                                        exp = `Hello, Ada!` ).
+  ENDMETHOD.
+ENDCLASS.
+```
+
+> 📝 **Activation record.** E1 (`zcl_zsm_hello_console` with its test include) was activated in both ABAP language versions: Standard ABAP and ABAP for Cloud Development. Its test method was run in both versions and passed. The active versions were read back and matched the source. The console itself was not run, because the tool used for this guide cannot start a console application.
+
+Testing is the subject of [22-ABAP-Unit](../22-ABAP-Unit/README.md); `cl_abap_context_info` is the released way to read the system date ([Rule 1.2](../docs/ABAP-Development-Rules.md#12-when-targeting-abap-for-cloud-development-use-only-released-apis)).
 
 ## 🧪 Example — Program Header & Global Declarations
 
@@ -102,6 +170,7 @@ sequenceDiagram
 
 ## ✅ Best Practices
 
+- To try out code in ABAP for Cloud Development, use a console class and keep its logic in methods that a unit test can call.
 - Put the logic into local classes and let each event block call one method — [Rule 5.1](../docs/ABAP-Development-Rules.md#51-write-new-logic-in-classes-wrap-function-modules-and-bapis).
 - Keep global declarations to what the dynpro needs; hold everything else as class attributes — [Rules 5.4](../docs/ABAP-Development-Rules.md#54-depend-on-interfaces-and-receive-dependencies-through-the-constructor) and [5.6](../docs/ABAP-Development-Rules.md#56-keep-the-public-section-minimal).
 - Use the header comment for the purpose and any non-obvious constraint, not for author and date — [Rules 11.1](../docs/ABAP-Development-Rules.md#111-say-it-in-code-first) and [11.6](../docs/ABAP-Development-Rules.md#116-mark-open-work-with-a-ticket-reference-not-a-personal-id), and [20-Best-Practices](../20-Best-Practices/README.md#-comments-abap-doc-and-program-headers). If your team mandates a banner, follow it, but put the effort into the purpose line.

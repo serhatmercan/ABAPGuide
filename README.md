@@ -76,7 +76,7 @@ The Context column lists every lifecycle label a chapter uses, in the short form
 
 | Folder | Topic | Description | Context |
 |---|---|---|---|
-| [01-ABAP-Basics](01-ABAP-Basics/README.md) | ABAP Basics | Program structure, report events, syntax fundamentals | Current + Classic + Legacy |
+| [01-ABAP-Basics](01-ABAP-Basics/README.md) | ABAP Basics | Program structure, report events, console class in ADT, syntax fundamentals | Current + Classic + Legacy |
 | [02-Data-Types](02-Data-Types/README.md) | Data Types | Elementary types, structures, type conversions | Current + Legacy |
 | [03-Variables](03-Variables/README.md) | Variables | `DATA`, `CONSTANTS`, inline declarations, `FORM`/`PERFORM` | Current + Classic + Legacy + Version-dependent |
 | [04-Operators](04-Operators/README.md) | Operators | Arithmetic, comparison, built-in math functions | Current |
