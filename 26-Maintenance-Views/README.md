@@ -538,7 +538,14 @@ ABAP for Cloud Development has no dynpros ([21-Classic-vs-Modern-ABAP](../21-Cla
 3. **A business configuration maintenance object** (object type `SMBC`), which makes the business object appear in the *Custom Business Configurations* app.
 4. **Transport.** Entries are recorded in a Customizing request and released with the *Export Customizing Transports* app.
 
-`MBC_CP_API` offers `rap_table_cts` and `rap_tdat_cts` for recording entries; both, and their interfaces, are released. SAP's documentation shows `rap_tdat_cts`. **[verify: names and prerequisites of the wizard and the apps in your release]**
+`MBC_CP_API` offers `rap_table_cts` and `rap_tdat_cts` for recording entries; both, and their interfaces, are released. SAP's documentation shows `rap_tdat_cts`.
+
+According to SAP Help for the SAP BTP ABAP environment (*Generating a Business Configuration Maintenance Object with the Generate ABAP Repository Objects Wizard* and *Custom Business Configurations App*):
+
+- **The wizard** starts from the context menu of a database table in an ABAP project. Besides the basis table it can include tables with a `#KEY` foreign key to it and text tables with a `#TEXT_KEY` foreign key; all of them need a client field, delivery class C and data maintenance allowed or restricted, and the software components of the target package and of the table must be changeable. It cannot overwrite existing objects or generate only some of them, and it asks for a transport request. Options include a copy action and a transport selection strip in the app's header.
+- **The app** *Custom Business Configurations* needs the business catalog `SAP_CORE_BC_BCT_MBC_PC`, contained in the business role template `SAP_BR_BPC_EXPERT`. A maintenance object only appears in the list when the user is authorized for its business configuration service.
+
+**[verify: the prerequisites of the *Export Customizing Transports* app in your release]**
 
 > ⚠️ **VERSION-DEPENDENT: business configuration maintenance in Standard ABAP.** On the on-premise system used for this chapter, `SMBC` objects could be created and `MBC_CP_API` existed. Whether your release supports the full path, apps included, is release-specific; check SAP's documentation for your product.
 
