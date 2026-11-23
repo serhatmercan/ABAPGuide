@@ -1707,6 +1707,16 @@ An event starts processes outside the current transaction, often for other users
 
 This is a team rule. See [31-Business-Workflow](../31-Business-Workflow/README.md#-events-and-how-they-start-workflows).
 
+### 7.21 Set an IDoc's success status only for a posted application document; report every failure as an error status with the application's messages
+
+The IDoc status is what people monitor. A success status for a document that was not posted hides the error until someone misses the document; an error status without a message sends them searching.
+
+- Write status 53 only after the application confirmed the posting, for example a BAPI without messages of type `A` or `E`.
+- Write status 51 for every other outcome, with the application's message in the status record.
+- Decide the outcome in a tested class; the inbound function module only translates it into status records.
+
+This is a team rule. See [32-IDoc-ALE](../32-IDoc-ALE/README.md#-inbound-processing).
+
 ---
 
 ## 8 Security
@@ -2686,7 +2696,7 @@ These rules are decisions of the team: they have no basis in Clean ABAP or the A
 | Modern syntax | 3.8, 3.9, 3.18, 3.19 (no new macros at all) |
 | Classes and methods | 5.12, 5.13, 5.14 |
 | Error handling | 6.2 (one abstract root per category), 6.6, 6.7, 6.11, 6.12 (the split between `ASSERT`, `CX_NO_CHECK` and `RAISE SHORTDUMP`) |
-| Database access and SAP LUW | 7.13, 7.14, 7.15, 7.16, 7.17, 7.18, 7.19, 7.20 |
+| Database access and SAP LUW | 7.13, 7.14, 7.15, 7.16, 7.17, 7.18, 7.19, 7.20, 7.21 |
 | Security | 8.2, 8.3, 8.9, 8.10, 8.11, 8.12, 8.13, 8.14, 8.15, 8.16 |
 | Performance | 9.1 |
 | Testing | 10.1, 10.2 (default risk level and duration), 10.10 |
