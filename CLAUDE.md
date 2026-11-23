@@ -50,9 +50,11 @@ Coding rules: docs/ABAP-Development-Rules.md. Cite rules by number (Rule 2.6).
   Integration Suite and EDI landscapes belong to the SAP-Architecture-Guide,
   OData to GWGuide and RAP business events to RAPGuide; the chapter
   describes the hand-over only.
-- Debugging is Chapter 23 (`23-Debugging-Troubleshooting`). Keep the
-  folder name `18-Debugging`; its title is "Messages, Exceptions &
+- Debugging is Chapter 23 (`23-Debugging-Troubleshooting`).
+- Keep the folder name `18-Debugging`; its title is "Messages, Exceptions &
   Logging".
+- Keep the folder name `14-Function-Modules`; its title is "Batch Input
+  (BDC) & Calling Transactions".
 - CDS appears in this guide only as a data source of ABAP SQL reads;
   anything beyond that links to CDSGuide
   (https://github.com/serhatmercan/CDSGuide).
@@ -84,7 +86,8 @@ Coding rules: docs/ABAP-Development-Rules.md. Cite rules by number (Rule 2.6).
   Chapter-level notes go directly under the title or Introduction; legacy
   notes state what replaces the construct and link to Chapter 21.
 - Version notes: `> ⚠️ **VERSION-DEPENDENT: <feature>.** <text>` and point
-  to the ABAP Keyword Documentation.
+  to the ABAP Keyword Documentation, or to SAP's documentation for the
+  product when the feature is not a language feature.
 - Callouts: `> ⚠️ **Bold claim.**` for pitfalls, `> 💡` for tips,
   `> 📝` for notes. One idea per callout.
 
@@ -96,10 +99,9 @@ Coding rules: docs/ABAP-Development-Rules.md. Cite rules by number (Rule 2.6).
   `> 📝 **Contextual snippet** — <what is assumed>.` directly above or below.
   Self-contained programs need no label.
 - Placeholder object names per Rule 2.6.
-- Identifiers per Rules 2.1–2.5. Existing examples are migrated in the
-  planned chapter pass; legacy-labelled examples keep their construct but
-  use current naming.
-- Chapter 20 becomes Clean ABAP first; classic prefixes are described
+- Identifiers per Rules 2.1–2.5; legacy-labelled examples keep their
+  construct but use current naming.
+- Chapter 20 is Clean ABAP first; classic prefixes are described
   there as `CLASSIC BUT STILL RELEVANT`, because readers meet them in
   existing code.
 - Comments in code use `"` and explain why, not what.
@@ -110,8 +112,9 @@ Coding rules: docs/ABAP-Development-Rules.md. Cite rules by number (Rule 2.6).
 
 ## Links
 - Relative links only: `[08-Open-SQL](../08-Open-SQL/README.md)`; link text
-  is the folder name. Anchors use GitHub slugs including the emoji dash,
-  e.g. `#-sap-luw--transaction-ownership`.
+  is the folder name; for a file outside a chapter folder, the link text
+  is its path, e.g. `docs/ABAP-Development-Rules.md`. Anchors use GitHub
+  slugs including the emoji dash, e.g. `#-sap-luw--transaction-ownership`.
 - Related Chapters list: `- [NN-Folder](../NN-Folder/README.md) — reason`;
   include Chapter 21 when the chapter carries lifecycle notes.
 - For version questions link the ABAP Keyword Documentation (latest index
