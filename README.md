@@ -6,7 +6,7 @@ That last part is the point. Real SAP systems run several generations of ABAP at
 
 ### Scope
 
-- **Covers:** ABAP language fundamentals, internal tables, ABAP SQL, modularization, ABAP Objects, classical reports, selection screens and dynpro, three generations of ALV, BAPIs, BAdIs and the enhancement framework, messages and exceptions, performance, ABAP Unit, debugging and troubleshooting, mail, HTTP and table maintenance — including the modern (7.40-generation) expression syntax throughout.
+- **Covers:** ABAP language fundamentals, internal tables, ABAP SQL, modularization, ABAP Objects, classical reports, selection screens and dynpro, three generations of ALV, BAPIs, BAdIs and the enhancement framework, messages and exceptions, performance, ABAP Unit, debugging and troubleshooting, mail, HTTP, table maintenance and lock objects — including the modern (7.40-generation) expression syntax throughout.
 - **Does not cover:** RAP, CDS, AMDP, or ABAP Cloud beyond the boundary explained in [Chapter 21](21-Classic-vs-Modern-ABAP/README.md). That is a deliberate boundary, not an oversight.
 - **Coding rules:** new and changed examples follow [docs/ABAP-Development-Rules.md](docs/ABAP-Development-Rules.md).
 - **Examples are illustrative.** They are written to teach a pattern, not to be dropped into production unchanged. See [How to Use](#-how-to-use).
@@ -14,7 +14,7 @@ That last part is the point. Real SAP systems run several generations of ABAP at
 
 ## ✨ Highlights
 
-- **26 structured chapters** plus a quick-reference Examples section
+- **27 structured chapters** plus a quick-reference Examples section
 - **100+ annotated ABAP code examples** written for this guide
 - **Explicit classic-to-modern lifecycle guidance** on every major technology
 - **Internal tables and modern expressions** — `VALUE`, `FOR`, `REDUCE`, `FILTER`, `COND`, table expressions, secondary keys
@@ -48,6 +48,7 @@ The chapter that ties the rest together: why productive landscapes contain sever
 | Send a mail with attachments | [24](24-Mail/README.md) · [11](11-Classical-Reports/README.md) |
 | Call or provide an HTTP/REST service | [25](25-HTTP-REST/README.md) · [09](09-Modularization/README.md) |
 | Let users maintain settings and Customizing | [26](26-Maintenance-Views/README.md) · [08](08-Open-SQL/README.md) |
+| Protect data from concurrent changes | [27](27-Lock-Objects/README.md) · [08](08-Open-SQL/README.md) |
 | Decide between classic and modern | [21](21-Classic-vs-Modern-ABAP/README.md) |
 
 ## 🏷️ Lifecycle Legend
@@ -92,6 +93,7 @@ Chapters and examples are labelled with one of these. Full definitions in [Chapt
 | [24-Mail](24-Mail/README.md) | Mail (BCS) | Sending mail through an interface, BCS and the released mail API, HTML bodies, attachments, commit and monitoring, addresses from configuration, testing without sending | Current + classic + cloud |
 | [25-HTTP-REST](25-HTTP-REST/README.md) | HTTP and REST | Calling and providing HTTP services through an interface, classic and released client and handler APIs, destinations instead of URLs, CSRF tokens, JSON, security in handlers, testing without network calls | Current + classic + cloud |
 | [26-Maintenance-Views](26-Maintenance-Views/README.md) | Table Maintenance and Maintenance Views | Customizing tables, delivery class and client, `SE54` and `SM30`, maintenance views and view clusters, authorization groups, maintenance dialog events, regeneration, Customizing transport, change logging, business configuration maintenance in ABAP Cloud | Classic + cloud |
+| [27-Lock-Objects](27-Lock-Objects/README.md) | Lock Objects and the SAP Lock Concept | Lock objects, generated `ENQUEUE_`/`DEQUEUE_` modules, lock modes, `_scope` and the SAP LUW, the released lock API, a lock behind an interface, pessimistic and optimistic locking, `SM12`, locks in maintenance dialogs, testing with a lock double | Current + classic + cloud |
 | [Examples](Examples/README.md) | Examples | Strings, dates/times, conversions | Current + legacy |
 
 ## 🚀 How to Use

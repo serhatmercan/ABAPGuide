@@ -231,7 +231,7 @@ The review checklist. Each item names the rule it comes from and the chapter tha
 - [ ] BAPI return tables are checked before `BAPI_TRANSACTION_COMMIT` — [Rules 6.9](../docs/ABAP-Development-Rules.md#69-turn-sy-subrc-and-bapi-return-tables-into-exceptions-at-the-boundary) and [7.11](../docs/ABAP-Development-Rules.md#711-close-bapi-calls-with-bapi_transaction_commit-or-bapi_transaction_rollback), [15-BAPIs](../15-BAPIs/README.md).
 - [ ] No direct DML on SAP standard tables — [Rule 7.9](../docs/ABAP-Development-Rules.md#79-write-only-to-your-own-tables-change-sap-standard-data-through-bapis-or-released-apis), [15-BAPIs](../15-BAPIs/README.md).
 - [ ] Mass `UPDATE` / `DELETE` carry a `WHERE` condition and check `sy-dbcnt` — [Rule 7.15](../docs/ABAP-Development-Rules.md#715-qualify-mass-update-and-delete-with-where-and-check-sy-dbcnt), [08-Open-SQL](../08-Open-SQL/README.md).
-- [ ] Concurrent changes are protected with enqueue locks — [Rule 7.12](../docs/ABAP-Development-Rules.md#712-protect-business-transactions-with-enqueue-locks), [08-Open-SQL](../08-Open-SQL/README.md#-sap-luw--transaction-ownership).
+- [ ] Concurrent changes are protected with enqueue locks — [Rule 7.12](../docs/ABAP-Development-Rules.md#712-protect-business-transactions-with-enqueue-locks), [08-Open-SQL](../08-Open-SQL/README.md#-sap-luw--transaction-ownership), [27-Lock-Objects](../27-Lock-Objects/README.md).
 
 **Security**
 - [ ] Business data access is authorization-checked and `sy-subrc` is evaluated — [Rule 8.1](../docs/ABAP-Development-Rules.md#81-check-authorization-wherever-business-data-is-read-or-changed-and-evaluate-sy-subrc), [11-Classical-Reports](../11-Classical-Reports/README.md).
@@ -295,4 +295,5 @@ The review checklist. Each item names the rule it comes from and the chapter tha
 - [23-Debugging-Troubleshooting](../23-Debugging-Troubleshooting/README.md) — assertions, checkpoints and reading short dumps
 - [21-Classic-vs-Modern-ABAP](../21-Classic-vs-Modern-ABAP/README.md) — the lifecycle labels used in this chapter and the scope boundary
 - [26-Maintenance-Views](../26-Maintenance-Views/README.md) — logic in classes even where the framework calls `FORM` routines
+- [27-Lock-Objects](../27-Lock-Objects/README.md) — locks behind an interface, tested with a double
 - [ABAP Keyword Documentation](https://help.sap.com/doc/abapdocu_latest_index_htm/latest/en-US/index.htm) — the authority for syntax and release availability

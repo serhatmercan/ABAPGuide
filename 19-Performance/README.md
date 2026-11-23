@@ -131,7 +131,7 @@ This chapter covers **ABAP-side** performance: internal tables, memory, and how 
 - In Standard ABAP, `FREE MEMORY ID` when done with ABAP Memory (ABAP for Cloud Development does not allow `FREE MEMORY`), and avoid using it as a general-purpose "pass data anywhere" mechanism — it makes program dependencies implicit and hard to trace.
 - Batch database writes and reads: one `COMMIT WORK` at the transaction boundary rather than one per row, and a join or `FOR ALL ENTRIES` instead of a select inside a loop.
 - Prefer a typed `SORTED`/`HASHED` table or a secondary key over `BINARY SEARCH`, and use keyed access instead of nested loops.
-- Hold locks for as short a time as possible — a long-running loop that holds an enqueue blocks other users for its entire duration.
+- Hold locks for as short a time as possible — a long-running loop that holds an enqueue blocks other users for its entire duration; see [27-Lock-Objects](../27-Lock-Objects/README.md).
 
 ## ⚠️ Common Mistakes
 
@@ -174,3 +174,4 @@ This chapter covers **ABAP-side** performance: internal tables, memory, and how 
 - [20-Best-Practices](../20-Best-Practices/README.md) — the review checklist
 - [21-Classic-vs-Modern-ABAP](../21-Classic-vs-Modern-ABAP/README.md) — scope boundary and lifecycle of ABAP memory
 - [23-Debugging-Troubleshooting](../23-Debugging-Troubleshooting/README.md) — reading short dumps, including memory dumps
+- [27-Lock-Objects](../27-Lock-Objects/README.md) — holding locks briefly, and lock entries in `SM12`

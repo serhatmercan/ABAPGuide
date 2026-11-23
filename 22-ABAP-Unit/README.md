@@ -551,3 +551,4 @@ ENDCLASS.
 - [24-Mail](../24-Mail/README.md) — testing mail code with doubles, without sending
 - [25-HTTP-REST](../25-HTTP-REST/README.md) — testing REST clients with a transport double, without network calls
 - [26-Maintenance-Views](../26-Maintenance-Views/README.md) — testing code that reads Customizing with the ABAP SQL test environment
+- [27-Lock-Objects](../27-Lock-Objects/README.md) — testing code that locks with a lock double

@@ -125,7 +125,7 @@ Rather than writing to the database directly, an application can register work w
 
 Database locks alone are not sufficient for a dialog transaction that spans several screens: the database LUW ends at each screen change, but the *business* transaction does not. SAP therefore provides a separate **enqueue** mechanism. A lock object defined in the Data Dictionary generates a matching pair of `ENQUEUE_*` / `DEQUEUE_*` function modules for the object being protected.
 
-The pattern is: acquire the lock before reading data you intend to change, release it after the commit or rollback, and handle the "already locked by another user" case as a business message rather than a dump. Lock objects and their generated function modules are specific to your data model, so no name is shown here — see [Rule 7.12](../docs/ABAP-Development-Rules.md#712-protect-business-transactions-with-enqueue-locks) for an example with a placeholder lock object.
+The pattern is: acquire the lock before reading data you intend to change, release it after the commit or rollback, and handle the "already locked by another user" case as a business message rather than a dump. Lock objects and their generated function modules are specific to your data model, so no name is shown here — see [Rule 7.12](../docs/ABAP-Development-Rules.md#712-protect-business-transactions-with-enqueue-locks) for an example with a placeholder lock object, and [27-Lock-Objects](../27-Lock-Objects/README.md) for the whole lock concept.
 
 ### Common mistakes
 
@@ -721,6 +721,7 @@ Where the key must be a readable running number, draw it from a number range obj
 - [20-Best-Practices](../20-Best-Practices/README.md) — the data-access items of the review checklist
 - [21-Classic-vs-Modern-ABAP](../21-Classic-vs-Modern-ABAP/README.md) — lifecycle context
 - [26-Maintenance-Views](../26-Maintenance-Views/README.md) — Customizing tables: delivery class, client and maintenance
+- [27-Lock-Objects](../27-Lock-Objects/README.md) — lock objects, lock modes and optimistic locking
 
 ## 🖥️ Related Transaction Codes
 

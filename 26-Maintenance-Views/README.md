@@ -703,7 +703,7 @@ ENDCLASS.
 - **Client copy and client comparison** are administration and not covered.
 - **Mass upload of Customizing** is not covered; a rules class such as E4a is the part an upload program would reuse.
 - **The RAP business object** behind a business configuration app belongs to the future RAPGuide; this chapter describes the pieces and stops.
-- **Custom lock handling in maintenance dialogs** belongs with lock objects; see [Rule 7.12](../docs/ABAP-Development-Rules.md#712-protect-business-transactions-with-enqueue-locks).
+- **Custom lock handling in maintenance dialogs** belongs with lock objects; see [27-Lock-Objects](../27-Lock-Objects/README.md#-locks-in-maintenance-dialogs) and [Rule 7.12](../docs/ABAP-Development-Rules.md#712-protect-business-transactions-with-enqueue-locks).
 
 ## ✅ Best Practices
 
@@ -769,3 +769,4 @@ ENDCLASS.
 - [23-Debugging-Troubleshooting](../23-Debugging-Troubleshooting/README.md) — `DYNPRO_SYNTAX_ERROR` and checkpoint groups
 - [24-Mail](../24-Mail/README.md) — mail settings from a Customizing table
 - [25-HTTP-REST](../25-HTTP-REST/README.md) — destination names from configuration
+- [27-Lock-Objects](../27-Lock-Objects/README.md) — the next chapter: the SAP lock concept, and how the dialog locks
