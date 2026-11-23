@@ -6,7 +6,7 @@ That last part is the point. Real SAP systems run several generations of ABAP at
 
 ### Scope
 
-- **Covers:** ABAP language fundamentals, internal tables, ABAP SQL, modularization, ABAP Objects, classical reports, selection screens and dynpro, three generations of ALV, BAPIs, BAdIs and the enhancement framework, messages and exceptions, performance, ABAP Unit, debugging and troubleshooting, mail, HTTP, table maintenance and lock objects — including the modern (7.40-generation) expression syntax throughout.
+- **Covers:** ABAP language fundamentals, internal tables, ABAP SQL, modularization, ABAP Objects, classical reports, selection screens and dynpro, three generations of ALV, batch input, BAPIs, BAdIs and the enhancement framework, messages and exceptions, performance, ABAP Unit, debugging and troubleshooting, mail, HTTP, table maintenance, lock objects, Adobe forms, transport and quality gates, development tools and AI assistance, business workflow, and IDoc and ALE — including the modern (7.40-generation) expression syntax throughout.
 - **Does not cover:** RAP, CDS, AMDP, or ABAP Cloud beyond the boundary explained in [Chapter 21](21-Classic-vs-Modern-ABAP/README.md). That is a deliberate boundary, not an oversight.
 - **Coding rules:** new and changed examples follow [docs/ABAP-Development-Rules.md](docs/ABAP-Development-Rules.md).
 - **Examples are illustrative.** They are written to teach a pattern, not to be dropped into production unchanged. See [How to Use](#-how-to-use).
@@ -15,12 +15,14 @@ That last part is the point. Real SAP systems run several generations of ABAP at
 ## ✨ Highlights
 
 - **32 structured chapters** plus a quick-reference Examples section
-- **100+ annotated ABAP code examples** written for this guide
+- **200+ annotated ABAP code snippets** written for this guide
 - **Explicit classic-to-modern lifecycle guidance** on every major technology
 - **Internal tables and modern expressions** — `VALUE`, `FOR`, `REDUCE`, `FILTER`, `COND`, table expressions, secondary keys
 - **ABAP SQL in depth** — joins, subqueries, aggregation, `FOR ALL ENTRIES` and its pitfalls, dynamic SQL
 - **Three ALV generations side by side** — `CL_SALV_TABLE`, `REUSE_ALV_*`, `CL_GUI_ALV_GRID`
 - **Integration and extensibility** — BAPIs, BAdIs, enhancements, BDC, RFC, with the transaction and authorization implications spelled out
+- **Testing and troubleshooting** — ABAP Unit with test doubles, debugging and short dumps, transport and quality gates
+- **Integration components** — mail, HTTP and REST, Adobe forms, business workflow, IDoc and ALE, each behind an interface and tested without side effects
 
 ## 🧭 Classic vs Modern ABAP
 
@@ -70,46 +72,48 @@ Chapters and examples are labelled with one of these. Full definitions in [Chapt
 
 ## 📂 Chapter Reference
 
+The Context column lists every lifecycle label a chapter uses, in the short form of the [Lifecycle Legend](#-lifecycle-legend).
+
 | Folder | Topic | Description | Context |
 |---|---|---|---|
-| [01-ABAP-Basics](01-ABAP-Basics/README.md) | ABAP Basics | Program structure, report events, syntax fundamentals | Current |
-| [02-Data-Types](02-Data-Types/README.md) | Data Types | Elementary types, structures, type conversions | Current |
-| [03-Variables](03-Variables/README.md) | Variables | `DATA`, `CONSTANTS`, inline declarations, `FORM`/`PERFORM` | Current + legacy |
+| [01-ABAP-Basics](01-ABAP-Basics/README.md) | ABAP Basics | Program structure, report events, syntax fundamentals | Current + Classic + Legacy |
+| [02-Data-Types](02-Data-Types/README.md) | Data Types | Elementary types, structures, type conversions | Current + Legacy |
+| [03-Variables](03-Variables/README.md) | Variables | `DATA`, `CONSTANTS`, inline declarations, `FORM`/`PERFORM` | Current + Classic + Legacy + Version-dependent |
 | [04-Operators](04-Operators/README.md) | Operators | Arithmetic, comparison, built-in math functions | Current |
-| [05-Control-Statements](05-Control-Statements/README.md) | Control Statements | `IF`, `CASE`, `CHECK`, `COND`, `SWITCH` | Current |
-| [06-Loops](06-Loops/README.md) | Loops | `LOOP`, `DO`, `WHILE`, control breaks, `GROUP BY`, `COLLECT`, ranges | Current + classic |
-| [07-Internal-Tables](07-Internal-Tables/README.md) | Internal Tables | Table types, keys, `VALUE`/`FOR`/`REDUCE`/`FILTER`, field symbols | Current |
-| [08-Open-SQL](08-Open-SQL/README.md) | ABAP SQL | `SELECT`, joins, aggregation, CRUD, **SAP LUW & transaction ownership** | Current + version-dependent |
-| [09-Modularization](09-Modularization/README.md) | Modularization | Function modules, conversion exits, RFC, macros, `SUBMIT` | Classic + legacy |
-| [10-Objects](10-Objects/README.md) | Objects / OOP | Classes, visibility, inheritance, static vs. instance, interfaces, constructors, events | Current |
-| [11-Classical-Reports](11-Classical-Reports/README.md) | Classical Reports | List events, `WRITE`, dynamic tables + authorization, background jobs, files | Classic |
+| [05-Control-Statements](05-Control-Statements/README.md) | Control Statements | `IF`, `CASE`, `CHECK`, `COND`, `SWITCH` | Current + Classic |
+| [06-Loops](06-Loops/README.md) | Loops | `LOOP`, `DO`, `WHILE`, control breaks, `GROUP BY`, `COLLECT`, ranges | Current + Classic + Version-dependent |
+| [07-Internal-Tables](07-Internal-Tables/README.md) | Internal Tables | Table types, keys, `VALUE`/`FOR`/`REDUCE`/`FILTER`, field symbols | Current + Legacy |
+| [08-Open-SQL](08-Open-SQL/README.md) | ABAP SQL | `SELECT`, joins, aggregation, CRUD, **SAP LUW & transaction ownership** | Current + Version-dependent |
+| [09-Modularization](09-Modularization/README.md) | Modularization | Function modules, conversion exits, RFC, macros, `SUBMIT` | Current + Classic + Legacy |
+| [10-Objects](10-Objects/README.md) | Objects / OOP | Classes, visibility, inheritance, static vs. instance, interfaces, constructors, events | Current + Legacy |
+| [11-Classical-Reports](11-Classical-Reports/README.md) | Classical Reports | List events, `WRITE`, dynamic tables + authorization, background jobs, files | Classic + Legacy + Cloud + Version-dependent |
 | [12-Selection-Screens](12-Selection-Screens/README.md) | Selection Screens & Dynpro | Selection screens, PBO/PAI, screen modification, value help, table controls, popups | Classic |
-| [13-ALV](13-ALV/README.md) | ALV | `CL_SALV_TABLE`, `REUSE_ALV_*`, `CL_GUI_ALV_GRID`, field catalogs, events | Current + classic |
+| [13-ALV](13-ALV/README.md) | ALV | `CL_SALV_TABLE`, `REUSE_ALV_*`, `CL_GUI_ALV_GRID`, field catalogs, events | Current + Classic + Legacy |
 | [14-Function-Modules](14-Function-Modules/README.md) | Batch Input (BDC) & Calling Transactions | `CALL TRANSACTION … USING`, BDC tables, modes, sessions, messages, SAP LUW, authorization | Classic |
-| [15-BAPIs](15-BAPIs/README.md) | BAPIs | `BAPIRET2`, transaction control, standard call pattern | Classic, still relevant |
-| [16-BADIs](16-BADIs/README.md) | BAdIs | Classic vs. new BAdIs, filters, implementation pattern | Current + classic |
-| [17-Enhancements](17-Enhancements/README.md) | Enhancements | User exits vs. customer exits, enhancement points, modifications | Classic + legacy |
-| [18-Debugging](18-Debugging/README.md) | Messages, Exceptions & Logging | `MESSAGE` and message types, return tables, class-based and classic exceptions, application log | Current |
-| [19-Performance](19-Performance/README.md) | Performance & Memory | Internal table tuning, ABAP Memory, database access | Current |
-| [20-Best-Practices](20-Best-Practices/README.md) | Best Practices & Clean ABAP | Clean ABAP naming, classic prefixes as a reading aid, rule summaries, refactoring example, review checklist | Current + classic |
-| [21-Classic-vs-Modern-ABAP](21-Classic-vs-Modern-ABAP/README.md) | **Classic vs Modern** | **Lifecycle map, ABAP Cloud boundary, decision table** | **Start here for context** |
-| [22-ABAP-Unit](22-ABAP-Unit/README.md) | ABAP Unit | Test classes, fixtures, assertions, test doubles, ABAP SQL test environment, test seams, running tests | Current |
-| [23-Debugging-Troubleshooting](23-Debugging-Troubleshooting/README.md) | Debugging & Troubleshooting | ABAP Debugger, breakpoints and watchpoints, `BREAK-POINT`/`ASSERT`/`LOG-POINT` and checkpoint groups, short dumps, troubleshooting method, common runtime errors | Current |
-| [24-Mail](24-Mail/README.md) | Mail (BCS) | Sending mail through an interface, BCS and the released mail API, HTML bodies, attachments, commit and monitoring, addresses from configuration, testing without sending | Current + classic + cloud |
-| [25-HTTP-REST](25-HTTP-REST/README.md) | HTTP and REST | Calling and providing HTTP services through an interface, classic and released client and handler APIs, destinations instead of URLs, CSRF tokens, JSON, security in handlers, testing without network calls | Current + classic + cloud |
-| [26-Maintenance-Views](26-Maintenance-Views/README.md) | Table Maintenance and Maintenance Views | Customizing tables, delivery class and client, `SE54` and `SM30`, maintenance views and view clusters, authorization groups, maintenance dialog events, regeneration, Customizing transport, change logging, business configuration maintenance in ABAP Cloud | Classic + cloud |
-| [27-Lock-Objects](27-Lock-Objects/README.md) | Lock Objects and the SAP Lock Concept | Lock objects, generated `ENQUEUE_`/`DEQUEUE_` modules, lock modes, `_scope` and the SAP LUW, the released lock API, a lock behind an interface, pessimistic and optimistic locking, `SM12`, locks in maintenance dialogs, testing with a lock double | Current + classic + cloud |
-| [28-Adobe-Forms](28-Adobe-Forms/README.md) | Adobe Forms and PDF Output | Form interface, form and context in `SFP`, the layout described, Adobe Document Services, `FP_JOB_OPEN` and the generated function module, the PDF as `xstring` for mail or file, the released forms API, output behind an interface, Smart Forms and SAPscript as lifecycle reference | Classic + cloud |
-| [29-Transport-Quality-Gates](29-Transport-Quality-Gates/README.md) | Transport and Quality Gates | Packages and `$TMP`, the Change and Transport System, object locks in requests, request hygiene and a tested release rule, transport in the SAP BTP ABAP environment, ATC check variants and exemptions, abaplint and CI | Current + cloud |
-| [30-Tools-AI-Assistance](30-Tools-AI-Assistance/README.md) | Development Tools and AI Assistance | ADT for Eclipse and VS Code, SAP GUI tools, source search, ABAP Cleaner, abapGit, what an AI assistant needs, MCP servers for ADT, the safety model and observed tool limits | Current + version-dependent |
-| [31-Business-Workflow](31-Business-Workflow/README.md) | Business Workflow and My Inbox | Workflow building blocks, BOR and `IF_WORKFLOW` classes, events and type linkages, agent rules, work items in the Business Workplace and My Inbox, administration, flexible workflow, the cloud hand-over, testing without starting a workflow | Classic + cloud |
-| [32-IDoc-ALE](32-IDoc-ALE/README.md) | IDoc and ALE | IDoc structure, message types, ports, partner profiles and the distribution model, outbound processing and change pointers, inbound function modules and status handling, posting through BAPIs, monitoring and reprocessing, the cloud hand-over, testing without an IDoc | Classic + cloud |
-| [Examples](Examples/README.md) | Examples | Strings, dates/times, conversions | Current + legacy |
+| [15-BAPIs](15-BAPIs/README.md) | BAPIs | `BAPIRET2`, transaction control, standard call pattern | Classic |
+| [16-BADIs](16-BADIs/README.md) | BAdIs | Classic vs. new BAdIs, filters, implementation pattern | Current + Classic |
+| [17-Enhancements](17-Enhancements/README.md) | Enhancements | User exits vs. customer exits, enhancement points, modifications | Current + Classic + Legacy + Version-dependent |
+| [18-Debugging](18-Debugging/README.md) | Messages, Exceptions & Logging | `MESSAGE` and message types, return tables, class-based and classic exceptions, application log | Current + Classic + Version-dependent |
+| [19-Performance](19-Performance/README.md) | Performance & Memory | Internal table tuning, ABAP Memory, database access | Current + Classic + Version-dependent |
+| [20-Best-Practices](20-Best-Practices/README.md) | Best Practices & Clean ABAP | Clean ABAP naming, classic prefixes as a reading aid, rule summaries, refactoring example, review checklist | Current + Classic + Legacy + Version-dependent |
+| [21-Classic-vs-Modern-ABAP](21-Classic-vs-Modern-ABAP/README.md) | **Classic vs Modern** | **Lifecycle map, ABAP Cloud boundary, decision table** | **Current + Classic + Legacy + Cloud + Version-dependent — start here for context** |
+| [22-ABAP-Unit](22-ABAP-Unit/README.md) | ABAP Unit | Test classes, fixtures, assertions, test doubles, ABAP SQL test environment, test seams, running tests | Current + Classic + Legacy + Version-dependent |
+| [23-Debugging-Troubleshooting](23-Debugging-Troubleshooting/README.md) | Debugging & Troubleshooting | ABAP Debugger, breakpoints and watchpoints, `BREAK-POINT`/`ASSERT`/`LOG-POINT` and checkpoint groups, short dumps, troubleshooting method, common runtime errors | Current + Version-dependent |
+| [24-Mail](24-Mail/README.md) | Mail (BCS) | Sending mail through an interface, BCS and the released mail API, HTML bodies, attachments, commit and monitoring, addresses from configuration, testing without sending | Current + Classic + Legacy + Cloud + Version-dependent |
+| [25-HTTP-REST](25-HTTP-REST/README.md) | HTTP and REST | Calling and providing HTTP services through an interface, classic and released client and handler APIs, destinations instead of URLs, CSRF tokens, JSON, security in handlers, testing without network calls | Current + Classic + Cloud + Version-dependent |
+| [26-Maintenance-Views](26-Maintenance-Views/README.md) | Table Maintenance and Maintenance Views | Customizing tables, delivery class and client, `SE54` and `SM30`, maintenance views and view clusters, authorization groups, maintenance dialog events, regeneration, Customizing transport, change logging, business configuration maintenance in ABAP Cloud | Classic + Cloud + Version-dependent |
+| [27-Lock-Objects](27-Lock-Objects/README.md) | Lock Objects and the SAP Lock Concept | Lock objects, generated `ENQUEUE_`/`DEQUEUE_` modules, lock modes, `_scope` and the SAP LUW, the released lock API, a lock behind an interface, pessimistic and optimistic locking, `SM12`, locks in maintenance dialogs, testing with a lock double | Current + Classic + Cloud + Version-dependent |
+| [28-Adobe-Forms](28-Adobe-Forms/README.md) | Adobe Forms and PDF Output | Form interface, form and context in `SFP`, the layout described, Adobe Document Services, `FP_JOB_OPEN` and the generated function module, the PDF as `xstring` for mail or file, the released forms API, output behind an interface, Smart Forms and SAPscript as lifecycle reference | Classic + Cloud + Version-dependent |
+| [29-Transport-Quality-Gates](29-Transport-Quality-Gates/README.md) | Transport and Quality Gates | Packages and `$TMP`, the Change and Transport System, object locks in requests, request hygiene and a tested release rule, transport in the SAP BTP ABAP environment, ATC check variants and exemptions, abaplint and CI | Current + Cloud |
+| [30-Tools-AI-Assistance](30-Tools-AI-Assistance/README.md) | Development Tools and AI Assistance | ADT for Eclipse and VS Code, SAP GUI tools, source search, ABAP Cleaner, abapGit, what an AI assistant needs, MCP servers for ADT, the safety model and observed tool limits | Current + Version-dependent |
+| [31-Business-Workflow](31-Business-Workflow/README.md) | Business Workflow and My Inbox | Workflow building blocks, BOR and `IF_WORKFLOW` classes, events and type linkages, agent rules, work items in the Business Workplace and My Inbox, administration, flexible workflow, the cloud hand-over, testing without starting a workflow | Classic + Cloud |
+| [32-IDoc-ALE](32-IDoc-ALE/README.md) | IDoc and ALE | IDoc structure, message types, ports, partner profiles and the distribution model, outbound processing and change pointers, inbound function modules and status handling, posting through BAPIs, monitoring and reprocessing, the cloud hand-over, testing without an IDoc | Classic + Cloud |
+| [Examples](Examples/README.md) | Examples | Strings, dates/times, conversions | Current + Legacy + Version-dependent |
 
 ## 🚀 How to Use
 
 1. Jump to the chapter matching your need via [Find It Fast](#-find-it-fast), or read [Chapter 21](21-Classic-vs-Modern-ABAP/README.md) first for the lifecycle map.
-2. Each chapter follows the same shape: introduction → examples → best practices → common mistakes → interview & review checkpoints → related transaction codes.
+2. Each chapter follows the same shape: introduction → examples → best practices → common mistakes → interview & review checkpoints → related transaction codes (where relevant) → related chapters.
 3. **Understand what kind of snippet you are reading:**
    - **Complete examples** — self-contained programs or classes (for instance the ALV reports in [Chapter 13](13-ALV/README.md)). These show a full working structure.
    - **Contextual snippets** — the majority. They demonstrate one statement or pattern and assume surrounding declarations. Adapt the names and types to your own program.
@@ -121,7 +125,7 @@ Chapters and examples are labelled with one of these. Full definitions in [Chapt
 - **Individual ABAP SQL features require later releases.** SQL expressions in the field list, host expressions, and internal tables as data sources all arrived progressively across the 7.4x/7.5x releases, not all at once. These are flagged **VERSION-DEPENDENT** where they appear.
 - **This guide deliberately states no exact minimum release or support-package numbers.** Verify each feature against the [ABAP Keyword Documentation](https://help.sap.com/doc/abapdocu_latest_index_htm/latest/en-US/index.htm) for your target system before relying on it.
 - **Terminology:** SAP's current umbrella term for the SQL statements is **ABAP SQL**; "Open SQL" is the historical name and is still in wide use. Both appear here. The chapter folder keeps its `08-Open-SQL` name so existing links continue to work.
-- **Tooling:** ABAP Development Tools (ADT) for Eclipse is recommended; the classic workbench (SE38/SE80/SE24/SE37) is assumed knowledge where transaction codes are referenced.
+- **Tooling:** ABAP Development Tools (ADT) are assumed; [Chapter 30](30-Tools-AI-Assistance/README.md) covers ADT for Eclipse and ADT for VS Code. The classic workbench (SE38/SE80/SE24/SE37) is assumed knowledge where transaction codes are referenced.
 
 ## 👥 Who This Is For
 
