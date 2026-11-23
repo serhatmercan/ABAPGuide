@@ -28,6 +28,16 @@ Coding rules: docs/ABAP-Development-Rules.md. Cite rules by number (Rule 2.6).
   released forms API of ABAP for Cloud Development. Layout design, ADS
   configuration and output management (NAST, PPF, BRF+ determination) stay
   out of scope; Smart Forms and SAPscript appear as lifecycle reference only.
+- Transports and quality gates are Chapter 29 (`29-Transport-Quality-Gates`):
+  packages and `$TMP`, the Change and Transport System, object locks in
+  requests, transport in the SAP BTP ABAP environment, ATC and abaplint.
+  Transport administration (routes, import queues, ChaRM) stays Basis
+  work and out of scope.
+- Development tools and AI assistance are Chapter 30
+  (`30-Tools-AI-Assistance`): ADT, SAP GUI tools, source search, ABAP
+  Cleaner, abapGit, AI assistants and MCP servers for ADT. Observed tool
+  behaviour is VERSION-DEPENDENT and carries no system details or dates;
+  community MCP servers are not named.
 - Debugging is Chapter 23 (`23-Debugging-Troubleshooting`). Keep the
   folder name `18-Debugging`; its title is "Messages, Exceptions &
   Logging".
@@ -68,6 +78,8 @@ Coding rules: docs/ABAP-Development-Rules.md. Cite rules by number (Rule 2.6).
 
 ## Code examples
 - Fences are always ```` ```abap ````; mermaid only for flow diagrams.
+  Configuration examples (JSON, Markdown) use ```` ```json ```` or
+  ```` ```markdown ```` and carry `> 📝 **Configuration example** — …`.
 - Snippets that assume surrounding declarations get
   `> 📝 **Contextual snippet** — <what is assumed>.` directly above or below.
   Self-contained programs need no label.
@@ -97,5 +109,8 @@ Coding rules: docs/ABAP-Development-Rules.md. Cite rules by number (Rule 2.6).
   guides in github.com/serhatmercan, and the established open-source ABAP
   projects listed here:
   - abap2xlsx (https://github.com/abap2xlsx/abap2xlsx)
+  - abapGit (https://github.com/abapGit/abapGit)
+  - abaplint (https://github.com/abaplint/abaplint)
+  - ABAP Cleaner (https://github.com/SAP/abap-cleaner)
   Link such a project instead of copying its code; add a project to this
   list before linking it.
