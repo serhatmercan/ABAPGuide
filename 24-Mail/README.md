@@ -345,7 +345,12 @@ ENDCLASS.
 
 > 💡 The adapter uses `send_async( )` on purpose. It gives the mail the same behaviour as a BCS mail: it leaves only when the transaction is committed. `send( )` would send at once, even if the caller rolls back afterwards.
 
-**What the system needs.** In an SAP BTP ABAP environment, mail goes out through a communication arrangement for the communication scenario `SAP_COM_0548` (e-mail integration). It names the mail server, which is reached through a destination — for example through the Cloud Connector — or is a public SMTP server. Setting this up is an administrator's task. **[verify: the setup steps of the outbound mail arrangement in your system]**
+**What the system needs.** In an SAP BTP ABAP environment, mail goes out through a communication arrangement for the communication scenario `SAP_COM_0548` (e-mail integration). It names the mail server, which is reached through a destination — for example through the Cloud Connector — or is a public SMTP server. Setting this up is an administrator's task. According to SAP Help (*Integrating Outbound Emails Using SMTP*, SAP BTP), the steps are:
+
+1. A **communication system** for the mail server: host and port, and for a server behind the Cloud Connector the option to use it together with the Cloud Connector's location ID.
+2. An **outbound user** for the authentication method in use; for OAuth 2.0 the communication system also needs the mail provider's token endpoint.
+3. A **communication arrangement** for `SAP_COM_0548` that uses this communication system.
+4. A **test** in the Fiori app *Monitor Email Transmission*, which can send a test mail. If the recipient is refused, the recipient address allowlists have to be maintained.
 
 ## 📝 Plain Text and HTML Bodies
 
