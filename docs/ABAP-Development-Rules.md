@@ -204,12 +204,18 @@ A fixed infix per object type tells the reader what kind of object a name refers
 | CDS projection view | `ZSM_C_` | `ZSM_C_Order` |
 | CDS table function | `ZSM_F_` | `ZSM_F_OrderAging` |
 | Report | `zsm_r_` | `zsm_r_order_overview` |
+| Function group | `zsm_fg_` | `zsm_fg_ord_prio` |
+| Maintenance view | `zsm_v_` | `zsm_v_ord_prio` |
+| View cluster | `zsm_vc_` | `zsm_vc_order` |
+| Transaction | `zsm_` | `zsm_ord_prio` |
 | Lock object | `EZSM_` | `EZSM_ORDER` |
 | Checkpoint group | `zsm_cp_` | `zsm_cp_order` |
 | Local class | `lcl_` | `lcl_main` |
 | Local interface | `lif_` | `lif_order_source` |
 | Local test class | `ltc_` | `ltc_release` |
 | Local test helper | `lth_` | `lth_order_builder` |
+
+> 📝 Database table and view names have at most 16 characters, according to the ABAP Keyword Documentation; ADT applies the same limit when it creates a table. With `zsm_t_` or `zsm_v_` that leaves ten characters, so these names abbreviate (2.3).
 
 > 📝 Lock object names must start with `E`, so the lock object row puts `E` in front of the namespace instead of using a lower-case infix.
 
@@ -1381,6 +1387,8 @@ UPDATE vbak SET vdatu = @new_date WHERE vbeln = @order_id.
 
 `COMMIT WORK` closes the whole SAP LUW, including work done by callers and other components. So only the code that owns the business transaction may decide when it ends. See [08-Open-SQL](../08-Open-SQL/README.md#-sap-luw--transaction-ownership).
 
+A generated table maintenance dialog is such an owner: its event routines never commit (7.17).
+
 ```abap
 " ✅ the report owns the transaction
 TRY.
@@ -1530,6 +1538,61 @@ ENDIF.
 " ❌ no WHERE: every order of the client is cancelled
 UPDATE zsm_t_order SET status = @status_cancelled.
 ```
+
+### 7.16 Give every custom table the delivery class of the people who own its data: C for Customizing, A for application data
+
+The delivery class decides how the entries of a table are treated by the transport system and by table maintenance. According to the ABAP Keyword Documentation, C marks Customizing that only the customer maintains, A marks master and transaction data written by applications, and L marks local data that is never transported. G is obsolete and can no longer be specified; C replaces it.
+
+- Settings that are maintained in development and transported get C.
+- Data that applications create in each system gets A.
+- Temporary data and logs that must never travel get L.
+- Set the class when you create the table: ADT starts a new table with A.
+
+This is a team rule. See [26-Maintenance-Views](../26-Maintenance-Views/README.md#-customizing-tables-delivery-class-and-client).
+
+```abap
+" ✅ settings per order type, maintained in development and transported
+@AbapCatalog.deliveryClass : #C
+@AbapCatalog.dataMaintenance : #ALLOWED
+define table zsm_t_ord_prio {
+  key client     : abap.clnt not null;
+  key order_type : zsm_e_order_type not null;
+  days_late      : zsm_e_days_late;
+}
+
+" ❌ the same settings with the default class A: maintained in every system
+@AbapCatalog.deliveryClass : #A
+define table zsm_t_ord_prio { ... }
+```
+
+### 7.17 In table maintenance events, change only the dialog's own data; the generated dialog saves and commits
+
+A generated maintenance dialog reads the entries, writes the changes, records them in a transport request and commits. An event routine that writes to the maintained table or commits does all of that a second time, out of order and without transport recording, and a later error in the dialog cannot undo it. 7.10 applies: the dialog is the transaction owner.
+
+- Event routines do not `INSERT`, `UPDATE`, `MODIFY` or `DELETE` the maintained table, and do not `COMMIT WORK`.
+- To stop a save, set the dialog's abort flag in event 01 and show a message.
+- Put the rules into a class and call it from a thin `FORM` routine (5.1), so the rules can be tested.
+
+This is a team rule. See [26-Maintenance-Views](../26-Maintenance-Views/README.md#-maintenance-dialog-events-where-custom-code-belongs).
+
+```abap
+" ✅ event 01 asks a class and stops the save; the dialog saves or does nothing
+FORM zsm_ord_prio_before_save.
+  DATA(invalid) = NEW zcl_zsm_ord_prio_rules( )->invalid_entries( changed_entries ).
+  IF invalid IS NOT INITIAL.
+    MESSAGE s010(zsm_msg) WITH invalid[ 1 ] DISPLAY LIKE 'E'.
+    vim_abort_saving = abap_true.
+  ENDIF.
+ENDFORM.
+
+" ❌ event 01 writes and commits on its own
+FORM zsm_ord_prio_before_save.
+  MODIFY zsm_t_ord_prio FROM entry.
+  COMMIT WORK AND WAIT.
+ENDFORM.
+```
+
+> 📝 **Contextual snippet** — `changed_entries` holds the new and changed entries collected from the dialog's data; `vim_abort_saving` is the abort flag of SAP's maintenance framework, not a released API.
 
 ---
 
@@ -1856,6 +1919,29 @@ ENDMETHOD.
 ```
 
 > 📝 **Contextual snippet** — `rates_as_json` is a placeholder method of the handler class that returns the requested data as JSON.
+
+### 8.14 Assign an authorization group to every table that users maintain; protect sensitive tables additionally with `S_TABU_NAM`
+
+Table maintenance in `SM30` and `SM31` checks the authorization object `S_TABU_DIS` against the authorization group of the table. According to SAP's documentation, the group of a table is stored in table `TDDAT`. A group decides who may display or change a whole family of tables, so a table without a deliberate group is protected only as well as the roles happen to cover it.
+
+- Assign every table that users maintain to the authorization group of its business owner when you generate its dialog.
+- Protect sensitive tables additionally by name with `S_TABU_NAM`, so that a broad group authorization does not open them.
+- Treat a parameter transaction as navigation, not as protection: `S_TCODE` decides who may start it, the table authorization what they may do (8.9).
+
+This is a team rule. See [26-Maintenance-Views](../26-Maintenance-Views/README.md#-authorization-groups-and-authorization-objects).
+
+```abap
+" ✅ a generic table viewer checks the table authorization before reading (8.1)
+AUTHORITY-CHECK OBJECT 'S_TABU_NAM'
+  ID 'ACTVT' FIELD activity_display
+  ID 'TABLE' FIELD table_name.
+IF sy-subrc <> 0.
+  RAISE EXCEPTION TYPE zcx_zsm_not_authorized
+    MESSAGE e010(zsm_msg) WITH table_name.
+ENDIF.
+```
+
+> 📝 Authorization groups are assigned in `SE54` when the dialog is generated, not in code. The example shows the check a program needs when it offers table access of its own.
 
 ---
 
@@ -2448,8 +2534,8 @@ These rules are decisions of the team: they have no basis in Clean ABAP or the A
 | Modern syntax | 3.8, 3.9, 3.18, 3.19 (no new macros at all) |
 | Classes and methods | 5.12 |
 | Error handling | 6.2 (one abstract root per category), 6.6, 6.7, 6.11, 6.12 (the split between `ASSERT`, `CX_NO_CHECK` and `RAISE SHORTDUMP`) |
-| Database access and SAP LUW | 7.13, 7.14, 7.15 |
-| Security | 8.2, 8.3, 8.9, 8.10, 8.11, 8.12, 8.13 |
+| Database access and SAP LUW | 7.13, 7.14, 7.15, 7.16, 7.17 |
+| Security | 8.2, 8.3, 8.9, 8.10, 8.11, 8.12, 8.13, 8.14 |
 | Performance | 9.1 |
 | Testing | 10.1, 10.2 (default risk level and duration), 10.10 |
 | Comments | 11.5 (reason for each pragma), 11.6 |
