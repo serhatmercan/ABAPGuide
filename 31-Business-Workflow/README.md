@@ -36,7 +36,7 @@ The release states come from SAP's lists of released and classified objects. Wor
 ## 🧩 Building Blocks
 
 - **Workflow definition** (Workflow Builder, `SWDD`): the process as a sequence of steps — activities, user decisions, conditions, loops, waits for events.
-- **Workflow container**: the process's variables, for example the order. Data moves between the workflow and its steps through **bindings** **[verify: container element types and binding rules in your release]**.
+- **Workflow container**: the process's variables, for example the order. Data moves between the workflow and its steps through **bindings**. Each container element is flagged for import, export or both; according to SAP's support content (*Getting started with ABAP OO for Workflow*), a task based on a class automatically gets a container element for the class instance, marked for import and export **[verify: container element types and binding rules in your release]**.
 - **Task** (`PFTC`): a reusable unit of work that calls one method of a business object; a step executes a task. A task names its possible agents.
 - **Work item**: the runtime instance of a step, for example "Approve order 42" in someone's inbox.
 
@@ -155,7 +155,7 @@ ENDCLASS.
 
 > ⚠️ **A type and an attribute of one class cannot share a name.** The first version declared `TYPES order_id` next to `DATA order_id`; the editor rejected it, and the type became `order_key`. The same happened in chapter 28.
 
-A workflow step that needs a decision calls a method of this class, which passes the question on to a tested class such as E2 below **[verify: how step methods and their parameters are bound to the container in your release]**.
+A workflow step that needs a decision calls a method of this class, which passes the question on to a tested class such as E2 below. According to SAP's support content (*Getting started with ABAP OO for Workflow*), when a task names the method, the Workflow Builder offers to copy the method's importing and exporting parameters into the task container; functional methods, those with a `RETURNING` parameter, can also be used directly in bindings.
 
 ## 📣 Events and How They Start Workflows
 
@@ -255,7 +255,7 @@ CLASS zcl_zsm_order_events_wf IMPLEMENTATION.
 ENDCLASS.
 ```
 
-The event names are the events declared in E1. Which workflow starts on them is decided by the type linkage, not by the code **[verify: how a type linkage refers to an event of an ABAP class in `SWE2`]**.
+The event names are the events declared in E1. Which workflow starts on them is decided by the type linkage, not by the code. According to SAP's support content (*Getting started with ABAP OO for Workflow*), the workflow definition names its start event with object category `CL`, the class and the event; the Workflow Builder generates the binding from the event container and activates the linkage, which `SWE2` then lists.
 
 ## 👥 Agent Determination
 
@@ -304,7 +304,7 @@ From ABAP, the classic `SAP_WAPI_*` modules read and process work items (for exa
 
 ## ⏰ Deadlines and Escalation
 
-A step can carry deadlines, for example for the start or the end of processing; when a deadline is missed, the workflow can notify someone or take another path **[verify: the deadline types and their monitoring in your release]**. A notification mail follows the patterns of [24-Mail](../24-Mail/README.md): addresses from configuration, no personal data beyond what the recipient needs.
+A step can carry deadlines, for example for the start or the end of processing; when a deadline is missed, the workflow can notify someone or take another path. For flexible workflow, SAP Help (*Create a Scenario*) describes that a step whose deadline is reached is marked *Overdue*, that the agents can be notified before that, and that a deadline of 0 time units sends the notification as soon as the work item is created **[verify: the deadline types of SAP Business Workflow steps and their monitoring in your release]**. A notification mail follows the patterns of [24-Mail](../24-Mail/README.md): addresses from configuration, no personal data beyond what the recipient needs.
 
 ## 🛠️ Administration and Error Handling for Developers
 
@@ -323,10 +323,13 @@ The transactions a developer meets when a workflow does not start or stops:
 - **An event that starts nothing** usually means an inactive or missing linkage, or a check function module that raised an exception; the event trace shows which.
 - **A workflow in error** shows the failing step and its message in the workflow log. Fix the cause, then restart it with `SWPR` — in production only through the support process.
 - **Trigger events by hand** (`SWUE`) only in development or test systems.
+- **Switch the event trace on before you need it.** According to SAP's support content (*Workflow Diagnosis*), `SWEL` shows events only while the event log is active, which is checked in `SWELS`; it can stay on while a new workflow goes live but should not stay on in production, and the same applies to the workflow trace.
 
 ## 🔄 Flexible Workflow in SAP S/4HANA
 
-SAP S/4HANA applications deliver approval processes as **flexible workflows**. A developer defines a **scenario** in the scenario editor (`SWDD_SCENARIO`): its steps, agent rules and start conditions **[verify: the parts of a scenario definition]**. Business experts then model the actual workflows from the scenario in the SAP Fiori app *Manage Workflows*, with start conditions, approval steps, recipients and deadlines **[verify]**. SAP describes flexible workflow as its recommended approach for these applications **[verify: SAP's recommendation of flexible workflow over SAP Business Workflow]**.
+SAP S/4HANA applications deliver approval processes as **flexible workflows**. A developer defines a **scenario** in the scenario editor (`SWDD_SCENARIO`). According to SAP Help (*Create a Scenario*), the scenario's flexible block holds the process data such as the leading object and its events, the activities (dialog and background steps), the conditions, the agent rules, value helps, reference times for deadlines, mail templates and deadline actions, plus callback classes and optional pre-delivered content. Agent rules of the rule type are maintained in `PFAC` and roles in `PFCG`; when no agent is found, the scenario's runtime class can supply one in `MITIGATE_AGENT_RULE_EVALUATION`, and otherwise the callback `ON_NO_AGENT_FOUND` is called.
+
+Business experts then model the actual workflows from the scenario in the SAP Fiori app *Manage Workflows*. According to SAP Help (*Flexible Workflow*, SAP S/4HANA on-premise), the definitions are created and activated there; when the scenario starts, exactly one active definition whose start conditions apply is selected, in the order set in the app, and a pre-delivered definition can be shipped by the developer. SAP describes flexible workflow as an extension of SAP Business Workflow and as the default workflow engine in SAP S/4HANA for approval scenarios such as purchase requisitions, purchase orders and journal entries.
 
 Extensions use released interfaces and BAdIs, among them:
 
