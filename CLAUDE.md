@@ -20,6 +20,9 @@ Coding rules: docs/ABAP-Development-Rules.md. Cite rules by number (Rule 2.6).
   configuration maintenance of ABAP Cloud. The RAP business object behind
   a business configuration app belongs to the future RAPGuide; the
   chapter describes the hand-over only.
+- Lock objects are Chapter 27 (`27-Lock-Objects`): the SAP lock concept,
+  generated ENQUEUE_/DEQUEUE_ modules and the released lock API. Locking
+  in RAP belongs to the future RAPGuide; the chapter names the terms only.
 - Debugging is Chapter 23 (`23-Debugging-Troubleshooting`). Keep the
   folder name `18-Debugging`; its title is "Messages, Exceptions &
   Logging".
