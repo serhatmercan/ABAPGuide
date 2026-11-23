@@ -983,6 +983,16 @@ SELECT * FROM zsm_t_order_item
   INTO TABLE @printed_items.
 ```
 
+### 5.14 Keep business logic out of workflow definitions, BOR methods and task bindings; workflow steps call methods of tested classes
+
+Conditions in a workflow definition, logic in a BOR method and computations in a binding run only inside a workflow, where no unit test reaches them. SAP's documentation also advises against implementing `IF_WORKFLOW` in application classes: a class that implements it may afterwards change only compatibly.
+
+- Keep the workflow class thin: it maps keys to instances and passes questions on.
+- Put decisions into plain classes behind interfaces, and test them with ABAP Unit.
+- Use workflow conditions only to branch on results that such a class computed.
+
+This is a team rule. See [31-Business-Workflow](../31-Business-Workflow/README.md#-business-objects-bor-and-abap-classes).
+
 ---
 
 ## 6 Error Handling
@@ -1687,6 +1697,16 @@ UPDATE zsm_t_order SET status = @new_status
 
 > 📝 **Contextual snippet** — `zsm_t_order` has the field `version`; `zcx_zsm_order_changed` is a placeholder exception class.
 
+### 7.20 Raise a workflow event only for committed data: in the update task or after the caller's commit
+
+An event starts processes outside the current transaction, often for other users. Raised before the commit, it can start a workflow for data that is rolled back afterwards.
+
+- Raise events in the update task, for example with `CL_SWF_EVT_EVENT=>raise_in_update_task( )`, so that they go out with the caller's `COMMIT WORK`.
+- Reusable units never commit to get an event out (7.10). Classic modules such as `SAP_WAPI_CREATE_EVENT` commit by default; pass their commit parameter explicitly or call them only where the program owns the transaction.
+- Put event raising behind an interface, so that callers are tested with a double.
+
+This is a team rule. See [31-Business-Workflow](../31-Business-Workflow/README.md#-events-and-how-they-start-workflows).
+
 ---
 
 ## 8 Security
@@ -2054,6 +2074,16 @@ output_parameters-dest = settings->output_device( document_type ).
 " ❌
 output_parameters-dest = 'LP01'.
 ```
+
+### 8.16 Determine workflow agents through rules and organizational assignments; never hard-code user IDs
+
+People change roles, go on leave and leave the company. A user ID in code or in a workflow definition sends work to whoever held it when the code was written.
+
+- Determine agents with rules that read organizational assignments or configuration.
+- Let a rule report that it found nobody (for a rule function module, the exception `nobody_found`) instead of returning an empty result.
+- Keep user IDs out of code, tests and reports (15.5).
+
+This is a team rule. See [31-Business-Workflow](../31-Business-Workflow/README.md#-agent-determination).
 
 ---
 
@@ -2654,10 +2684,10 @@ These rules are decisions of the team: they have no basis in Clean ABAP or the A
 |---|---|
 | Language version | 1.3 |
 | Modern syntax | 3.8, 3.9, 3.18, 3.19 (no new macros at all) |
-| Classes and methods | 5.12, 5.13 |
+| Classes and methods | 5.12, 5.13, 5.14 |
 | Error handling | 6.2 (one abstract root per category), 6.6, 6.7, 6.11, 6.12 (the split between `ASSERT`, `CX_NO_CHECK` and `RAISE SHORTDUMP`) |
-| Database access and SAP LUW | 7.13, 7.14, 7.15, 7.16, 7.17, 7.18, 7.19 |
-| Security | 8.2, 8.3, 8.9, 8.10, 8.11, 8.12, 8.13, 8.14, 8.15 |
+| Database access and SAP LUW | 7.13, 7.14, 7.15, 7.16, 7.17, 7.18, 7.19, 7.20 |
+| Security | 8.2, 8.3, 8.9, 8.10, 8.11, 8.12, 8.13, 8.14, 8.15, 8.16 |
 | Performance | 9.1 |
 | Testing | 10.1, 10.2 (default risk level and duration), 10.10 |
 | Comments | 11.5 (reason for each pragma), 11.6 |
