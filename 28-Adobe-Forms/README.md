@@ -23,11 +23,11 @@ The developer and the layout author are often different people. The developer ow
 
 | Topic | Standard ABAP | ABAP for Cloud Development |
 |---|---|---|
-| Form objects | Form interface and form in `SFP` | Form templates in the ABAP repository, read by name **[verify: how form templates are created and maintained in the SAP BTP ABAP environment]** |
+| Form objects | Form interface and form in `SFP` | Form templates in the ABAP repository, read by name; SAP Help (*SAP Forms Service by Adobe*) confirms that templates of ABAP applications are stored there **[verify: how form templates are created and maintained in the SAP BTP ABAP environment]** |
 | Data | Import parameters of the form interface, filled by the calling program | A form data provider, for example a service definition, read as XML |
-| Layout | Adobe LiveCycle Designer, opened from `SFP` | Adobe LiveCycle Designer **[verify]** |
+| Layout | Adobe LiveCycle Designer, opened from `SFP` | Adobe LiveCycle Designer for SAP solutions, downloaded through the *Install Additional Software* app (SAP Help: *Runtime API for ADS Rendering Calls*) |
 | Call | `FP_FUNCTION_MODULE_NAME`, `FP_JOB_OPEN`, the generated function module, `FP_JOB_CLOSE` | `CL_FP_FORM_READER`, `CL_FP_FDP_SERVICES`, `CL_FP_ADS_UTIL=>render_pdf( )` |
-| Rendering | Adobe Document Services | Adobe Document Services or SAP's forms service **[verify: which rendering service the SAP BTP ABAP environment requires]** |
+| Rendering | Adobe Document Services | SAP Forms service by Adobe, an SAP BTP service connected through a communication arrangement (SAP Help: *SAP Forms Service by Adobe*) |
 | Printing | Spool request (`SP01`) | Print queue, `CL_PRINT_QUEUE_UTILS` |
 | Release state | `FP_*` modules: classic API | `CL_FP_ADS_UTIL`, `CX_FP_ADS_UTIL`, `CL_FP_FDP_SERVICES`, `IF_FP_FDP_API`, `CX_FP_FDP_ERROR`, `CL_FP_FORM_READER`, `IF_FP_FORM_BASE_READER`, `CX_FP_FORM_READER`, `CL_PRINT_QUEUE_UTILS`: released |
 
@@ -254,7 +254,7 @@ ABAP for Cloud Development has no `SFP` and no `FP_*` modules. The released API 
 2. **`CL_FP_FDP_SERVICES=>get_instance( iv_service_definition )`** returns an `IF_FP_FDP_API` for that data provider. `get_keys( )` returns the key fields; `read_to_xml_v2( it_select )` reads the data for given key values as XML. The older `read_to_xml( )` is marked as deprecated in its ABAP Doc. Errors raise `CX_FP_FDP_ERROR`.
 3. **`CL_FP_ADS_UTIL=>render_pdf( )`** takes the XML data, the XDP layout and a locale such as `en_US`, and exports the PDF (`ev_pdf`), the page count and a trace string. Errors raise `CX_FP_ADS_UTIL`. `render_4_pq( )` renders print data for a print queue instead.
 
-`CL_PRINT_QUEUE_UTILS` offers `create_queue_itemid( )`, `create_queue_item_by_data( )` and `get_pqname_list( )` for print queues **[verify: the parameters of `CL_PRINT_QUEUE_UTILS` and how print queues are set up]**. How form templates are created and maintained, and which forms service must be set up, are not covered here **[verify]**.
+`CL_PRINT_QUEUE_UTILS` offers `create_queue_itemid( )`, `create_queue_item_by_data( )` and `get_pqname_list( )` for print queues **[verify: the parameters of `CL_PRINT_QUEUE_UTILS` and how print queues are set up]**. According to SAP Help (*SAP Forms Service by Adobe*), the rendering service is the SAP Forms service by Adobe. An administrator creates a service instance and a service key for it in the SAP BTP cockpit, then, in the ABAP environment, a communication system with the service's host and OAuth endpoints and an outbound user from the service key, and a communication arrangement for `SAP_COM_0503` in which the outbound service for Adobe Document Services points to the service's configuration path. How form templates are created and maintained in the ABAP environment is not covered here **[verify]**.
 
 **Example E4 — the cloud adapter.** Target: ABAP for Cloud Development.
 
@@ -573,7 +573,7 @@ ENDCLASS.
 
 ## 🕰️ Smart Forms and SAPscript
 
-> **Lifecycle:** `CLASSIC BUT STILL RELEVANT`. Existing programs print with Smart Forms and SAPscript, and they keep working. SAP's object classification lists their function modules as classic APIs, like the `FP_*` modules. This guide recommends Adobe forms for new forms; whether SAP still develops Smart Forms could not be verified in SAP Help **[verify]**. Neither technology is released for ABAP for Cloud Development.
+> **Lifecycle:** `CLASSIC BUT STILL RELEVANT`. Existing programs print with Smart Forms and SAPscript, and they keep working. SAP's object classification lists their function modules as classic APIs, like the `FP_*` modules. This guide recommends Adobe forms for new forms. SAP Help for SAP NetWeaver 7.0 (*PDF-Based Print Forms*) states that Smart Forms remain supported and that existing Smart Forms keep working unchanged, and it offers a migration of Smart Forms to PDF-based forms in transaction `SMARTFORMS` **[verify: whether SAP still develops Smart Forms in current releases]**. Neither technology is released for ABAP for Cloud Development.
 
 - **Smart Forms** (transaction `SMARTFORMS`) are maintained in a graphical editor in SAP GUI. Like Adobe forms, they generate a function module, which a program finds with `SSF_FUNCTION_MODULE_NAME` (classic exceptions `no_form`, `no_function_module`). The generated module takes optional parameters such as `control_parameters`, `output_options` and `user_settings`, the form's own parameters, and raises `formatting_error`, `internal_error`, `send_error` and `user_canceled`.
 - **SAPscript** forms (transaction `SE71`) are the oldest technology. A print program drives them statement by statement with function modules such as `OPEN_FORM`.
