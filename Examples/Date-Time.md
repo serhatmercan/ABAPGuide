@@ -189,8 +189,46 @@ ENDIF.
 
 > 💡 Type the variables for what they actually hold (`TYPE t` for a time). Reaching for an unrelated industry-component data element because it happens to be the right length makes the code harder to read and ties it to a component you may not have.
 
+## 🕐 UTC Time Stamps with `utclong`
+
+`utclong` is the built-in ABAP type for a time stamp in UTC. Its ABAP Dictionary counterpart `UTCLONG` is precise to 100 nanoseconds. Unlike the packed time stamps `timestamp` and `timestampl`, a `utclong` value is not a packed number that happens to look like a date; dedicated functions and statements work with it. According to the ABAP Keyword Documentation:
+
+| Task | Construct |
+|---|---|
+| Current time stamp | `utclong_current( )` |
+| Add a duration | `utclong_add( val = … days = … hours = … minutes = … )` **[verify: the full parameter list of `utclong_add`]** |
+| Difference in seconds | `utclong_diff( high = … low = … )` |
+| Local date and time from a time stamp | `CONVERT UTCLONG ts TIME ZONE tz INTO DATE d TIME t.` |
+| Time stamp from a local date and time | `CONVERT DATE d TIME t INTO UTCLONG ts TIME ZONE tz.` |
+| Output | String templates with `TIMESTAMP = ISO`, `USER` or `ENVIRONMENT`, and `TIMEZONE = tz` |
+| In ABAP SQL | `UTCL_CURRENT( )`, `UTCL_ADD_SECONDS( )`, `UTCL_SECONDS_BETWEEN( )`; see [08-Open-SQL](../08-Open-SQL/README.md#cast-coalesce-and-further-built-in-functions) |
+
+> 📝 **Contextual snippet** — the method bodies of the placeholder class `zcl_zsm_utc_clock`; `start`, `later` and `earlier` are of type `utclong`, `hours` of type `i`, `zone` is character-like with length 6, and `result` has the type of each method's result.
+
+```abap
+" due_at: start time plus a number of hours
+result = utclong_add( val = start hours = hours ).
+
+" seconds_between: the difference of two time stamps
+result = utclong_diff( high = later low = earlier ).
+
+" local_date: the date of a time stamp in a time zone
+CONVERT UTCLONG moment TIME ZONE zone INTO DATE result.
+```
+
+> ⚠️ **In `CONVERT UTCLONG`, `TIME ZONE` comes before `INTO`.** In the opposite direction, `CONVERT DATE … INTO UTCLONG`, it comes last. The first draft of the class had the wrong order and did not pass the syntax check.
+
+The tests started at 15 January 2026, 08:00 UTC:
+- **26 hours later:** the local date in time zone `UTC` was 16 January 2026.
+- **The difference:** `utclong_diff( )` returned 93600 seconds, read into a `decfloat34` result.
+
+> 📝 **Activation record.** `zcl_zsm_utc_clock` with its test include (2 test methods) was activated in both ABAP language versions: Standard ABAP and ABAP for Cloud Development. The tests were run in both versions, and the test runs passed. The active version was read back and matched the source.
+
+> ⚠️ **VERSION-DEPENDENT: `utclong` in database tables.** According to the ABAP Keyword Documentation, the Dictionary type `UTCLONG` is supported only on SAP HANA databases. Check the [ABAP Keyword Documentation](https://help.sap.com/doc/abapdocu_latest_index_htm/latest/en-US/index.htm) for your release before you store it.
+
 ## ✅ Best Practices
 
+- Prefer `utclong` for new time stamps: its functions and `CONVERT UTCLONG` say what they do, where packed time stamps need helper classes.
 - Prefer `|{ date DATE = ISO }|` / `|{ date DATE = USER }|` string-template formatting over manual substring rearrangement — clearer intent, less error-prone.
 - Use a `DATE`/`TIME` format keyword with `WRITE ... TO`, not an edit mask: an edit mask is applied positionally to the raw internal value.
 - Always validate externally-sourced date strings (uploads, RFC input) before converting — a malformed string silently produces a wrong date rather than an error.

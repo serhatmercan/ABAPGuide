@@ -154,8 +154,51 @@ REPLACE ALL OCCURRENCES OF PCRE '\s+' IN text WITH ` `.
 
 > **Lifecycle:** `LEGACY / HISTORICAL REFERENCE` for the short form `REPLACE f1 WITH f2 INTO g`, which the documentation lists as obsolete. It still appears in older code — recognise it, but write one of the forms above. See [21-Classic-vs-Modern-ABAP](../21-Classic-vs-Modern-ABAP/README.md#-legacy--historical-reference).
 
+## 🧩 Regular Expressions (PCRE)
+
+According to the ABAP Keyword Documentation, PCRE is the regular-expression syntax to use. ABAP statements and functions use the PCRE2 library of the kernel. POSIX syntax is obsolete; it causes a syntax check warning, which the pragma `##regex_posix` hides. The regular-expression functions of ABAP SQL run on the database with a different PCRE library, so a pattern can behave slightly differently there.
+
+| Task | Construct |
+|---|---|
+| Does the whole text match? | `matches( val = text pcre = pattern )`, a predicate function: true only if the whole search range matches |
+| How many matches? | `count( val = text pcre = pattern )` returns an integer |
+| Where is the first match? | `find( val = text pcre = pattern )` returns the offset, or -1 |
+| All matches with their positions | `FIND ALL OCCURRENCES OF PCRE pattern IN text RESULTS DATA(found)` |
+| Replace matches | `REPLACE ALL OCCURRENCES OF PCRE pattern IN text WITH new` |
+| A pattern object to reuse | `REGEX regex_ref` with an instance of `cl_abap_regex` |
+
+> ⚠️ **ABAP compiles a PCRE pattern in extended mode.** Blanks in the pattern are ignored, and `#` starts a comment. Write `\s` or an escaped blank for a blank to match, or switch the mode off with `(?-x)` at the start of the pattern.
+
+> 📝 **Contextual snippet** — the method bodies of the placeholder class `zcl_zsm_text_patterns`; `text` is a string, `order_number_pattern` is the string constant `` `ORD-\d{6}` ``, and `result` has the type of each method's result.
+
+```abap
+" is_order_number: the whole text must match, not a part of it
+result = xsdbool( matches( val = text pcre = order_number_pattern ) ).
+
+" count_order_numbers
+result = count( val = text pcre = order_number_pattern ).
+
+" order_numbers_in: every match, in order of appearance
+FIND ALL OCCURRENCES OF PCRE order_number_pattern IN text RESULTS DATA(found).
+result = VALUE #( FOR match IN found
+                  ( substring( val = text off = match-offset len = match-length ) ) ).
+
+" collapse_whitespace: every run of blanks, tabs or line breaks becomes one blank
+result = text.
+REPLACE ALL OCCURRENCES OF PCRE `\s+` IN result WITH ` `.
+```
+
+The tests confirmed:
+- `ORD-123456` matches the pattern, while `ORD-12345` and `see ORD-123456` do not, because the whole text must match.
+- A text with two order numbers and the fragment `ORD-1` counts 2.
+- `FIND … RESULTS` returns both numbers in order.
+- `a   b`, followed by a tab and `c`, becomes `a b c`.
+
+> 📝 **Activation record.** `zcl_zsm_text_patterns` with its test include (4 test methods) was activated in both ABAP language versions: Standard ABAP and ABAP for Cloud Development. The tests were run in both versions, and the test runs passed. The active version was read back and matched the source.
+
 ## ✅ Best Practices
 
+- Write regular expressions in PCRE, and use `matches( )` for a whole-text check instead of `FIND`, which also accepts a match inside the text.
 - Prefer string templates (`|...|`) over `CONCATENATE`, and built-in functions over the older statement forms.
 - Prefer `FIND` over `SEARCH`.
 - Use `CONDENSE ... NO-GAPS` deliberately — it removes *all* spaces; plain `CONDENSE` trims and collapses runs of blanks.

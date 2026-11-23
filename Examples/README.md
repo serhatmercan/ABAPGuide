@@ -4,8 +4,8 @@ Quick-reference snippets that complement the numbered chapters. They are grouped
 
 | File | Topic |
 |---|---|
-| [String-Functions.md](String-Functions.md) | String manipulation, case conversion, `FIND`/`REPLACE`, built-in string functions |
-| [Date-Time.md](Date-Time.md) | Date/time formatting, parsing, calculations, time zones |
+| [String-Functions.md](String-Functions.md) | String manipulation, case conversion, `FIND`/`REPLACE`, built-in string functions, regular expressions (PCRE) |
+| [Date-Time.md](Date-Time.md) | Date/time formatting, parsing, calculations, time zones, `utclong` time stamps |
 | [Conversion.md](Conversion.md) | `ALPHA`, `CONV`, `CORRESPONDING`, timestamp conversions |
 
 > 📝 These files mix `CURRENT / RECOMMENDED` forms with `LEGACY / HISTORICAL REFERENCE` ones you will still meet in existing code. Each obsolete construct is labelled where it appears — see [21-Classic-vs-Modern-ABAP](../21-Classic-vs-Modern-ABAP/README.md).

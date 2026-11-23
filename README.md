@@ -108,7 +108,7 @@ The Context column lists every lifecycle label a chapter uses, in the short form
 | [30-Tools-AI-Assistance](30-Tools-AI-Assistance/README.md) | Development Tools and AI Assistance | ADT for Eclipse and VS Code, SAP GUI tools, source search, ABAP Cleaner, abapGit, what an AI assistant needs, MCP servers for ADT, the safety model and observed tool limits | Current + Version-dependent |
 | [31-Business-Workflow](31-Business-Workflow/README.md) | Business Workflow and My Inbox | Workflow building blocks, BOR and `IF_WORKFLOW` classes, events and type linkages, agent rules, work items in the Business Workplace and My Inbox, administration, flexible workflow, the cloud hand-over, testing without starting a workflow | Classic + Cloud |
 | [32-IDoc-ALE](32-IDoc-ALE/README.md) | IDoc and ALE | IDoc structure, message types, ports, partner profiles and the distribution model, outbound processing and change pointers, inbound function modules and status handling, posting through BAPIs, monitoring and reprocessing, the cloud hand-over, testing without an IDoc | Classic + Cloud |
-| [Examples](Examples/README.md) | Examples | Strings, dates/times, conversions | Current + Legacy + Version-dependent |
+| [Examples](Examples/README.md) | Examples | Strings and regular expressions, dates/times and `utclong`, conversions | Current + Legacy + Version-dependent |
 
 ## 🚀 How to Use
 
