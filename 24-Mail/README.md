@@ -586,7 +586,7 @@ The adapters E1 and E2 are not unit-tested: what they do is call the mail API, a
 ## 🧭 Scope Note
 
 - **A reusable mail component** with configuration, logging and retries belongs to the future ABAP-Cookbook; this chapter describes its design.
-- **SAPconnect and mail server setup** (nodes, send jobs, communication arrangements) is an administration task, not covered here.
+- **SAPconnect and mail server setup** (nodes, send jobs, communication arrangements) is an administration task. Only the steps in the SAP BTP ABAP environment are summarised, in [Sending Mail with the Mail API](#-sending-mail-with-the-mail-api).
 - **Generating attachments** — spreadsheets are outside this chapter, and PDFs from forms are covered in [28-Adobe-Forms](../28-Adobe-Forms/README.md); see the attachments section for how the result is attached.
 - **Attachments to business documents** (Generic Object Services) are not mail attachments and not covered.
 - **Inbound mail, SMS and fax** are not covered; workflow notifications are part of [31-Business-Workflow](../31-Business-Workflow/README.md#-deadlines-and-escalation).

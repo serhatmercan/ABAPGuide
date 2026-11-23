@@ -84,7 +84,7 @@ What a developer needs to know:
 - The system used for this chapter contains the program `FP_TEST_ADS_CONNECTIVITY`, whose title says that it tests the ADS connection. Ask Basis before blaming the form.
 - After an ADS error, the classic function module `FP_GET_LAST_ADS_ERRSTR` returns ADS's error text.
 
-ADS configuration is outside this guide.
+ADS configuration on-premise is outside this guide; the setup of the forms service in the SAP BTP ABAP environment is summarised in [Forms in ABAP for Cloud Development](#-forms-in-abap-for-cloud-development).
 
 ## 🖨️ Calling a Form in Standard ABAP
 
