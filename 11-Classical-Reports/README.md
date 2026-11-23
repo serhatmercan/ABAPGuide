@@ -380,6 +380,16 @@ ENDIF.
 - Explain how a program starts another report as a background job, and why `VIA JOB` needs `AND RETURN`.
 - Explain the difference between presentation server and application server files, and which of them a background job can use.
 
+## 🖥️ Related Transaction Codes
+
+| T-Code | Purpose |
+|---|---|
+| SM36 | Define a background job |
+| SM37 | Monitor background jobs |
+| AL11 | Display application server directories |
+| CG3Y | Download a file from the application server to the PC |
+| CG3Z | Upload a file from the PC to the application server |
+
 ## 🔗 Related Chapters
 
 - [01-ABAP-Basics](../01-ABAP-Basics/README.md) — the report event flow

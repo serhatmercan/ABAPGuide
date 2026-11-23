@@ -490,6 +490,13 @@ You will meet these in existing code. Before you use one in new code, check its 
 - Explain how a table control writes changed rows back (`current_line`).
 - Explain which parts of a dynpro live in the Screen Painter and which in the ABAP source.
 
+## 🖥️ Related Transaction Codes
+
+| T-Code | Purpose |
+|---|---|
+| SE51 | Screen Painter |
+| SE41 | Menu Painter: GUI statuses and titles |
+
 ## 🔗 Related Chapters
 
 - [01-ABAP-Basics](../01-ABAP-Basics/README.md) — report event order

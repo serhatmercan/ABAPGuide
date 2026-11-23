@@ -363,6 +363,13 @@ ENDIF.
 - Explain what a conversion exit is and give an example (`ALPHA`, `MATN1`).
 - Explain the difference between `CHECK` and `IF`, and where each belongs.
 
+## 🖥️ Related Transaction Codes
+
+| T-Code | Purpose |
+|---|---|
+| SE37 | Function Builder: display, create and test function modules |
+| SM59 | RFC destinations |
+
 ## 🔗 Related Chapters
 
 - [03-Variables](../03-Variables/README.md#-form--perform-classical-subroutines) — `FORM`/`PERFORM` syntax in detail

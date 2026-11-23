@@ -365,6 +365,12 @@ entity_type = model->get_entity_type( iv_entity_name = 'PurchaseOrder' ).
 - Explain the difference between `constructor` and `class_constructor`, and when each runs.
 - Explain how an event reaches its handlers, and what `sender` contains.
 
+## 🖥️ Related Transaction Codes
+
+| T-Code | Purpose |
+|---|---|
+| SE24 | Class Builder: classes and interfaces in SAP GUI |
+
 ## 🔗 Related Chapters
 
 - [09-Modularization](../09-Modularization/README.md) — where function modules are still needed next to classes
