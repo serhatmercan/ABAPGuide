@@ -160,7 +160,7 @@ ENDTRY.
 |---|---|
 | BAPI | BAPI Explorer (Business Object Repository) |
 | SE37 | Function Builder — test/display a BAPI's signature |
-| BD87 | Monitor IDocs generated from BAPI-based interfaces (if applicable) |
+| BD87 | Monitor IDocs generated from BAPI-based interfaces (if applicable); see [32-IDoc-ALE](../32-IDoc-ALE/README.md#-monitoring-and-reprocessing) |
 
 ## 🔗 Related Chapters
 
@@ -170,3 +170,4 @@ ENDTRY.
 - [18-Debugging](../18-Debugging/README.md) — exceptions and logging
 - [21-Classic-vs-Modern-ABAP](../21-Classic-vs-Modern-ABAP/README.md) — released APIs under ABAP Cloud
 - [27-Lock-Objects](../27-Lock-Objects/README.md) — the SAP lock concept behind the locks a BAPI sets
+- [32-IDoc-ALE](../32-IDoc-ALE/README.md) — inbound IDocs posted through BAPIs

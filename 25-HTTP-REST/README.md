@@ -689,3 +689,4 @@ The transports E1 and E2 and the handlers E3 are not unit-tested here: a transpo
 - [24-Mail](../24-Mail/README.md) — the same design for sending mail
 - [26-Maintenance-Views](../26-Maintenance-Views/README.md) — the next chapter: Customizing tables and how users maintain them
 - [28-Adobe-Forms](../28-Adobe-Forms/README.md) — the same design for form output
+- [32-IDoc-ALE](../32-IDoc-ALE/README.md) — asynchronous document exchange as the alternative

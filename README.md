@@ -14,7 +14,7 @@ That last part is the point. Real SAP systems run several generations of ABAP at
 
 ## ✨ Highlights
 
-- **31 structured chapters** plus a quick-reference Examples section
+- **32 structured chapters** plus a quick-reference Examples section
 - **100+ annotated ABAP code examples** written for this guide
 - **Explicit classic-to-modern lifecycle guidance** on every major technology
 - **Internal tables and modern expressions** — `VALUE`, `FOR`, `REDUCE`, `FILTER`, `COND`, table expressions, secondary keys
@@ -53,6 +53,7 @@ The chapter that ties the rest together: why productive landscapes contain sever
 | Transport a change and pass the quality gates | [29](29-Transport-Quality-Gates/README.md) · [22](22-ABAP-Unit/README.md) |
 | Set up the tools or an AI assistant | [30](30-Tools-AI-Assistance/README.md) · [20](20-Best-Practices/README.md) |
 | Start an approval process or react to a business event | [31](31-Business-Workflow/README.md) · [10](10-Objects/README.md) |
+| Exchange documents with other systems (IDoc, ALE) | [32](32-IDoc-ALE/README.md) · [15](15-BAPIs/README.md) |
 | Decide between classic and modern | [21](21-Classic-vs-Modern-ABAP/README.md) |
 
 ## 🏷️ Lifecycle Legend
@@ -102,6 +103,7 @@ Chapters and examples are labelled with one of these. Full definitions in [Chapt
 | [29-Transport-Quality-Gates](29-Transport-Quality-Gates/README.md) | Transport and Quality Gates | Packages and `$TMP`, the Change and Transport System, object locks in requests, request hygiene and a tested release rule, transport in the SAP BTP ABAP environment, ATC check variants and exemptions, abaplint and CI | Current + cloud |
 | [30-Tools-AI-Assistance](30-Tools-AI-Assistance/README.md) | Development Tools and AI Assistance | ADT for Eclipse and VS Code, SAP GUI tools, source search, ABAP Cleaner, abapGit, what an AI assistant needs, MCP servers for ADT, the safety model and observed tool limits | Current + version-dependent |
 | [31-Business-Workflow](31-Business-Workflow/README.md) | Business Workflow and My Inbox | Workflow building blocks, BOR and `IF_WORKFLOW` classes, events and type linkages, agent rules, work items in the Business Workplace and My Inbox, administration, flexible workflow, the cloud hand-over, testing without starting a workflow | Classic + cloud |
+| [32-IDoc-ALE](32-IDoc-ALE/README.md) | IDoc and ALE | IDoc structure, message types, ports, partner profiles and the distribution model, outbound processing and change pointers, inbound function modules and status handling, posting through BAPIs, monitoring and reprocessing, the cloud hand-over, testing without an IDoc | Classic + cloud |
 | [Examples](Examples/README.md) | Examples | Strings, dates/times, conversions | Current + legacy |
 
 ## 🚀 How to Use

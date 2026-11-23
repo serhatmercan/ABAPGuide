@@ -715,4 +715,5 @@ Not covered in this chapter:
 - [24-Mail](../24-Mail/README.md) — notification mails
 - [29-Transport-Quality-Gates](../29-Transport-Quality-Gates/README.md) — transporting workflow definitions and tasks
 - [30-Tools-AI-Assistance](../30-Tools-AI-Assistance/README.md) — the previous chapter; SAP GUI tools that remain
+- [32-IDoc-ALE](../32-IDoc-ALE/README.md) — the next chapter: IDoc and ALE, and the error workflow of inbound IDocs
 - [21-Classic-vs-Modern-ABAP](../21-Classic-vs-Modern-ABAP/README.md) — lifecycle of classic workflow and what replaces it
