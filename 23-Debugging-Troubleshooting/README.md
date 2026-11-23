@@ -455,3 +455,4 @@ The names `COMPUTE_INT_ZERODIVIDE`, `ASSERTION_FAILED` and `RAISE_SHORTDUMP` are
 - [24-Mail](../24-Mail/README.md) — the next chapter: sending mail, and where to look when a mail did not arrive
 - [25-HTTP-REST](../25-HTTP-REST/README.md) — handlers whose requests come from outside the system
 - [26-Maintenance-Views](../26-Maintenance-Views/README.md) — regenerating maintenance dialogs, and debugging their events
+- [30-Tools-AI-Assistance](../30-Tools-AI-Assistance/README.md) — ADT and the tools around the debugger

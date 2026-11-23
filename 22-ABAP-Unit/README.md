@@ -553,3 +553,5 @@ ENDCLASS.
 - [26-Maintenance-Views](../26-Maintenance-Views/README.md) — testing code that reads Customizing with the ABAP SQL test environment
 - [27-Lock-Objects](../27-Lock-Objects/README.md) — testing code that locks with a lock double
 - [28-Adobe-Forms](../28-Adobe-Forms/README.md) — testing code that needs a PDF with a renderer double
+- [29-Transport-Quality-Gates](../29-Transport-Quality-Gates/README.md) — ATC and the tests that run before a release
+- [30-Tools-AI-Assistance](../30-Tools-AI-Assistance/README.md) — the tools that run the tests

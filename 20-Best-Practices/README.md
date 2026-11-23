@@ -296,4 +296,6 @@ The review checklist. Each item names the rule it comes from and the chapter tha
 - [21-Classic-vs-Modern-ABAP](../21-Classic-vs-Modern-ABAP/README.md) — the lifecycle labels used in this chapter and the scope boundary
 - [26-Maintenance-Views](../26-Maintenance-Views/README.md) — logic in classes even where the framework calls `FORM` routines
 - [27-Lock-Objects](../27-Lock-Objects/README.md) — locks behind an interface, tested with a double
+- [29-Transport-Quality-Gates](../29-Transport-Quality-Gates/README.md) — the quality gates that a release passes
+- [30-Tools-AI-Assistance](../30-Tools-AI-Assistance/README.md) — formatter, ABAP Cleaner and reviewing AI-generated code
 - [ABAP Keyword Documentation](https://help.sap.com/doc/abapdocu_latest_index_htm/latest/en-US/index.htm) — the authority for syntax and release availability

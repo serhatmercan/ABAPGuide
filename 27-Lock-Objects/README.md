@@ -740,3 +740,4 @@ ENDCLASS.
 - [22-ABAP-Unit](../22-ABAP-Unit/README.md) — test doubles and the ABAP SQL test environment
 - [26-Maintenance-Views](../26-Maintenance-Views/README.md) — maintenance dialogs and their own locks
 - [28-Adobe-Forms](../28-Adobe-Forms/README.md) — the next chapter: forms and PDF output, with the same adapter design
+- [30-Tools-AI-Assistance](../30-Tools-AI-Assistance/README.md) — the tool limits behind the lock-mode finding, and Rule 15.7

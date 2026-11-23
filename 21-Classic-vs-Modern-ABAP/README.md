@@ -239,4 +239,6 @@ Every chapter in this guide carries a lifecycle note that points back here:
 - [26-Maintenance-Views](../26-Maintenance-Views/README.md) — table maintenance and the business configuration maintenance that replaces it
 - [27-Lock-Objects](../27-Lock-Objects/README.md) — the generated lock modules and the released lock API
 - [28-Adobe-Forms](../28-Adobe-Forms/README.md) — Adobe forms, the released forms API, Smart Forms and SAPscript
+- [29-Transport-Quality-Gates](../29-Transport-Quality-Gates/README.md) — the cloud-readiness check in ATC, and transport in the SAP BTP ABAP environment
+- [30-Tools-AI-Assistance](../30-Tools-AI-Assistance/README.md) — ADT as the environment of every language version
 - [docs/ABAP-Development-Rules.md](../docs/ABAP-Development-Rules.md) — the rules every classification cites
