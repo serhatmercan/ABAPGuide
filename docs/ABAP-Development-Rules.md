@@ -1430,8 +1430,11 @@ Follow this pattern:
 1. Lock before reading data that you intend to change.
 2. Release the lock after the commit or the rollback.
 3. Report a foreign lock as a business message.
+4. Use the released `IF_ABAP_LOCK_OBJECT` in ABAP for Cloud Development, and in Standard ABAP where your release offers it (1.2, 1.3).
 
-See [08-Open-SQL](../08-Open-SQL/README.md#-sap-luw--transaction-ownership).
+The generated function module locks the values you pass. A lock field passed with an initial value is a wildcard and locks every value of that field, unless its `x_` flag is set (7.18).
+
+See [08-Open-SQL](../08-Open-SQL/README.md#-sap-luw--transaction-ownership) and [27-Lock-Objects](../27-Lock-Objects/README.md).
 
 > 📝 **Contextual snippet** — assumes a lock object `EZSM_ORDER` on `zsm_t_order`, named as in [2.6](#26-name-development-objects-by-the-object-naming-table). The generated function module has one parameter per key field of the lock object, plus `mode_<table>` for the lock mode and `_scope` for the lock duration. A foreign lock raises the exception `foreign_lock`.
 
@@ -1593,6 +1596,66 @@ ENDFORM.
 ```
 
 > 📝 **Contextual snippet** — `changed_entries` holds the new and changed entries collected from the dialog's data; `vim_abort_saving` is the abort flag of SAP's maintenance framework, not a released API.
+
+### 7.18 Lock with the complete key you are about to change; pass a key field initial only when a generic lock is intended
+
+According to SAP's documentation, a lock field of a generated `ENQUEUE_` module that is passed with an initial value, and without its `x_` flag, is locked generically: every value of that field is locked. An empty key therefore locks the whole table for the client, and every other user waits or fails.
+
+- Pass every key field of the data you are about to change.
+- Set the `x_` flag of a field whose initial value is a real key.
+- When a generic lock is intended, say so in a comment at the call.
+
+The released `IF_ABAP_LOCK_OBJECT` treats a supplied parameter as the lock argument even when it is initial; a parameter that is left out stays generic. This is a team rule. See [27-Lock-Objects](../27-Lock-Objects/README.md#-calling-the-lock-enqueue_-and-dequeue_).
+
+```abap
+" ✅ the full key; an initial order_id locks only that value
+CALL FUNCTION 'ENQUEUE_EZSM_ORDER'
+  EXPORTING
+    order_id       = order_id
+    x_order_id     = abap_true
+  EXCEPTIONS
+    foreign_lock   = 1
+    system_failure = 2
+    OTHERS         = 3.
+
+" ❌ order_id may be empty: then every order of the client is locked
+CALL FUNCTION 'ENQUEUE_EZSM_ORDER'
+  EXPORTING
+    order_id       = order_id
+  EXCEPTIONS
+    foreign_lock   = 1
+    system_failure = 2
+    OTHERS         = 3.
+```
+
+> 📝 **Contextual snippet** — assumes the lock object `EZSM_ORDER` on `zsm_t_order` with the lock parameter `ORDER_ID`; `sy-subrc` is evaluated as in 7.12.
+
+### 7.19 When no lock is held between reading and writing, check that the data is unchanged when you write
+
+Optimistic locking sets no lock while the user reads and edits. Without a check at the save, the last writer silently overwrites changes made in between.
+
+- Keep a version or a change time stamp in the row, and increment it with every change.
+- Put the version the user read into the `WHERE` condition of the `UPDATE`.
+- Treat `sy-dbcnt = 0` as "changed or deleted by someone else" (7.15), and let the user read the current data again.
+
+This is a team rule. See [27-Lock-Objects](../27-Lock-Objects/README.md#-pessimistic-and-optimistic-locking).
+
+```abap
+" ✅ the update succeeds only on the version the user read
+UPDATE zsm_t_order SET status  = @new_status,
+                       version = version + 1
+  WHERE order_id = @order_id
+    AND version  = @expected_version.
+IF sy-dbcnt = 0.
+  RAISE EXCEPTION NEW zcx_zsm_order_changed( order_id = order_id ).
+ENDIF.
+
+" ❌ no check: a change made in between is overwritten
+UPDATE zsm_t_order SET status = @new_status
+  WHERE order_id = @order_id.
+```
+
+> 📝 **Contextual snippet** — `zsm_t_order` has the field `version`; `zcx_zsm_order_changed` is a placeholder exception class.
 
 ---
 
@@ -2534,7 +2597,7 @@ These rules are decisions of the team: they have no basis in Clean ABAP or the A
 | Modern syntax | 3.8, 3.9, 3.18, 3.19 (no new macros at all) |
 | Classes and methods | 5.12 |
 | Error handling | 6.2 (one abstract root per category), 6.6, 6.7, 6.11, 6.12 (the split between `ASSERT`, `CX_NO_CHECK` and `RAISE SHORTDUMP`) |
-| Database access and SAP LUW | 7.13, 7.14, 7.15, 7.16, 7.17 |
+| Database access and SAP LUW | 7.13, 7.14, 7.15, 7.16, 7.17, 7.18, 7.19 |
 | Security | 8.2, 8.3, 8.9, 8.10, 8.11, 8.12, 8.13, 8.14 |
 | Performance | 9.1 |
 | Testing | 10.1, 10.2 (default risk level and duration), 10.10 |
