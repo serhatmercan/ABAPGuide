@@ -310,6 +310,8 @@ Tests protect only when they run regularly, ideally without anyone having to rem
 | **ABAP Test Cockpit (ATC)** | ATC can run the ABAP Unit tests together with the static checks. Include ABAP Unit in the team's check variant ([Rule 13.1](../docs/ABAP-Development-Rules.md#131-release-nothing-that-fails-the-syntax-check-abap-unit-or-atc-with-the-team-check-variant)). |
 | **Continuous integration** | Where a pipeline exists, let it start the ATC run (with ABAP Unit) for every change, so a red test blocks the change before it is transported. |
 
+> 📝 AI assistants, SAP's Joule for developers among them, can draft test classes. Review a drafted test like any other: one behaviour per method, a name that says which, and doubles for the dependencies. See [30-Tools-AI-Assistance](../30-Tools-AI-Assistance/README.md#-saps-ai-assistant-joule-for-developers).
+
 > 📝 A global test class (a class pool defined `FOR TESTING`) names the repository objects it tests with a test relation, the ABAP Doc annotation `"! @testing`. This is how objects that cannot have a test include of their own get tests.
 
 ## 🧩 Complete Example

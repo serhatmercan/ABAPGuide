@@ -107,6 +107,19 @@ Its output is reviewed against the checklist of [Rule 15.2](../docs/ABAP-Develop
 - Finish every task with a list of what you did not verify (Rule 15.4).
 ```
 
+## ✨ SAP's AI Assistant: Joule for Developers
+
+SAP has an AI assistant of its own for ABAP development. SAP's page for the certification C_ABAPD on SAP Learning describes **Joule for developers** as SAP's generative AI assistant, used to generate, explain and optimise code. One of SAP's learning courses for that certification has a lesson on generating ABAP Unit tests with it.
+
+Which capabilities your system offers, where Joule is available (product, edition, release) and which licence or entitlement it needs are not stated on those pages **[verify: the capabilities, availability and prerequisites of Joule for developers in your landscape]**. Joule was not used in the work on this guide, so this chapter reports no observations about it.
+
+Its output is held to the same rules as any other assistant's:
+- **Review generated code** against the checklist of [Rule 15.2](../docs/ABAP-Development-Rules.md#152-review-generated-abap-against-this-checklist-before-accepting-it).
+- **Check generated tests for behaviour.** A generated test that only repeats what the code does today protects nothing. Each test checks one behaviour and is named after it ([Rules 10.3](../docs/ABAP-Development-Rules.md#103-test-one-behaviour-per-test-method) and [10.4](../docs/ABAP-Development-Rules.md#104-name-test-methods-after-the-behaviour-they-check)), and test doubles replace the dependencies ([Rule 10.6](../docs/ABAP-Development-Rules.md#106-replace-dependencies-with-test-doubles-through-interfaces-and-cl_abap_testdouble)).
+- **State the target language version** in every prompt ([Rule 15.3](../docs/ABAP-Development-Rules.md#153-state-the-target-language-version-in-every-prompt-that-asks-for-code)), and put no customer data into it ([Rule 15.5](../docs/ABAP-Development-Rules.md#155-never-paste-customer-data-into-a-prompt)).
+
+> ⚠️ **VERSION-DEPENDENT: Joule for developers.** Its features and availability change with the product and the release. The SAP Help pages on it could not be read for this guide; check SAP's documentation for your landscape.
+
 ## 🔌 MCP Servers for ADT
 
 The Model Context Protocol (MCP) lets an assistant call tools that another program provides. An **MCP server for ADT** offers tools that act on an ABAP system through ADT: search, read, create, edit, check, activate, run unit tests, run ATC, read feeds such as runtime errors, and, depending on the server, work with transports or generators.
