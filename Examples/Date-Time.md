@@ -91,7 +91,7 @@ DATA masked_time TYPE c LENGTH 10.
 WRITE time TO masked_time USING EDIT MASK '__:__:__'.
 ```
 
-> ⚠️ String templates support `DATE =`, `TIME =`, `ALPHA =`, `CASE =`, `NUMBER =` and similar format options. There is **no** `USING EDIT MASK` option inside a string template — that addition belongs to the `WRITE ... TO` statement only.
+> ⚠️ **String templates have no `USING EDIT MASK` option.** They support `DATE =`, `TIME =`, `ALPHA =`, `CASE =`, `NUMBER =` and similar format options; `USING EDIT MASK` belongs to the `WRITE ... TO` statement only.
 
 ## 🌍 Time Zone
 

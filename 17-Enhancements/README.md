@@ -2,7 +2,7 @@
 
 ## 📖 Introduction
 
-> **Lifecycle:** labelled per technique in the table below, consistent with [21-Classic-vs-Modern-ABAP](../21-Classic-vs-Modern-ABAP/README.md): BAdIs `CURRENT / RECOMMENDED`, enhancement points and spots `CLASSIC BUT STILL RELEVANT`, user exits, customer exits and modifications `LEGACY / HISTORICAL REFERENCE`.
+> **Lifecycle:** `CURRENT / RECOMMENDED` for BAdIs, `CLASSIC BUT STILL RELEVANT` for enhancement points and spots, `LEGACY / HISTORICAL REFERENCE` for user exits, customer exits and modifications; labelled per technique in the table below, consistent with [21-Classic-vs-Modern-ABAP](../21-Classic-vs-Modern-ABAP/README.md).
 
 Beyond BAdIs ([16-BADIs](../16-BADIs/README.md)), SAP provides several other **enhancement techniques** to add custom logic to standard programs without modifying them directly. This chapter is a conceptual overview to complement the BAdI chapter, since enhancements are a closely related and frequently confused topic.
 

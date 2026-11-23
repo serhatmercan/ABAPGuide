@@ -112,7 +112,7 @@ INCLUDE zsm_r_order_overview_frm.
 
 > 💡 For the `ALPHA` conversion itself, the string template option `ALPHA = IN` / `ALPHA = OUT` needs no function module — see [02-Data-Types](../02-Data-Types/README.md#-type-conversions).
 
-> ⚠️ `CALL FUNCTION` expects a **function module name** (a character value, usually a literal or a variable). Writing `CALL FUNCTION cl_some_class=>some_method` is a syntax error. Verify a class method's real signature in SE24 before calling it — see [09-Modularization](../09-Modularization/README.md) for more on choosing between methods and function modules.
+> ⚠️ **`CALL FUNCTION` expects a function module name.** It takes a character value, usually a literal or a variable. Writing `CALL FUNCTION cl_some_class=>some_method` is a syntax error. Verify a class method's real signature in SE24 before calling it — see [09-Modularization](../09-Modularization/README.md) for more on choosing between methods and function modules.
 
 ## ✍️ Output & Pointers
 

@@ -74,7 +74,7 @@ LOOP AT documents INTO DATA(document).
 ENDLOOP.
 ```
 
-> ⚠️ `CONTINUE` is only valid **inside** a loop (`LOOP`, `DO`, `WHILE`). Outside one, use `RETURN` to leave the current processing block, or restructure the condition. The transaction decision itself belongs to the caller — see [08 — SAP LUW](../08-Open-SQL/README.md#-sap-luw--transaction-ownership).
+> ⚠️ **`CONTINUE` is only valid inside a loop.** It works in `LOOP`, `DO` and `WHILE`. Outside one, use `RETURN` to leave the current processing block, or restructure the condition. The transaction decision itself belongs to the caller — see [08 — SAP LUW](../08-Open-SQL/README.md#-sap-luw--transaction-ownership).
 
 > 📝 A mass run collects messages per document like this so that every failed record stays traceable. At the boundary of a single business operation, the messages become an exception instead ([Rule 6.9](../docs/ABAP-Development-Rules.md#69-turn-sy-subrc-and-bapi-return-tables-into-exceptions-at-the-boundary)).
 
@@ -278,7 +278,7 @@ APPEND VALUE #( username = sy-uname
                 logtime  = sy-uzeit ) TO log_entries.
 ```
 
-> ⚠️ `INTO CORRESPONDING FIELDS OF @DATA(...)` is not valid — according to the ABAP Keyword Documentation, `CORRESPONDING FIELDS OF` cannot be combined with an inline declaration. Either declare the target explicitly, or list the columns and use a plain `INTO @DATA(...)` as above.
+> ⚠️ **`INTO CORRESPONDING FIELDS OF @DATA(...)` is not valid.** According to the ABAP Keyword Documentation, `CORRESPONDING FIELDS OF` cannot be combined with an inline declaration. Either declare the target explicitly, or list the columns and use a plain `INTO @DATA(...)` as above.
 
 ### Application Log (BAL)
 

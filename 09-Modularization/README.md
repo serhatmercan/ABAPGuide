@@ -17,7 +17,7 @@ CALL FUNCTION 'CONVERSION_EXIT_ALPHA_INPUT'
   IMPORTING output = internal_value.
 ```
 
-> ⚠️ `CALL FUNCTION` is for **function modules only**. A class method is called as `class=>method( ... )` or `object->method( ... )` — never with `CALL FUNCTION`. See [03-Variables](../03-Variables/README.md#-calling-methods-function-modules--includes) for the method-call forms.
+> ⚠️ **`CALL FUNCTION` is for function modules only.** A class method is called as `class=>method( ... )` or `object->method( ... )` — never with `CALL FUNCTION`. See [03-Variables](../03-Variables/README.md#-calling-methods-function-modules--includes) for the method-call forms.
 
 ### 🔁 Conversion Exits
 
@@ -323,7 +323,7 @@ IF sy-subrc = 0.
   DATA(incompletion_log) = <incompletion_log>.
 ENDIF.
 ```
-> ⚠️ Reading another program's globals via `ASSIGN ('(PROGRAM)FIELD')` is a powerful but fragile technique (tightly coupled to SAP-internal program structures, can break with support packages). The ABAP Keyword Documentation reserves the `(PROG)DOBJ` form for internal use. Use it only when there is no supported API alternative, and document it clearly.
+> ⚠️ **Reading another program's globals via `ASSIGN ('(PROGRAM)FIELD')` is fragile.** The technique is tightly coupled to SAP-internal program structures and can break with support packages. The ABAP Keyword Documentation reserves the `(PROG)DOBJ` form for internal use. Use it only when there is no supported API alternative, and document it clearly.
 
 ## 📊 Modularization Techniques Compared
 

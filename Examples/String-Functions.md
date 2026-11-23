@@ -130,7 +130,7 @@ DATA(position_of_name) = find( val = text sub = 'Lovelace' ).
 
 > 📝 `FIND … IN TABLE` respects case unless `IGNORING CASE` is added, works on standard tables without secondary keys, and leaves `sy-tabix` and `sy-fdpos` unchanged.
 
-> **Lifecycle:** the older `SEARCH ... FOR` statement is `LEGACY / HISTORICAL REFERENCE` — it is documented as obsolete and superseded by `FIND`. You will meet it in existing code (it sets `sy-subrc` and `sy-fdpos`); write `FIND` in new code.
+> **Lifecycle:** `LEGACY / HISTORICAL REFERENCE` for the older `SEARCH ... FOR` statement, which is documented as obsolete and superseded by `FIND`. You will meet it in existing code (it sets `sy-subrc` and `sy-fdpos`); write `FIND` in new code.
 
 ## ♻️ Replace
 

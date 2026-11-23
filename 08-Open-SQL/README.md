@@ -12,7 +12,7 @@ ABAP SQL is ABAP's database-independent SQL dialect. This chapter covers CRUD st
 
 The statements below are an **independent cookbook** — a catalogue of forms, not a script to run in sequence. None of them commits; transaction control is a separate decision covered in [SAP LUW & Transaction Ownership](#-sap-luw--transaction-ownership) immediately after.
 
-> ⚠️ All DML examples in this guide target **custom (Z) tables that you own**. Do not apply them to SAP standard application tables — that bypasses the application's business logic and validations. Use the supported API or business interface instead (see [15-BAPIs](../15-BAPIs/README.md)).
+> ⚠️ **All DML examples in this guide target custom (Z) tables that you own.** Do not apply them to SAP standard application tables — that bypasses the application's business logic and validations. Use the supported API or business interface instead (see [15-BAPIs](../15-BAPIs/README.md)).
 
 > 📝 **Contextual snippet** — assumes a custom table `zsm_t_entry`, the variables `customer`, `request_count` and `approval_id`, and a structure `ticket`.
 

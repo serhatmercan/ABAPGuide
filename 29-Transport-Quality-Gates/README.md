@@ -18,7 +18,7 @@ This chapter covers:
 
 Transport administration (transport routes, import queues, file transfer) belongs to Basis and is outside this guide; see the [Scope Note](#-scope-note). The tools that developers use every day are the topic of [30-Tools-AI-Assistance](../30-Tools-AI-Assistance/README.md).
 
-## 🗺️ Standard ABAP and SAP BTP ABAP Environment at a Glance
+## 🗺️ Standard ABAP and SAP BTP ABAP environment at a Glance
 
 | Topic | Standard ABAP | SAP BTP ABAP environment |
 |---|---|---|
@@ -211,7 +211,7 @@ ENDMETHOD.
 
 > 📝 **Activation record.** X4 (`zif_zsm_request_check`, `zcl_zsm_request_check` with its test include) was activated in both ABAP language versions: Standard ABAP and ABAP for Cloud Development. The first activation of the class failed in both with "Unexpected operator IS" (callout above) and passed after the fix. The 4 test methods were run in both versions, and the test run passed. The active versions were read back after activation and matched the sources. The check tools returned no warnings. The BAdI method is a contextual snippet and was not created. No transport request was created, changed or released.
 
-## ☁️ Transport in the SAP BTP ABAP Environment
+## ☁️ Transport in the SAP BTP ABAP environment
 
 The SAP BTP ABAP environment has no `STMS`. Development objects belong to software components, and each software component is backed by a Git repository that SAP manages; releasing a transport request in such a system pushes the change to that repository, and a target system pulls it. According to SAP Help (*Manage Software Components*, SAP BTP), the app of that name does the administration: it creates a software component of type *Development* or *Business Configuration*, clones it into a system and pulls later changes there; it shows the pushed commits, which are the released transport requests, manages branches and tags, and can switch on a rollback for failed pulls. Cloning creates a structure package with the software component's name, under which the development packages are created in ADT. The package in which test objects were created for this chapter belongs to the software component `ZLOCAL`, which is meant for local development.
 

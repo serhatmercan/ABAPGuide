@@ -316,7 +316,7 @@ Tests protect only when they run regularly, ideally without anyone having to rem
 
 A gross price calculator adds a country's tax rate to a net amount. It depends on a source of tax rates, which it receives as an interface reference. The test replaces that source with a hand-written double, so the test needs no database and no Customizing.
 
-The example uses no database table, no DDIC type and no API other than `cl_abap_unit_assert`. The same source was activated, and its tests passed, in Standard ABAP and in ABAP for Cloud Development (see the [activation record](#-complete-example) below the example). It consists of four objects:
+The example uses no database table, no DDIC type and no API other than `cl_abap_unit_assert`. It consists of four objects:
 
 1. the interface `zif_zsm_tax_rates` — the dependency;
 2. the interface `zif_zsm_gross_price` — the contract of the class ([Rule 5.4](../docs/ABAP-Development-Rules.md#54-depend-on-interfaces-and-receive-dependencies-through-the-constructor));
@@ -490,7 +490,7 @@ ENDCLASS.
 
 > 📝 **Where to create local objects.** In Standard ABAP, the local package `$TMP` can be used. In an SAP BTP ABAP environment, `ZLOCAL` is a structure package, so first create a development package below it (software component `LOCAL`) and create the objects there.
 
-> 📝 **Activation record.** The two interfaces, the class and its test classes were activated, and the 4 test methods were run with all 4 passing, in both ABAP language versions: Standard ABAP and ABAP for Cloud Development.
+> 📝 **Activation record.** `zif_zsm_tax_rates`, `zif_zsm_gross_price` and `zcl_zsm_gross_price` with its test include (`lth_fixed_tax_rates`, `ltc_gross_price`) were activated, and the 4 test methods were run with all 4 passing, in both ABAP language versions: Standard ABAP and ABAP for Cloud Development.
 
 ## 🧭 Scope Note
 
