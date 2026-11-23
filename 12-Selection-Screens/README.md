@@ -418,7 +418,7 @@ START-OF-SELECTION.
 
 ### Confirmation Popup
 
-> 📝 **Contextual snippet** — the text symbols `p02` and `p03` hold the title and the question. `POPUP_TO_CONFIRM` initialises `answer` with `'A'`. Its screen logic then sets `'1'` for the function code `OPT1`, `'2'` for `OPT2` and `'A'` for the cancel function `CANC`, which it hides when `display_cancel_button` is empty. **[verify: that the first and the second button carry the function codes `OPT1` and `OPT2`; the screen definitions were not readable]**
+> 📝 **Contextual snippet** — the text symbols `p02` and `p03` hold the title and the question. `POPUP_TO_CONFIRM` initialises `answer` with `'A'`. It returns `'1'` for the first button, `'2'` for the second and `'A'` for cancel; it hides the cancel button when `display_cancel_button` is empty.
 
 ```abap
 DATA answer TYPE c LENGTH 1.
