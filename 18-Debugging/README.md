@@ -148,6 +148,40 @@ According to the ABAP Keyword Documentation:
 
 > 📝 Inside a function module or method with classic exceptions, `MESSAGE … RAISING exception` combines both mechanisms: if the caller handles the exception, no message is sent, and the `sy-msg*` fields describe it; otherwise the message is sent as usual.
 
+## 🌐 Translatable Texts
+
+A literal in code is shown in the language it was written in. Text that a user reads belongs where the translation tools find it, so that it appears in the user's logon language ([Rule 4.2](../docs/ABAP-Development-Rules.md#42-keep-user-facing-text-out-of-literals)). ABAP has several such places:
+
+| Text | Where it lives | Used for |
+|---|---|---|
+| **Messages** | Message class (`SE91`, or ADT), one short text per number with placeholders `&1` to `&4` | `MESSAGE`, exception texts through the T100 interfaces ([Rule 6.4](../docs/ABAP-Development-Rules.md#64-take-exception-texts-from-a-message-class-through-the-t100-interfaces)), `BAPIRET2` lines and the application log |
+| **Text symbols** | The text elements of a program or class, each with a three-character ID | List output, selection-screen frames and comments, popup titles, ALV column texts; see [11](../11-Classical-Reports/README.md), [12](../12-Selection-Screens/README.md) and [13](../13-ALV/README.md) |
+| **Selection texts** | The text elements of an executable program | The labels of parameters and select-options ([12](../12-Selection-Screens/README.md)) |
+| **Dictionary texts** | Field labels of data elements, texts of domain fixed values | Column headings, field labels and value helps; reading fixed-value texts with RTTS in [02](../02-Data-Types/README.md) |
+
+**Text symbols.** According to the ABAP Keyword Documentation, a text symbol is a data object of type `c` that is not declared in the program; it lives in the program's text elements, which are linked to the translation environment, and its length comes from there. Two forms read it:
+- `TEXT-idf`: if the symbol does not exist in the loaded text pool, the program gets an initial one-character field.
+- `'literal'(idf)`: the literal is a fallback that is used only while the symbol does not exist.
+
+In the systems used for this guide, the syntax check accepted both forms in a global class, in Standard ABAP and in ABAP for Cloud Development **[verify: how the text symbols of a global class are maintained and translated in your ADT version]**.
+
+> 📝 **Contextual snippet** — `zsm_msg` is the placeholder message class with message 012 "Order &1 was released by &2"; the text symbol `002` holds the title; `order_id` and `released_by` are assumed.
+
+```abap
+" The fallback literal keeps the title readable until text symbol 002 exists
+DATA(title) = CONV string( 'Order overview'(002) ).
+
+" Placeholders let each language put the values where its grammar needs them
+MESSAGE s012(zsm_msg) WITH order_id released_by.
+```
+
+Writing texts that translate well:
+- **Use placeholders, not concatenation.** A sentence assembled from pieces in code keeps the word order of one language. A message with `&1` and `&2` lets each translation place the values itself.
+- **Leave room.** Translations are often longer than the original. A text symbol or field label that is just long enough in one language is cut off in another.
+- **One text, one meaning.** Reusing a short text such as "Open" for a status and for a button gives translators no way to tell the two apart.
+
+Translating the texts (`SE63`) and transporting translations are outside this guide ([29-Transport-Quality-Gates](../29-Transport-Quality-Gates/README.md#-scope-note)).
+
 ## 🧯 Exception Handling
 
 ABAP has two error-handling mechanisms. **Class-based exceptions** (`RAISE EXCEPTION`, `TRY`/`CATCH`) carry a real object with a message, a cause chain and typed attributes, and are the current mechanism ([Rule 6.1](../docs/ABAP-Development-Rules.md#61-use-class-based-exceptions-in-new-code)).
@@ -336,6 +370,7 @@ Interactive debugging, the checkpoint statements `BREAK-POINT`, `ASSERT` and `LO
 
 ## ⚠️ Common Mistakes
 
+- Building a user-facing sentence by concatenating pieces in code: the word order cannot be translated. Use a message with placeholders.
 - Listing a superclass `CATCH` before its subclasses, making the subclass handlers unreachable.
 - Reaching for `CATCH cx_root` as the default, which hides programming errors.
 - Swallowing exceptions silently (`CATCH cx_root.` with an empty block) — always log or re-raise.

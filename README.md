@@ -93,7 +93,7 @@ The Context column lists every lifecycle label a chapter uses, in the short form
 | [15-BAPIs](15-BAPIs/README.md) | BAPIs | `BAPIRET2`, transaction control, standard call pattern | Classic |
 | [16-BADIs](16-BADIs/README.md) | BAdIs | Classic vs. new BAdIs, filters, implementation pattern | Current + Classic |
 | [17-Enhancements](17-Enhancements/README.md) | Enhancements | User exits vs. customer exits, enhancement points, modifications | Current + Classic + Legacy + Version-dependent |
-| [18-Debugging](18-Debugging/README.md) | Messages, Exceptions & Logging | `MESSAGE` and message types, return tables, class-based and classic exceptions, application log | Current + Classic + Version-dependent |
+| [18-Debugging](18-Debugging/README.md) | Messages, Exceptions & Logging | `MESSAGE` and message types, translatable texts, return tables, class-based and classic exceptions, application log | Current + Classic + Version-dependent |
 | [19-Performance](19-Performance/README.md) | Performance & Memory | Measuring with `SAT`, `ST05` and ADT profiling, internal table tuning, ABAP Memory, database access | Current + Classic + Version-dependent |
 | [20-Best-Practices](20-Best-Practices/README.md) | Best Practices & Clean ABAP | Clean ABAP naming, classic prefixes as a reading aid, rule summaries, refactoring example, review checklist | Current + Classic + Legacy + Version-dependent |
 | [21-Classic-vs-Modern-ABAP](21-Classic-vs-Modern-ABAP/README.md) | **Classic vs Modern** | **Lifecycle map, ABAP Cloud boundary, decision table** | **Current + Classic + Legacy + Cloud + Version-dependent — start here for context** |
