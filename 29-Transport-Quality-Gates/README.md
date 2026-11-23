@@ -22,8 +22,8 @@ Transport administration (transport routes, import queues, file transfer) belong
 
 | Topic | Standard ABAP | SAP BTP ABAP environment |
 |---|---|---|
-| Unit of transport | Transport request with tasks | Software component, transported through Git **[verify: the transport flow and apps in your SAP BTP ABAP environment]** |
-| Tools | `SE09`/`SE10`, `SE01`, `SE03`, `STMS` | ADT and the administration apps **[verify]** |
+| Unit of transport | Transport request with tasks | Software component, transported through Git: a released transport request becomes a commit that other systems pull |
+| Tools | `SE09`/`SE10`, `SE01`, `SE03`, `STMS` | ADT and the administration apps, among them *Manage Software Components* **[verify: further apps in your SAP BTP ABAP environment]** |
 | Local objects | `$TMP` (software component `LOCAL`) | Observed: creating an object in `$TMP` was refused; development took place in a package below `ZLOCAL` |
 | Static checks | ATC, Code Inspector (`SCI`), extended program check | ATC |
 | Check variants | Team variant; `ABAP_CLOUD_READINESS` for cloud readiness | `ABAP_CLOUD_DEVELOPMENT_DEFAULT` and further SAP variants |
@@ -213,7 +213,7 @@ ENDMETHOD.
 
 ## ☁️ Transport in the SAP BTP ABAP Environment
 
-The SAP BTP ABAP environment has no `STMS`. Development objects belong to software components, and each software component is backed by a Git repository that SAP manages; releasing a transport request in such a system pushes the change to that repository, and a target system pulls it **[verify: the release, export and import steps and the apps that perform them in your SAP BTP ABAP environment]**. The package in which test objects were created for this chapter belongs to the software component `ZLOCAL`, which is meant for local development.
+The SAP BTP ABAP environment has no `STMS`. Development objects belong to software components, and each software component is backed by a Git repository that SAP manages; releasing a transport request in such a system pushes the change to that repository, and a target system pulls it. According to SAP Help (*Manage Software Components*, SAP BTP), the app of that name does the administration: it creates a software component of type *Development* or *Business Configuration*, clones it into a system and pulls later changes there; it shows the pushed commits, which are the released transport requests, manages branches and tags, and can switch on a rollback for failed pulls. Cloning creates a structure package with the software component's name, under which the development packages are created in ADT. The package in which test objects were created for this chapter belongs to the software component `ZLOCAL`, which is meant for local development.
 
 In Standard ABAP, Git-based transport exists as the Git-enabled Change and Transport System (gCTS), next to the classic CTS **[verify: availability in your release]**. Released ABAP APIs for transports are the CTS classes of the XCO library (for example `CL_XCO_CTS_CHANGE`); the `TR_*` function modules are classified as not to be released.
 
