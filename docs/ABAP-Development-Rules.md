@@ -1434,6 +1434,8 @@ Follow this pattern:
 
 The generated function module locks the values you pass. A lock field passed with an initial value is a wildcard and locks every value of that field, unless its `x_` flag is set (7.18).
 
+Set the lock mode of every table in the lock object, and after activating check that the generated module has a `mode_<table>` parameter; with an empty mode the lock object activates, but its modules lock nothing.
+
 See [08-Open-SQL](../08-Open-SQL/README.md#-sap-luw--transaction-ownership) and [27-Lock-Objects](../27-Lock-Objects/README.md).
 
 > 📝 **Contextual snippet** — assumes a lock object `EZSM_ORDER` on `zsm_t_order`, named as in [2.6](#26-name-development-objects-by-the-object-naming-table). The generated function module has one parameter per key field of the lock object, plus `mode_<table>` for the lock mode and `_scope` for the lock duration. A foreign lock raises the exception `foreign_lock`.
