@@ -552,3 +552,4 @@ ENDCLASS.
 - [25-HTTP-REST](../25-HTTP-REST/README.md) — testing REST clients with a transport double, without network calls
 - [26-Maintenance-Views](../26-Maintenance-Views/README.md) — testing code that reads Customizing with the ABAP SQL test environment
 - [27-Lock-Objects](../27-Lock-Objects/README.md) — testing code that locks with a lock double
+- [28-Adobe-Forms](../28-Adobe-Forms/README.md) — testing code that needs a PDF with a renderer double

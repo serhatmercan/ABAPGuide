@@ -688,3 +688,4 @@ The transports E1 and E2 and the handlers E3 are not unit-tested here: a transpo
 - [23-Debugging-Troubleshooting](../23-Debugging-Troubleshooting/README.md) — debugging requests that come from outside
 - [24-Mail](../24-Mail/README.md) — the same design for sending mail
 - [26-Maintenance-Views](../26-Maintenance-Views/README.md) — the next chapter: Customizing tables and how users maintain them
+- [28-Adobe-Forms](../28-Adobe-Forms/README.md) — the same design for form output

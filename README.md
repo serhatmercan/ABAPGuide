@@ -14,7 +14,7 @@ That last part is the point. Real SAP systems run several generations of ABAP at
 
 ## ✨ Highlights
 
-- **27 structured chapters** plus a quick-reference Examples section
+- **28 structured chapters** plus a quick-reference Examples section
 - **100+ annotated ABAP code examples** written for this guide
 - **Explicit classic-to-modern lifecycle guidance** on every major technology
 - **Internal tables and modern expressions** — `VALUE`, `FOR`, `REDUCE`, `FILTER`, `COND`, table expressions, secondary keys
@@ -49,6 +49,7 @@ The chapter that ties the rest together: why productive landscapes contain sever
 | Call or provide an HTTP/REST service | [25](25-HTTP-REST/README.md) · [09](09-Modularization/README.md) |
 | Let users maintain settings and Customizing | [26](26-Maintenance-Views/README.md) · [08](08-Open-SQL/README.md) |
 | Protect data from concurrent changes | [27](27-Lock-Objects/README.md) · [08](08-Open-SQL/README.md) |
+| Print a form or get a PDF | [28](28-Adobe-Forms/README.md) · [24](24-Mail/README.md) |
 | Decide between classic and modern | [21](21-Classic-vs-Modern-ABAP/README.md) |
 
 ## 🏷️ Lifecycle Legend
@@ -94,6 +95,7 @@ Chapters and examples are labelled with one of these. Full definitions in [Chapt
 | [25-HTTP-REST](25-HTTP-REST/README.md) | HTTP and REST | Calling and providing HTTP services through an interface, classic and released client and handler APIs, destinations instead of URLs, CSRF tokens, JSON, security in handlers, testing without network calls | Current + classic + cloud |
 | [26-Maintenance-Views](26-Maintenance-Views/README.md) | Table Maintenance and Maintenance Views | Customizing tables, delivery class and client, `SE54` and `SM30`, maintenance views and view clusters, authorization groups, maintenance dialog events, regeneration, Customizing transport, change logging, business configuration maintenance in ABAP Cloud | Classic + cloud |
 | [27-Lock-Objects](27-Lock-Objects/README.md) | Lock Objects and the SAP Lock Concept | Lock objects, generated `ENQUEUE_`/`DEQUEUE_` modules, lock modes, `_scope` and the SAP LUW, the released lock API, a lock behind an interface, pessimistic and optimistic locking, `SM12`, locks in maintenance dialogs, testing with a lock double | Current + classic + cloud |
+| [28-Adobe-Forms](28-Adobe-Forms/README.md) | Adobe Forms and PDF Output | Form interface, form and context in `SFP`, the layout described, Adobe Document Services, `FP_JOB_OPEN` and the generated function module, the PDF as `xstring` for mail or file, the released forms API, output behind an interface, Smart Forms and SAPscript as lifecycle reference | Classic + cloud |
 | [Examples](Examples/README.md) | Examples | Strings, dates/times, conversions | Current + legacy |
 
 ## 🚀 How to Use

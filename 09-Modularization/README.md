@@ -373,3 +373,4 @@ ENDIF.
 - [15-BAPIs](../15-BAPIs/README.md) — BAPI calls and their commit protocol
 - [21-Classic-vs-Modern-ABAP](../21-Classic-vs-Modern-ABAP/README.md) — the lifecycle labels used in this chapter
 - [25-HTTP-REST](../25-HTTP-REST/README.md) — HTTP destinations in `SM59` and calling REST services
+- [28-Adobe-Forms](../28-Adobe-Forms/README.md) — calling a generated form function module by its runtime name

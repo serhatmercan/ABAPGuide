@@ -739,3 +739,4 @@ ENDCLASS.
 - [21-Classic-vs-Modern-ABAP](../21-Classic-vs-Modern-ABAP/README.md) — where the generated lock modules and the released API sit in the lifecycle map
 - [22-ABAP-Unit](../22-ABAP-Unit/README.md) — test doubles and the ABAP SQL test environment
 - [26-Maintenance-Views](../26-Maintenance-Views/README.md) — maintenance dialogs and their own locks
+- [28-Adobe-Forms](../28-Adobe-Forms/README.md) — the next chapter: forms and PDF output, with the same adapter design

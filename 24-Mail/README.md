@@ -371,7 +371,7 @@ E3 converts with `cl_abap_conv_codepage`, which is released and also exists in S
 
 - **CSV is not Excel.** A tab- or semicolon-separated text named `.xls` opens with a warning or in the wrong columns. Name it `.csv`, or create a real spreadsheet.
 - **XLSX:** the open-source project [abap2xlsx](https://github.com/abap2xlsx/abap2xlsx) creates spreadsheet files from ABAP data. Its result is an `xstring`, which goes into an attachment like any other binary content.
-- **PDF:** a PDF from a form is binary content as well. Generating it is outside this chapter.
+- **PDF:** a PDF from a form is binary content as well; [28-Adobe-Forms](../28-Adobe-Forms/README.md#-getting-the-pdf-instead-of-printing) shows how to get it as an `xstring`.
 - **Files from the application server** are read through logical file names ([Rule 8.7](../docs/ABAP-Development-Rules.md#87-resolve-and-validate-file-paths-through-logical-file-names)); see [11-Classical-Reports](../11-Classical-Reports/README.md#-writing-a-file-on-the-application-server).
 
 **[verify: size limits for mails and attachments in your mail server and system configuration]**
@@ -582,7 +582,7 @@ The adapters E1 and E2 are not unit-tested: what they do is call the mail API, a
 
 - **A reusable mail component** with configuration, logging and retries belongs to the future ABAP-Cookbook; this chapter describes its design.
 - **SAPconnect and mail server setup** (nodes, send jobs, communication arrangements) is an administration task, not covered here.
-- **Generating attachments** — PDF from forms, spreadsheets — is outside this chapter; see the attachments section for how the result is attached.
+- **Generating attachments** — spreadsheets are outside this chapter, and PDFs from forms are covered in [28-Adobe-Forms](../28-Adobe-Forms/README.md); see the attachments section for how the result is attached.
 - **Attachments to business documents** (Generic Object Services) are not mail attachments and not covered.
 - **Inbound mail, SMS and fax, and workflow notifications** are not covered.
 
@@ -638,3 +638,4 @@ The adapters E1 and E2 are not unit-tested: what they do is call the mail API, a
 - [23-Debugging-Troubleshooting](../23-Debugging-Troubleshooting/README.md) — finding out why something failed
 - [25-HTTP-REST](../25-HTTP-REST/README.md) — the next chapter: the same design for HTTP calls
 - [26-Maintenance-Views](../26-Maintenance-Views/README.md) — the Customizing table behind a settings class
+- [28-Adobe-Forms](../28-Adobe-Forms/README.md) — rendering the PDF that a mail attaches
