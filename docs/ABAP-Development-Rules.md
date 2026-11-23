@@ -2578,7 +2578,7 @@ A shared check variant makes the result the same for everyone. This is a team ru
 
 A finding that is merely ignored comes back in every run and teaches the team to overlook the list.
 
-An exemption with a reason can be reviewed and later revisited. The same applies to pragmas (11.5). This is a team rule.
+An exemption with a reason can be reviewed and later revisited. The same applies to pragmas (11.5). According to SAP's documentation, an exemption request names an approver and a reason, and a quality manager approves it; choose the smallest scope that covers the finding. This is a team rule. See [29-Transport-Quality-Gates](../29-Transport-Quality-Gates/README.md#-atc-checks-variants-and-exemptions).
 
 ### 13.3 Run the cloud-readiness check wherever section 1 applies
 
@@ -2622,6 +2622,16 @@ BREAK-POINT.
 LOG-POINT ID zsm_cp_order.
 ```
 
+### 13.7 Bundle one logical change per transport request, and release it only after the checks of 13.1
+
+A request is the unit that is imported, tested and, if needed, corrected in the next system. A request that mixes unrelated changes forces them through together, and a defect in one holds back the other.
+
+- Create a request per logical change, with a short text that names the ticket.
+- Release it only when the syntax check, ABAP Unit and ATC with the team variant pass (13.1).
+- Put team release rules into a tested class; a release check in code only calls it.
+
+This is a team rule. See [29-Transport-Quality-Gates](../29-Transport-Quality-Gates/README.md#-request-hygiene-and-common-release-errors).
+
 ---
 
 ## 14 Deviations from Clean ABAP
@@ -2652,8 +2662,8 @@ These rules are decisions of the team: they have no basis in Clean ABAP or the A
 | Testing | 10.1, 10.2 (default risk level and duration), 10.10 |
 | Comments | 11.5 (reason for each pragma), 11.6 |
 | Formatting | 12.1 |
-| Quality gates | 13.1, 13.2, 13.3, 13.4, 13.5, 13.6 (excluding the `BREAK` macro) |
-| AI-assisted development | 15.1–15.5 |
+| Quality gates | 13.1, 13.2, 13.3, 13.4, 13.5, 13.6 (excluding the `BREAK` macro), 13.7 |
+| AI-assisted development | 15.1–15.7 |
 
 ### Rules from the ABAP Programming Guidelines
 
@@ -2690,6 +2700,7 @@ An assistant writes plausible code quickly, including plausible names that do no
 | Only released APIs where the cloud language version is targeted | 1.2 |
 | No release or support-package claims without verification; release-dependent content labelled `VERSION-DEPENDENT` | 1.1, 0.1 |
 | The available checks ran before anything is claimed as checked | 13.1, 13.5 |
+| Generated and activated objects were read back, not only their success messages | 15.7 |
 
 ### 15.3 State the target language version in every prompt that asks for code
 
@@ -2709,3 +2720,23 @@ Customer data includes:
 - system IDs, hosts and IP addresses;
 - user names;
 - business documents and Customizing values.
+
+### 15.6 Connect an assistant only to your own sandbox, and restrict what it may write
+
+An assistant connected to a system acts with its user's authorizations, quickly and many times over. The restrictions have to be in place before the first call.
+
+- Use only your own development or sandbox systems; never a customer system or production.
+- Let the assistant create only local objects with placeholder names; it never creates or releases transport requests.
+- Restrict destinations and packages in the server's own settings, and deny tools that write beyond the object being worked on.
+- Keep tokens and connection details out of repositories, reports and prompts (8.5).
+
+A deny list blocks tools by name. Restrictions on arguments, such as the target package, need a mechanism that inspects the call. See [30-Tools-AI-Assistance](../30-Tools-AI-Assistance/README.md#-the-safety-model).
+
+### 15.7 Treat a tool's success message as a claim; read back the result
+
+A tool reports what it attempted, not always what it achieved. In the work on these guides, an activation reported success while the generated modules of a lock object locked nothing, and activation and checks returned no warnings that the editor showed.
+
+- Read back the active version, the generated object or the test result before recording anything as verified (13.5).
+- Record what was read back, not what the tool said.
+
+See [30-Tools-AI-Assistance](../30-Tools-AI-Assistance/README.md#-limits-observed-in-this-guides-work) and [27-Lock-Objects](../27-Lock-Objects/README.md#-lock-objects-in-the-abap-dictionary).
