@@ -294,4 +294,5 @@ The review checklist. Each item names the rule it comes from and the chapter tha
 - [19-Performance](../19-Performance/README.md) — measuring before optimising
 - [23-Debugging-Troubleshooting](../23-Debugging-Troubleshooting/README.md) — assertions, checkpoints and reading short dumps
 - [21-Classic-vs-Modern-ABAP](../21-Classic-vs-Modern-ABAP/README.md) — the lifecycle labels used in this chapter and the scope boundary
+- [26-Maintenance-Views](../26-Maintenance-Views/README.md) — logic in classes even where the framework calls `FORM` routines
 - [ABAP Keyword Documentation](https://help.sap.com/doc/abapdocu_latest_index_htm/latest/en-US/index.htm) — the authority for syntax and release availability

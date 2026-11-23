@@ -498,3 +498,4 @@ You will meet these in existing code. Before you use one in new code, check its 
 - [11-Classical-Reports](../11-Classical-Reports/README.md) — value help for file paths
 - [13-ALV](../13-ALV/README.md) — editable lists as an alternative to table controls
 - [21-Classic-vs-Modern-ABAP](../21-Classic-vs-Modern-ABAP/README.md) — lifecycle of selection screens and dynpros
+- [26-Maintenance-Views](../26-Maintenance-Views/README.md) — generated maintenance dialogs, a dynpro application you extend through events

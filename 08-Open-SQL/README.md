@@ -720,6 +720,7 @@ Where the key must be a readable running number, draw it from a number range obj
 - [19-Performance](../19-Performance/README.md) — SQL trace and database access patterns
 - [20-Best-Practices](../20-Best-Practices/README.md) — the data-access items of the review checklist
 - [21-Classic-vs-Modern-ABAP](../21-Classic-vs-Modern-ABAP/README.md) — lifecycle context
+- [26-Maintenance-Views](../26-Maintenance-Views/README.md) — Customizing tables: delivery class, client and maintenance
 
 ## 🖥️ Related Transaction Codes
 

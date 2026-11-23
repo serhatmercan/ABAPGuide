@@ -433,7 +433,7 @@ Mail addresses do not belong in code ([Rule 8.11](../docs/ABAP-Development-Rules
 
 Where the addresses can come from:
 
-- **A Customizing table** of your own, read by a settings class that implements `zif_zsm_mail_settings`. Each system keeps its own entries.
+- **A Customizing table** of your own, read by a settings class that implements `zif_zsm_mail_settings`. Each system keeps its own entries. How such a table is built and maintained is the subject of [26-Maintenance-Views](../26-Maintenance-Views/README.md).
 - **A distribution list** (Standard ABAP), maintained in transaction `SO23`. The code knows only the list's name, and that name comes from configuration; who is on the list is maintained without a transport.
 - **An SAP user** (Standard ABAP): `cl_sapuser_bcs=>create( )` takes a user name and returns a recipient, so the code needs no address at all. The user name itself then comes from the business data or from configuration. **[verify: which address BCS uses for an SAP user recipient in your configuration]**
 
@@ -637,3 +637,4 @@ The adapters E1 and E2 are not unit-tested: what they do is call the mail API, a
 - [22-ABAP-Unit](../22-ABAP-Unit/README.md) — test doubles for the sender and the settings
 - [23-Debugging-Troubleshooting](../23-Debugging-Troubleshooting/README.md) — finding out why something failed
 - [25-HTTP-REST](../25-HTTP-REST/README.md) — the next chapter: the same design for HTTP calls
+- [26-Maintenance-Views](../26-Maintenance-Views/README.md) — the Customizing table behind a settings class

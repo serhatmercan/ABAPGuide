@@ -389,7 +389,7 @@ out->write( usd_rate ).
 | `RAISE_SHORTDUMP` | `RAISE SHORTDUMP` or `THROW SHORTDUMP` ended the program on purpose (E3). | Read the exception class, its text and the chain of `PREVIOUS` exceptions. |
 | `MESSAGE_TYPE_X` | A type `X` message was sent. | See [18-Debugging](../18-Debugging/README.md#-message-types); new code below the UI raises exceptions instead ([Rule 6.11](../docs/ABAP-Development-Rules.md#611-use-message-statements-only-in-the-ui-layer)). |
 | `TSV_TNEW_PAGE_ALLOC_FAILED` | An internal table outgrew the available memory. | Read and process in blocks; see [19-Performance](../19-Performance/README.md). |
-| `DYNPRO_SYNTAX_ERROR` | A screen could not be generated, for example the generated maintenance dialog of a table or view after the table or view was changed. | Regenerate the screen — for a maintenance dialog, change the function group in the table maintenance generator (`SE54`) and regenerate selectively, leaving out screens or programs you changed by hand. |
+| `DYNPRO_SYNTAX_ERROR` | A screen could not be generated, for example the generated maintenance dialog of a table or view after the table or view was changed. | Regenerate the screen — for a maintenance dialog, change the function group in the table maintenance generator (`SE54`) and regenerate selectively, leaving out screens or programs you changed by hand; see [26-Maintenance-Views](../26-Maintenance-Views/README.md#-regenerating-after-a-table-change). |
 | (no fixed name) | Stepping through a `SELECT … ENDSELECT` loop in the debugger loses the database cursor. | Read into an internal table first, then debug the loop over the table. |
 | Errors in standard code ("internal error", missing screen labels after an upgrade) | Usually a known problem of the standard software or of a generated screen. | Search SAP's knowledge base by runtime error name and short text; apply the correction it names. |
 
@@ -454,3 +454,4 @@ The names `COMPUTE_INT_ZERODIVIDE`, `ASSERTION_FAILED` and `RAISE_SHORTDUMP` are
 - [22-ABAP-Unit](../22-ABAP-Unit/README.md) — reproducing a defect as a test
 - [24-Mail](../24-Mail/README.md) — the next chapter: sending mail, and where to look when a mail did not arrive
 - [25-HTTP-REST](../25-HTTP-REST/README.md) — handlers whose requests come from outside the system
+- [26-Maintenance-Views](../26-Maintenance-Views/README.md) — regenerating maintenance dialogs, and debugging their events

@@ -309,3 +309,4 @@ CLOSE DATASET file_path.
 - [14-Function-Modules](../14-Function-Modules/README.md) — batch input for uploaded data
 - [21-Classic-vs-Modern-ABAP](../21-Classic-vs-Modern-ABAP/README.md) — lifecycle of list processing, `END-OF-SELECTION` and the older frontend function modules
 - [24-Mail](../24-Mail/README.md) — sending the result of a background job by mail
+- [26-Maintenance-Views](../26-Maintenance-Views/README.md) — authorization groups and the table maintenance that `VIEW_AUTHORITY_CHECK` belongs to

@@ -304,7 +304,7 @@ ENDCASE.
 
 > ⚠️ **Hardcoding system IDs or client numbers to switch behaviour is a transport hazard.** The code that runs in production is then *not* the code you tested in development, and the difference is invisible in the transport. It also breaks the moment a system is copied, renamed, or an extra client is added.
 >
-> Drive environment-specific behaviour from **configuration** instead — a Customizing table, a `TVARVC` variant variable, or a feature switch — so the same code path runs everywhere and only the data differs:
+> Drive environment-specific behaviour from **configuration** instead — a Customizing table ([26-Maintenance-Views](../26-Maintenance-Views/README.md)), a `TVARVC` variant variable, or a feature switch — so the same code path runs everywhere and only the data differs:
 > ```abap
 > SELECT SINGLE is_active
 >   FROM zsm_t_feature
@@ -372,3 +372,4 @@ Interactive debugging, the checkpoint statements `BREAK-POINT`, `ASSERT` and `LO
 - [23-Debugging-Troubleshooting](../23-Debugging-Troubleshooting/README.md) — the debugger, checkpoints and short dumps
 - [24-Mail](../24-Mail/README.md) — converting mail API exceptions and logging failed mails
 - [25-HTTP-REST](../25-HTTP-REST/README.md) — classic HTTP exceptions, status codes and logging of failed calls
+- [26-Maintenance-Views](../26-Maintenance-Views/README.md) — Customizing tables for environment-specific settings, and how they are maintained
