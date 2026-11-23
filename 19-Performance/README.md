@@ -6,6 +6,25 @@
 
 Performance problems in ABAP usually come from three sources: inefficient database access, inefficient internal table processing, or unnecessary memory usage. This chapter covers ABAP Memory (`EXPORT`/`IMPORT`/`SUBMIT ... AND RETURN`) and consolidates performance guidance referenced throughout this guide. The rules behind it are in [section 9 of the rule set](../docs/ABAP-Development-Rules.md#9-performance); the first one is to measure before you optimise ([Rule 9.1](../docs/ABAP-Development-Rules.md#91-measure-before-you-optimise)).
 
+## ⏱️ Measuring: SAT, ST05 and Profiling in ADT
+
+A measurement shows where the time goes; a guess usually points to the wrong place ([Rule 9.1](../docs/ABAP-Development-Rules.md#91-measure-before-you-optimise)). Measure with realistic data volumes, because a test with ten rows hides what a production run with a million rows does.
+
+| Tool | Where | What it shows |
+|---|---|---|
+| `SAT` (runtime analysis; title in the system: ABAP Trace) | SAP GUI, Standard ABAP | Where a program spends its time: ABAP processing, database access and system calls, per call |
+| `ST05` (SQL trace) | SAP GUI, Standard ABAP | Every database statement of a run, with duration and number of rows |
+| ABAP profiling | ADT | A trace of a run that ADT records and analyses **[verify: how a profiling run is started and which analysis views your ADT version offers]** |
+
+In the SAP BTP ABAP environment, development runs in ADT, so the measurement tools of ADT take the place of the SAP GUI transactions **[verify: the profiling and SQL trace tools available in the SAP BTP ABAP environment]**.
+
+> ⚠️ **VERSION-DEPENDENT: tool names in ADT.** The names, menu entries and views of the ADT tools change with the ADT version. The SAP Help pages on ADT profiling could not be read for this guide; check SAP's documentation for your version.
+
+How to read a trace:
+- **Database time high:** look for `SELECT` statements inside loops and for reads of columns or rows nobody needs (Rules 7.3 and 7.7, section [Database Performance](#-database-performance)).
+- **ABAP time high:** look for nested loops and for reads of standard tables without a key (section [Internal Table Performance](#-internal-table-performance)).
+- **The same statement many times with different values:** that is the loop around it, not the statement, that needs to change.
+
 ## 💾 ABAP Memory — Passing Data Between Programs
 
 ABAP Memory (`MEMORY ID`) lets you pass data between an `EXPORT`ing and `SUBMIT`ted/called program within the same session/user context — useful for passing data to a called report without database round trips.
