@@ -30,13 +30,13 @@ The features this guide relies on:
 | Run tests | *Run As → ABAP Unit Test* | [22](../22-ABAP-Unit/README.md#-running-the-tests) |
 | Check | ATC from the editor or the project | [29](../29-Transport-Quality-Gates/README.md#-atc-checks-variants-and-exemptions) |
 | Debug, read short dumps | Debugger, runtime error feed | [23](../23-Debugging-Troubleshooting/README.md) |
-| Transports | Transport Organizer view **[verify: features in your ADT version]** | [29](../29-Transport-Quality-Gates/README.md) |
+| Transports | Transport Organizer view | [29](../29-Transport-Quality-Gates/README.md) |
 
 > ⚠️ **Form-based editors can hide state that the object's file does not show.** A lock object created with defaults kept had an empty lock mode, although its file read `exclusive`; the editor showed warnings, the activation did not stop ([27-Lock-Objects](../27-Lock-Objects/README.md#-lock-objects-in-the-abap-dictionary)). After activating a form-based object, check its result, not only the success message.
 
 ## 🆚 ADT for VS Code
 
-SAP offers ABAP Development Tools for Visual Studio Code. In the work on this guide it was used to connect an AI assistant to the systems through SAP's ADT MCP server (see below). Which editing, testing and debugging features it offers compared with ADT for Eclipse depends on the version **[verify: the feature set of your ADT for VS Code version]**.
+SAP offers ABAP Development Tools for Visual Studio Code. In the work on this guide it was used to connect an AI assistant to the systems through SAP's ADT MCP server (see below). Which editing, testing and debugging features it offers compared with ADT for Eclipse depends on the version **[verify: the features of your ADT versions: the Transport Organizer view in ADT for Eclipse, and the editing, testing and debugging features of ADT for VS Code]**.
 
 ## 🖥️ SAP GUI Tools That Still Matter
 

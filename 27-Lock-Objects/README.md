@@ -481,7 +481,7 @@ Running numbers are a related trap: reading the highest key and adding one is a 
 - A lock that stays for hours usually means a program that never releases, a dialog left open, or an update that did not finish. SAP's documentation calls an unreleased lock usually a symptom of another problem.
 - `SM12` can also delete lock entries. SAP warns that deleting the lock of an active user can lose data or make it inconsistent. Treat deletion as a last resort for locks whose owner is gone, and agree it with the people responsible for the system.
 
-In code, the classic function module `ENQUEUE_READ` reads lock entries (its short text in the system says so; no official documentation was found) **[verify]**. A program rarely needs it: asking for the lock and handling the foreign-lock exception is the reliable check.
+In code, the classic function module `ENQUEUE_READ` reads lock entries (its short text in the system says so; no official documentation was found) **[verify: the interface and documentation of `ENQUEUE_READ`]**. A program rarely needs it: asking for the lock and handling the foreign-lock exception is the reliable check.
 
 ## 🛠️ Locks in Maintenance Dialogs
 

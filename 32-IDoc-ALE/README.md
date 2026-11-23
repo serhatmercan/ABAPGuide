@@ -24,10 +24,10 @@ This chapter covers:
 | Topic | Standard ABAP | ABAP for Cloud Development / SAP S/4HANA Cloud |
 |---|---|---|
 | Document exchange | IDocs through ALE or EDI | Released APIs (OData, SOAP), business events, SAP Integration Suite **[verify: which replaces a given IDoc in your scenario]** |
-| Configuration | `SALE`, `BD54`, `WE21`, `WE20`, `BD64` (SAP GUI) | Communication arrangements and integration content **[verify]** |
+| Configuration | `SALE`, `BD54`, `WE21`, `WE20`, `BD64` (SAP GUI) | Communication arrangements and integration content **[verify: how integration is configured in SAP S/4HANA Cloud]** |
 | Sending from ABAP | `MASTER_IDOC_DISTRIBUTE` | A released API or event of the business object |
 | Receiving | Inbound function module behind a process code | Released inbound API |
-| Monitoring | `WE02`, `WE05`, `BD87` | Monitoring of the integration platform **[verify]** |
+| Monitoring | `WE02`, `WE05`, `BD87` | Monitoring of the integration platform **[verify: how integration is monitored in SAP S/4HANA Cloud]** |
 | Release state | IDoc and ALE function modules: classic API; `EDIDC`, `EDIDD`: not listed | No IDoc API released; the ATC check `ATC_IDOC_CONS` is released |
 
 The release states come from SAP's lists of released and classified objects. In the SAP BTP ABAP environment used for this chapter, `MASTER_IDOC_DISTRIBUTE` and `EDIDC` exist but are not released.
@@ -446,7 +446,7 @@ The module only translates: segments to an order, the outcome to a status. Every
 - **Extend before you create.** When a delivered basic type carries almost everything, add the missing fields in a segment of an extension, and fill it in the user exit or BAdI that the outbound or inbound processing of that message type offers **[verify: the enhancement points of the message type you extend]**.
 - **Create a basic type** only for your own messages. Name segments, basic types and message types in the customer namespace; the segment names in this chapter (`Z1ZSM_ORD_HDR`, `Z1ZSM_ORD_ITM`) are placeholders.
 - **Segments are character-like.** Numbers, amounts and dates travel as text; the mapper converts them, as E2 does with the quantity.
-- **Released segment versions change only compatibly**: partners may still send the old version **[verify]**.
+- **Released segment versions change only compatibly**: partners may still send the old version **[verify: which segment changes count as compatible]**.
 
 IDoc types, segments and message types are repository and Customizing objects that travel in transport requests ([29-Transport-Quality-Gates](../29-Transport-Quality-Gates/README.md)). This chapter creates none.
 
@@ -467,7 +467,7 @@ Use the test tool and reprocessing in development and test systems; in productio
 ## 🧯 Errors and Status Handling
 
 - **Status records carry the message.** Fill the message fields of the status record from the application's message, so that the monitor shows why a document was not posted.
-- **Error workflow.** According to SAP's documentation, an inbound error stops the IDoc and starts an error work item in the responsible users' inboxes; a successful posting closes it. Outbound errors in the ALE layer also lead to a workflow. The settings are made in `WE46` **[verify]**; the workflow concepts are in [31-Business-Workflow](../31-Business-Workflow/README.md). SAP's classification lists `IDOC_ERROR_WORKFLOW_START` as classic API.
+- **Error workflow.** According to SAP's documentation, an inbound error stops the IDoc and starts an error work item in the responsible users' inboxes; a successful posting closes it. Outbound errors in the ALE layer also lead to a workflow. The settings are made in `WE46` **[verify: the error-handling settings in `WE46`]**; the workflow concepts are in [31-Business-Workflow](../31-Business-Workflow/README.md). SAP's classification lists `IDOC_ERROR_WORKFLOW_START` as classic API.
 - **Convert classic exceptions at the boundary**, as E1 does with the exceptions of `MASTER_IDOC_DISTRIBUTE` ([Rule 6.9](../docs/ABAP-Development-Rules.md#69-turn-sy-subrc-and-bapi-return-tables-into-exceptions-at-the-boundary)).
 
 ## ☁️ ABAP for Cloud Development and SAP S/4HANA Cloud

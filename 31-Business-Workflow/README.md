@@ -28,7 +28,7 @@ This chapter covers:
 | Business object | BOR object type (`SWO1`) or ABAP class with `IF_WORKFLOW` | RAP business object (RAPGuide) |
 | Start | Event through an event linkage (`SWE2`), or a start from code | API trigger or event of SAP Build Process Automation; RAP business events |
 | Raising events in ABAP | `CL_SWF_EVT_EVENT`, `SAP_WAPI_CREATE_EVENT` | `RAISE ENTITY EVENT` in a RAP behavior pool; `IF_SWF_CPWF_API` |
-| Inbox | Business Workplace (`SBWP`), My Inbox | SAP Build Process Automation inbox **[verify]** |
+| Inbox | Business Workplace (`SBWP`), My Inbox | SAP Build Process Automation inbox **[verify: the inbox of SAP Build Process Automation for tasks started from ABAP]** |
 | Release state | `IF_WORKFLOW`, `BI_OBJECT`, `BI_PERSISTENT`, `SAP_WAPI_*`, `SWO_*`: classic API; `CL_SWF_EVT_EVENT`: not listed | `IF_SWF_CPWF_API`, `IF_SWF_CPWF_API_FACTORY`, `IF_SWF_CPWF_CALLBACK`, `CL_SWF_CPWF_API_FACTORY_A4C`: released |
 
 The release states come from SAP's lists of released and classified objects. Workflow definitions, tasks, BOR object types and event linkages cannot be created through ADT in the systems used for this chapter; they are maintained in SAP GUI.

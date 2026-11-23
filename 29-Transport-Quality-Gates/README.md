@@ -48,7 +48,7 @@ According to SAP's documentation, the Transport Organizer records changes in **c
 - **Workbench requests** record repository objects and cross-client Customizing.
 - **Customizing requests** record client-specific Customizing, from the client in which it was changed. Whether changes are recorded automatically is set per client; table entries maintained through a generated dialog are recorded as shown in [26-Maintenance-Views](../26-Maintenance-Views/README.md#-recording-and-transporting-customizing).
 
-Developers work in **tasks** that belong to a request; the tasks are released first, then the request **[verify: request types, task types and the release sequence in your release]**. **Transports of copies** are a further request type; SAP's documentation names them as an exception to the rule that all objects of a request must be locked before release. Local change requests, which have no target system, exist as well **[verify]**.
+Developers work in **tasks** that belong to a request; the tasks are released first, then the request **[verify: request types, task types and the release sequence in your release]**. **Transports of copies** are a further request type; SAP's documentation names them as an exception to the rule that all objects of a request must be locked before release. Local change requests, which have no target system, exist as well **[verify: local change requests and how they differ from requests with a target system]**.
 
 The transactions:
 
