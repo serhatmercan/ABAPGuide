@@ -15,6 +15,11 @@ Coding rules: docs/ABAP-Development-Rules.md. Cite rules by number (Rule 2.6).
 - HTTP and REST is Chapter 25 (`25-HTTP-REST`). OData belongs to GWGuide
   and the future RAPGuide; link them, do not cover OData. A reusable REST
   client or handler component belongs to the future ABAP-Cookbook.
+- Table maintenance is Chapter 26 (`26-Maintenance-Views`): Customizing
+  tables, SE54/SM30, maintenance views, view clusters and the business
+  configuration maintenance of ABAP Cloud. The RAP business object behind
+  a business configuration app belongs to the future RAPGuide; the
+  chapter describes the hand-over only.
 - Debugging is Chapter 23 (`23-Debugging-Troubleshooting`). Keep the
   folder name `18-Debugging`; its title is "Messages, Exceptions &
   Logging".
