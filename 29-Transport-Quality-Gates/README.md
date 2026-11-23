@@ -318,6 +318,7 @@ Not covered in this chapter:
 ## 🔗 Related Chapters
 
 - [30-Tools-AI-Assistance](../30-Tools-AI-Assistance/README.md) — the next chapter: development tools, abapGit and AI assistants
+- [31-Business-Workflow](../31-Business-Workflow/README.md) — workflow definitions and tasks, which travel in workbench requests
 - [20-Best-Practices](../20-Best-Practices/README.md) — the review checklist that a release completes
 - [22-ABAP-Unit](../22-ABAP-Unit/README.md) — running the tests in ADT, ATC and pipelines
 - [26-Maintenance-Views](../26-Maintenance-Views/README.md) — recording and transporting Customizing

@@ -373,3 +373,4 @@ entity_type = model->get_entity_type( iv_entity_name = 'PurchaseOrder' ).
 - [18-Debugging](../18-Debugging/README.md) — exception classes and their handling
 - [20-Best-Practices](../20-Best-Practices/README.md) — Clean ABAP names and review checklist for classes
 - [21-Classic-vs-Modern-ABAP](../21-Classic-vs-Modern-ABAP/README.md) — lifecycle of `CREATE OBJECT` and OLE automation
+- [31-Business-Workflow](../31-Business-Workflow/README.md) — workflow events, which are not ABAP class events

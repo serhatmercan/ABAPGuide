@@ -218,6 +218,7 @@ Not covered in this chapter:
 ## 🔗 Related Chapters
 
 - [29-Transport-Quality-Gates](../29-Transport-Quality-Gates/README.md) — the previous chapter: transports, ATC and abaplint
+- [31-Business-Workflow](../31-Business-Workflow/README.md) — the next chapter: business workflow and My Inbox
 - [20-Best-Practices](../20-Best-Practices/README.md) — formatting and the review checklist
 - [22-ABAP-Unit](../22-ABAP-Unit/README.md) — running tests in ADT
 - [23-Debugging-Troubleshooting](../23-Debugging-Troubleshooting/README.md) — the debugger and short dumps in ADT

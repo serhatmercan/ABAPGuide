@@ -158,4 +158,5 @@ ENDTRY.
 - [10-Objects](../10-Objects/README.md) — interfaces and OOP concepts used by BAdIs
 - [12-Selection-Screens](../12-Selection-Screens/README.md) — subscreens for screen-enhancing BAdIs
 - [17-Enhancements](../17-Enhancements/README.md) — exits, enhancement points and modifications
+- [31-Business-Workflow](../31-Business-Workflow/README.md) — the released BAdIs of flexible workflow
 - [21-Classic-vs-Modern-ABAP](../21-Classic-vs-Modern-ABAP/README.md) — where BAdIs sit, and extension under ABAP Cloud
