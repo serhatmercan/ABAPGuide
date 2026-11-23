@@ -44,6 +44,12 @@ Coding rules: docs/ABAP-Development-Rules.md. Cite rules by number (Rule 2.6).
   Inbox task UI belongs to UIGuide, RAP business events to RAPGuide, and
   SAP Build Process Automation to the SAP-Architecture-Guide; the chapter
   describes the hand-over only.
+- IDoc and ALE are Chapter 32 (`32-IDoc-ALE`): IDoc structure, ports,
+  partner profiles and the distribution model as configuration, outbound
+  and inbound processing, monitoring, and testing without an IDoc. SAP
+  Integration Suite and EDI landscapes belong to the SAP-Architecture-Guide,
+  OData to GWGuide and RAP business events to RAPGuide; the chapter
+  describes the hand-over only.
 - Debugging is Chapter 23 (`23-Debugging-Troubleshooting`). Keep the
   folder name `18-Debugging`; its title is "Messages, Exceptions &
   Logging".
