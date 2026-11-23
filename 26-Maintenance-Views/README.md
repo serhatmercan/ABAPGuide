@@ -411,7 +411,7 @@ ENDCLASS.
 
 **Example E4b — the event 01 routine.** It collects the new, changed and deleted entries, asks the class, and stops the save when needed. The dialog then writes, records and commits, or does nothing.
 
-> 📝 **Contextual snippet** — assumes the generated dialog of `zsm_t_ord_prio` with this routine registered for event 01, a message class `zsm_msg` with messages 010 and 011, a text symbol `q01` with the question, and the framework names described above; `POPUP_TO_CONFIRM` sets `answer` to `1` for the function code `OPT1` and to `A` for cancel **[verify: that the first button carries `OPT1`]**.
+> 📝 **Contextual snippet** — assumes the generated dialog of `zsm_t_ord_prio` with this routine registered for event 01, a message class `zsm_msg` with messages 010 and 011, a text symbol `q01` with the question, and the framework names described above; `POPUP_TO_CONFIRM` sets `answer` to `1` for the first button, to `2` for the second and to `A` for cancel.
 
 ```abap
 " Event 01: runs before the dialog saves; setting vim_abort_saving
