@@ -286,6 +286,48 @@ SELECT DISTINCT dlv~parent_key,
 
 > ⚠️ **VERSION-DEPENDENT: SQL expressions in the field list.** `CASE`, arithmetic, `abs( )`, `concat_with_space( )`, `dats_days_between( )` and `right( )` did not all become available at the same time. Check each function in the [ABAP Keyword Documentation](https://help.sap.com/doc/abapdocu_latest_index_htm/latest/en-US/index.htm) against your target release. Expressions in the field list generally need an `AS` alias.
 
+### CAST, COALESCE and Further Built-in Functions
+
+ABAP SQL offers more functions than the ones above. According to the ABAP Keyword Documentation:
+
+| Group | Functions | What to know |
+|---|---|---|
+| Type conversion | `CAST( expr AS dtype )` | The target is a built-in Dictionary type such as `INT4`, `DEC( len, dec )`, `CHAR( len )`, `NUMC( len )`, `DATS` or `UTCL`. Which source and target types fit together is defined in a matrix in the documentation. The ABAP SQL engine does not evaluate a cast, so a statement with a cast bypasses the table buffer. |
+| Null values | `COALESCE( expr1, expr2, … )` | Returns the first argument that is not null; if all are null, the last one. It takes 2 to 255 arguments of compatible types. Typical use: a default for the optional side of an outer join. |
+| Strings | `CONCAT`, `CONCAT_WITH_SPACE`, `LENGTH`, `INSTR`, `LEFT`, `RIGHT`, `SUBSTRING`, `LPAD`, `RPAD`, `LTRIM`, `RTRIM`, `UPPER`, `LOWER`, `REPLACE`, and regular-expression functions such as `LIKE_REGEXPR` and `REPLACE_REGEXPR` | `SUBSTRING( expr, pos, len )` counts from 1. `LPAD( expr, len, fill )` pads on the left to the length `len`. The regular-expression functions run on the database, whose PCRE library differs from the one ABAP statements use. |
+| Dates | `DATS_IS_VALID`, `DATS_DAYS_BETWEEN`, `DATS_ADD_DAYS`, `DATS_ADD_MONTHS`; generic functions such as `DAYS_BETWEEN`, `ADD_DAYS`, `ADD_MONTHS`, `EXTRACT_YEAR` and `WEEKDAY` | `DATS_IS_VALID` returns 1 for a valid date and 0 otherwise. The generic functions accept the date types and `utclong`. |
+| Times and time stamps | `TIMS_IS_VALID`; `TSTMP_CURRENT_UTCTIMESTAMP`, `TSTMP_SECONDS_BETWEEN`, `TSTMP_ADD_SECONDS`; `UTCL_CURRENT`, `UTCL_ADD_SECONDS`, `UTCL_SECONDS_BETWEEN` | The `TSTMP_` functions work on packed time stamps and take an optional `on_error` parameter; the `UTCL_` functions work on `utclong`. |
+
+> 📝 **Contextual snippet** — assumes the placeholder tables `zsm_t_order` (with `order_id`, `customer_id`, `city`, `quantity`, `order_date`, `delivery_date`) and `zsm_t_discount` (with `customer_id`, `discount_pct`), and the variable `from_date`.
+
+```abap
+SELECT FROM zsm_t_order AS o
+         LEFT OUTER JOIN zsm_t_discount AS d
+           ON d~customer_id = o~customer_id
+  FIELDS o~order_id,
+         lpad( o~order_id, 12, '0' )                        AS padded_id,
+         upper( o~city )                                    AS city_upper,
+         CAST( o~quantity AS DEC( 10, 2 ) )                 AS quantity_dec,
+         " No discount row: the outer join supplies null, COALESCE turns it into 0
+         coalesce( d~discount_pct, 0 )                      AS discount_pct,
+         dats_days_between( o~order_date, o~delivery_date ) AS days_to_deliver,
+         dats_add_days( o~order_date, 30 )                  AS due_date
+  WHERE o~order_date >= @from_date
+  INTO TABLE @DATA(order_summaries).
+```
+
+The same functions were run in a test class over an internal table as data source (`SELECT FROM @orders AS o`), with `COALESCE` applied to a `CASE` without `ELSE`, which yields null. The tests confirmed:
+- `lpad( )` turned `4711` into `000000004711`;
+- `substring( …, 1, 3 )` returned `471`, and `upper( )` returned `LISBON`;
+- the cast produced `3.00`, and `coalesce( )` returned 0;
+- from 15 to 20 January 2026, `dats_days_between( )` returned 5, `dats_add_days( …, 30 )` returned 14 February 2026, and `dats_is_valid( )` returned 1.
+
+> 📝 **Activation record.** `zcl_zsm_sql_functions` with its test include (3 test methods) was activated in both ABAP language versions: Standard ABAP and ABAP for Cloud Development. The tests were run in both versions, and the test runs passed. The active version was read back and matched the source. No database table was created; the data came from the internal table.
+
+> ⚠️ **VERSION-DEPENDENT: SQL functions.** Several functions, and the generic date functions in particular, require a newer release and the strict syntax check of that release. Check each one in the [ABAP Keyword Documentation](https://help.sap.com/doc/abapdocu_latest_index_htm/latest/en-US/index.htm) for your target system.
+
+Functions in CDS views and AMDP procedures are outside this guide; for CDS see [CDSGuide](https://github.com/serhatmercan/CDSGuide).
+
 ## 🔢 COUNT, DISTINCT, GROUP BY, ORDER BY
 
 > 📝 **Contextual snippet** — assumes the variables it compares against (`plant`, `material`, `customer`, `appointment_date`, `document_code`), the constants `credit_segment_domestic` and `credit_segment_overseas`, a range `customer_range`, and an internal table `invoice_lines`.
@@ -685,6 +727,7 @@ Where the key must be a readable running number, draw it from a number range obj
 - Always check `IF driver_items IS NOT INITIAL` before `FOR ALL ENTRIES`, and de-duplicate the driver table first — [Rule 7.4](../docs/ABAP-Development-Rules.md#74-use-for-all-entries-only-with-a-non-empty-de-duplicated-driver-table).
 - Use `SELECT SINGLE @abap_true ... INTO @DATA(...)` + `xsdbool( sy-subrc = 0 )` for existence checks instead of `COUNT(*)` when you don't need the exact count — [Rule 7.6](../docs/ABAP-Development-Rules.md#76-check-existence-with-select-single-abap_true).
 - Prefer joins and subqueries over `FOR ALL ENTRIES` or a `SELECT` in a loop — [Rule 7.3](../docs/ABAP-Development-Rules.md#73-do-not-select-inside-a-loop).
+- Give the optional side of an outer join a default with `COALESCE` instead of handling null values in ABAP.
 - Put restrictions on the optional side of an outer join in the `ON` clause, not in `WHERE` — [Rule 7.13](../docs/ABAP-Development-Rules.md#713-restrict-the-optional-side-of-an-outer-join-in-the-on-condition-not-in-where).
 - Let ABAP SQL handle the client — [Rule 7.8](../docs/ABAP-Development-Rules.md#78-let-abap-sql-handle-the-client) — and write only to your own tables — [Rule 7.9](../docs/ABAP-Development-Rules.md#79-write-only-to-your-own-tables-change-sap-standard-data-through-bapis-or-released-apis).
 - **Let the transaction owner commit.** Reusable code performs its DML and reports the outcome; the top-level caller decides between `COMMIT WORK` and `ROLLBACK WORK`. Reserve `AND WAIT` for the case where the same program must immediately re-read what it wrote — [Rule 7.10](../docs/ABAP-Development-Rules.md#710-let-the-top-level-caller-own-the-transaction-reusable-units-never-commit-work) and [Rule 7.14](../docs/ABAP-Development-Rules.md#714-use-commit-work-and-wait-only-when-the-next-step-depends-on-the-update).
