@@ -167,6 +167,7 @@ ENDTRY.
 - [08-Open-SQL](../08-Open-SQL/README.md#-sap-luw--transaction-ownership) — the general SAP LUW / transaction-ownership rule
 - [09-Modularization](../09-Modularization/README.md) — calling function modules
 - [14-Function-Modules](../14-Function-Modules/README.md) — batch input when no BAPI exists
+- [16-BADIs](../16-BADIs/README.md) — extending SAP processes instead of calling them
 - [18-Debugging](../18-Debugging/README.md) — exceptions and logging
 - [21-Classic-vs-Modern-ABAP](../21-Classic-vs-Modern-ABAP/README.md) — released APIs under ABAP Cloud
 - [27-Lock-Objects](../27-Lock-Objects/README.md) — the SAP lock concept behind the locks a BAPI sets

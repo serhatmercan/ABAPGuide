@@ -122,6 +122,7 @@ sequenceDiagram
 
 ## 🔗 Related Chapters
 
+- [02-Data-Types](../02-Data-Types/README.md) — the types every declaration uses
 - [10-Objects](../10-Objects/README.md) — classes used inside reports
 - [12-Selection-Screens](../12-Selection-Screens/README.md) — selection-screen events in detail
 - [13-ALV](../13-ALV/README.md) — the full OOP ALV report this example is based on

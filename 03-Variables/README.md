@@ -179,6 +179,7 @@ START-OF-SELECTION.
 ## 🔗 Related Chapters
 
 - [02-Data-Types](../02-Data-Types/README.md) — the types these declarations use
+- [04-Operators](../04-Operators/README.md) — calculating with the declared values
 - [07-Internal-Tables](../07-Internal-Tables/README.md) — field symbols and data references in depth
 - [09-Modularization](../09-Modularization/README.md) — `FORM`/`PERFORM` vs. methods
 - [10-Objects](../10-Objects/README.md) — object references

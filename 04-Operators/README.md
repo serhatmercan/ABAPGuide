@@ -126,3 +126,4 @@ DATA(random_number) = random_generator->get_next( ).
 - [02-Data-Types](../02-Data-Types/README.md) — packed number (`p`) type and decimals
 - [05-Control-Statements](../05-Control-Statements/README.md) — using calculated values in conditions
 - [20-Best-Practices](../20-Best-Practices/README.md) — constants and the review checklist
+- [21-Classic-vs-Modern-ABAP](../21-Classic-vs-Modern-ABAP/README.md) — the lifecycle labels used in this chapter

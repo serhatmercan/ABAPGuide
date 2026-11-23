@@ -368,6 +368,7 @@ entity_type = model->get_entity_type( iv_entity_name = 'PurchaseOrder' ).
 ## 🔗 Related Chapters
 
 - [09-Modularization](../09-Modularization/README.md) — where function modules are still needed next to classes
+- [11-Classical-Reports](../11-Classical-Reports/README.md) — local classes inside classical reports
 - [13-ALV](../13-ALV/README.md) — a full OOP ALV example, including event handlers
 - [16-BADIs](../16-BADIs/README.md) — interface implementation in practice
 - [18-Debugging](../18-Debugging/README.md) — exception classes and their handling

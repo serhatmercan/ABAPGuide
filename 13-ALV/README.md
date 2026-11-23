@@ -1017,4 +1017,5 @@ excluded_functions = VALUE #( ( cl_gui_alv_grid=>mc_fc_refresh )
 - [10-Objects](../10-Objects/README.md) — events, `SET HANDLER` and local classes
 - [11-Classical-Reports](../11-Classical-Reports/README.md) — dynamic field catalogs/tables
 - [12-Selection-Screens](../12-Selection-Screens/README.md) — dynpros, value help and table controls
+- [14-Function-Modules](../14-Function-Modules/README.md) — batch input, when a transaction has no API
 - [21-Classic-vs-Modern-ABAP](../21-Classic-vs-Modern-ABAP/README.md) — where the three ALV generations sit

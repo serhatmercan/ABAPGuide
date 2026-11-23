@@ -129,4 +129,5 @@ Most of this chapter describes on-premise techniques. In the ABAP Cloud developm
 - [16-BADIs](../16-BADIs/README.md) — the preferred enhancement technique
 - [10-Objects](../10-Objects/README.md) — interfaces for thin implementations
 - [12-Selection-Screens](../12-Selection-Screens/README.md) — dynpro logic for screen exits
+- [18-Debugging](../18-Debugging/README.md) — messages and exceptions in enhancement code
 - [21-Classic-vs-Modern-ABAP](../21-Classic-vs-Modern-ABAP/README.md) — lifecycle of exits, enhancements and modifications

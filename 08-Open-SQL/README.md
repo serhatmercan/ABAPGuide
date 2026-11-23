@@ -716,6 +716,7 @@ Where the key must be a readable running number, draw it from a number range obj
 
 - [06-Loops](../06-Loops/README.md) — range tables used in `WHERE ... IN`
 - [07-Internal-Tables](../07-Internal-Tables/README.md) — internal tables as targets and as data sources
+- [09-Modularization](../09-Modularization/README.md) — function modules, RFC and the units that read data
 - [15-BAPIs](../15-BAPIs/README.md) — transaction control for BAPI calls
 - [19-Performance](../19-Performance/README.md) — SQL trace and database access patterns
 - [20-Best-Practices](../20-Best-Practices/README.md) — the data-access items of the review checklist

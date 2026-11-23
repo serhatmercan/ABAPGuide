@@ -14,6 +14,6 @@ Quick-reference snippets that complement the numbered chapters. They are grouped
 
 ## 🔗 Related Chapters
 
-- [02-Data-Types](../02-Data-Types/README.md)
+- [02-Data-Types](../02-Data-Types/README.md) — the types behind strings, dates and conversions
 - [09-Modularization](../09-Modularization/README.md) — conversion exits
-- [21-Classic-vs-Modern-ABAP](../21-Classic-vs-Modern-ABAP/README.md)
+- [21-Classic-vs-Modern-ABAP](../21-Classic-vs-Modern-ABAP/README.md) — the lifecycle labels used in these files

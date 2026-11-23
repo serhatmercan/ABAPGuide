@@ -243,6 +243,7 @@ Every chapter in this guide carries a lifecycle note that points back here:
 - [16-BADIs](../16-BADIs/README.md) — classic and new BAdIs
 - [17-Enhancements](../17-Enhancements/README.md) — exits, enhancement points and modifications
 - [20-Best-Practices](../20-Best-Practices/README.md) — the review checklist that applies all of this
+- [22-ABAP-Unit](../22-ABAP-Unit/README.md) — testing classic and modern code
 - [24-Mail](../24-Mail/README.md) — BCS, the released mail API and the legacy send function modules
 - [25-HTTP-REST](../25-HTTP-REST/README.md) — the classic and the released HTTP APIs and the classic REST library
 - [26-Maintenance-Views](../26-Maintenance-Views/README.md) — table maintenance and the business configuration maintenance that replaces it
