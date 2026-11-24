@@ -506,3 +506,4 @@ You will meet these in existing code. Before you use one in new code, check its 
 - [13-ALV](../13-ALV/README.md) — editable lists as an alternative to table controls
 - [21-Classic-vs-Modern-ABAP](../21-Classic-vs-Modern-ABAP/README.md) — lifecycle of selection screens and dynpros
 - [26-Maintenance-Views](../26-Maintenance-Views/README.md) — generated maintenance dialogs, a dynpro application you extend through events
+- [33-ABAP-Dictionary](../33-ABAP-Dictionary/README.md) — search helps, check tables and field labels

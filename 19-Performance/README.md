@@ -194,3 +194,4 @@ This chapter covers **ABAP-side** performance: internal tables, memory, and how 
 - [21-Classic-vs-Modern-ABAP](../21-Classic-vs-Modern-ABAP/README.md) — scope boundary and lifecycle of ABAP memory
 - [23-Debugging-Troubleshooting](../23-Debugging-Troubleshooting/README.md) — reading short dumps, including memory dumps
 - [27-Lock-Objects](../27-Lock-Objects/README.md) — holding locks briefly, and lock entries in `SM12`
+- [33-ABAP-Dictionary](../33-ABAP-Dictionary/README.md) — technical settings, buffering types and secondary indexes

@@ -759,7 +759,7 @@ Where the key must be a readable running number, draw it from a number range obj
 
 | T-Code | Purpose |
 |---|---|
-| SE11 | Data Dictionary (table/structure maintenance) |
+| SE11 | Data Dictionary (table/structure maintenance), see [33-ABAP-Dictionary](../33-ABAP-Dictionary/README.md) |
 | SE16N | Table data browser |
 | ST05 | SQL Trace (analyze SELECT performance) |
 | SE30 / SAT | Runtime analysis |
@@ -775,3 +775,4 @@ Where the key must be a readable running number, draw it from a number range obj
 - [21-Classic-vs-Modern-ABAP](../21-Classic-vs-Modern-ABAP/README.md) — lifecycle context
 - [26-Maintenance-Views](../26-Maintenance-Views/README.md) — Customizing tables: delivery class, client and maintenance
 - [27-Lock-Objects](../27-Lock-Objects/README.md) — lock objects, lock modes and optimistic locking
+- [33-ABAP-Dictionary](../33-ABAP-Dictionary/README.md) — defining the tables, keys and foreign keys that ABAP SQL reads and writes

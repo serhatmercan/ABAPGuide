@@ -741,3 +741,4 @@ ENDCLASS.
 - [26-Maintenance-Views](../26-Maintenance-Views/README.md) — maintenance dialogs and their own locks
 - [28-Adobe-Forms](../28-Adobe-Forms/README.md) — the next chapter: forms and PDF output, with the same adapter design
 - [30-Tools-AI-Assistance](../30-Tools-AI-Assistance/README.md) — the tool limits behind the lock-mode finding, and Rule 15.7
+- [33-ABAP-Dictionary](../33-ABAP-Dictionary/README.md) — the tables and foreign keys a lock object is built on

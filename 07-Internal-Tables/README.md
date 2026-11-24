@@ -474,3 +474,4 @@ ENDIF.
 - [08-Open-SQL](../08-Open-SQL/README.md) — reading database tables into internal tables
 - [19-Performance](../19-Performance/README.md) — keys, secondary keys and nested loops
 - [21-Classic-vs-Modern-ABAP](../21-Classic-vs-Modern-ABAP/README.md) — the lifecycle labels used in this chapter
+- [33-ABAP-Dictionary](../33-ABAP-Dictionary/README.md) — Dictionary table types and ranges table types

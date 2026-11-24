@@ -131,3 +131,4 @@ Most of this chapter describes on-premise techniques. In the ABAP Cloud developm
 - [12-Selection-Screens](../12-Selection-Screens/README.md) — dynpro logic for screen exits
 - [18-Debugging](../18-Debugging/README.md) — messages and exceptions in enhancement code
 - [21-Classic-vs-Modern-ABAP](../21-Classic-vs-Modern-ABAP/README.md) — lifecycle of exits, enhancements and modifications
+- [33-ABAP-Dictionary](../33-ABAP-Dictionary/README.md) — append structures, customizing includes and enhancement categories

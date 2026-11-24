@@ -706,6 +706,7 @@ Not covered in this chapter:
 
 ## 🔗 Related Chapters
 
+- [33-ABAP-Dictionary](../33-ABAP-Dictionary/README.md) — the next chapter: domains, data elements and database tables
 - [15-BAPIs](../15-BAPIs/README.md) — posting inbound IDocs through BAPIs, and the commit protocol
 - [09-Modularization](../09-Modularization/README.md) — function modules and RFC destinations behind ports
 - [25-HTTP-REST](../25-HTTP-REST/README.md) — synchronous alternatives over HTTP

@@ -14,7 +14,7 @@ That last part is the point. Real SAP systems run several generations of ABAP at
 
 ## ✨ Highlights
 
-- **32 structured chapters** plus a quick-reference Examples section
+- **33 structured chapters** plus a quick-reference Examples section
 - **200+ annotated ABAP code snippets** written for this guide
 - **Explicit classic-to-modern lifecycle guidance** on every major technology
 - **Internal tables and modern expressions** — `VALUE`, `FOR`, `REDUCE`, `FILTER`, `COND`, table expressions, secondary keys
@@ -56,6 +56,7 @@ The chapter that ties the rest together: why productive landscapes contain sever
 | Set up the tools or an AI assistant | [30](30-Tools-AI-Assistance/README.md) · [20](20-Best-Practices/README.md) |
 | Start an approval process or react to a business event | [31](31-Business-Workflow/README.md) · [10](10-Objects/README.md) |
 | Exchange documents with other systems (IDoc, ALE) | [32](32-IDoc-ALE/README.md) · [15](15-BAPIs/README.md) |
+| Define tables, data elements and domains (ABAP Dictionary) | [33](33-ABAP-Dictionary/README.md) · [26](26-Maintenance-Views/README.md) · [02](02-Data-Types/README.md) |
 | Decide between classic and modern | [21](21-Classic-vs-Modern-ABAP/README.md) |
 
 ## 🏷️ Lifecycle Legend
@@ -108,6 +109,7 @@ The Context column lists every lifecycle label a chapter uses, in the short form
 | [30-Tools-AI-Assistance](30-Tools-AI-Assistance/README.md) | Development Tools and AI Assistance | ADT for Eclipse and VS Code, SAP GUI tools, source search, ABAP Cleaner, abapGit, what an AI assistant needs, SAP's Joule for developers, MCP servers for ADT, the safety model and observed tool limits | Current + Version-dependent |
 | [31-Business-Workflow](31-Business-Workflow/README.md) | Business Workflow and My Inbox | Workflow building blocks, BOR and `IF_WORKFLOW` classes, events and type linkages, agent rules, work items in the Business Workplace and My Inbox, administration, flexible workflow, the cloud hand-over, testing without starting a workflow | Classic + Cloud |
 | [32-IDoc-ALE](32-IDoc-ALE/README.md) | IDoc and ALE | IDoc structure, message types, ports, partner profiles and the distribution model, outbound processing and change pointers, inbound function modules and status handling, posting through BAPIs, monitoring and reprocessing, the cloud hand-over, testing without an IDoc | Classic + Cloud |
+| [33-ABAP-Dictionary](33-ABAP-Dictionary/README.md) | ABAP Dictionary | Domains, data elements, structures and includes, table types, database tables in ADT with technical settings and indexes, foreign keys, check and text tables, search helps, reading a table definition, changing an active table, enhancement categories and appends, classic Dictionary views, the Dictionary in ABAP for Cloud Development | Current + Classic + Legacy + Cloud + Version-dependent |
 | [Examples](Examples/README.md) | Examples | Strings and regular expressions, dates/times and `utclong`, conversions | Current + Legacy + Version-dependent |
 
 ## 🚀 How to Use

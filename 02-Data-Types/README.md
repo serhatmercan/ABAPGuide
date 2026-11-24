@@ -4,7 +4,7 @@
 
 ## 📖 Introduction
 
-ABAP is a strongly typed language. Before you can store a value, you must declare its **type** — either an elementary type (`c`, `n`, `i`, `p`, `string`, ...) or a structured type (`TYPES ... BEGIN OF`). This chapter covers structures, ranges tables, common string cleanup, type conversions, and reading type information and domain fixed values at runtime via RTTS.
+ABAP is a strongly typed language. Before you can store a value, you must declare its **type** — either an elementary type (`c`, `n`, `i`, `p`, `string`, ...) or a structured type (`TYPES ... BEGIN OF`). This chapter covers structures, ranges tables, common string cleanup, type conversions, and reading type information and domain fixed values at runtime via RTTS. The global types of the ABAP Dictionary (domains, data elements, Dictionary structures and table types) are the subject of [33-ABAP-Dictionary](../33-ABAP-Dictionary/README.md).
 
 Names in the examples follow [Rules 2.1–2.6](../docs/ABAP-Development-Rules.md#2-naming): descriptive names without type prefixes, and `zsm` placeholders for development objects.
 
@@ -214,4 +214,5 @@ A ranges table can be used with `IN` in ABAP SQL `WHERE` conditions and in logic
 - [09-Modularization](../09-Modularization/README.md#-conversion-exits) — conversion exits
 - [12-Selection-Screens](../12-Selection-Screens/README.md) — `SELECT-OPTIONS` and ranges tables
 - [21-Classic-vs-Modern-ABAP](../21-Classic-vs-Modern-ABAP/README.md) — the lifecycle labels used in this chapter
+- [33-ABAP-Dictionary](../33-ABAP-Dictionary/README.md) — domains, data elements and Dictionary structures
 - [Examples/String-Functions.md](../Examples/String-Functions.md) — string functions and their statement equivalents

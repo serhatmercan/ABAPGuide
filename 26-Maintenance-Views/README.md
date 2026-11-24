@@ -777,3 +777,4 @@ ENDCLASS.
 - [24-Mail](../24-Mail/README.md) — mail settings from a Customizing table
 - [25-HTTP-REST](../25-HTTP-REST/README.md) — destination names from configuration
 - [27-Lock-Objects](../27-Lock-Objects/README.md) — the next chapter: the SAP lock concept, and how the dialog locks
+- [33-ABAP-Dictionary](../33-ABAP-Dictionary/README.md) — tables, text tables, foreign keys and changing an active table
