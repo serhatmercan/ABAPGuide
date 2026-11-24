@@ -50,6 +50,14 @@ Coding rules: docs/ABAP-Development-Rules.md. Cite rules by number (Rule 2.6).
   Integration Suite and EDI landscapes belong to the SAP-Architecture-Guide,
   OData to GWGuide and RAP business events to RAPGuide; the chapter
   describes the hand-over only.
+- The ABAP Dictionary is Chapter 33 (`33-ABAP-Dictionary`): domains, data
+  elements, structures, table types, database tables with technical
+  settings and indexes, foreign keys, check and text tables, search
+  helps, changing an active table, enhancement categories and appends,
+  classic Dictionary views as lifecycle reference, and what applies in
+  ABAP for Cloud Development. CDS views, simple and enumerated types
+  belong to CDSGuide, database-specific features to HANAGuide; buffering
+  rules stay in 19 and table change logs in 26.
 - Debugging is Chapter 23 (`23-Debugging-Troubleshooting`).
 - Keep the folder name `18-Debugging`; its title is "Messages, Exceptions &
   Logging".
