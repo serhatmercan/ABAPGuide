@@ -706,7 +706,7 @@ ENDCLASS.
 - `COMMIT WORK AND WAIT` inside the method that locks, so the caller's SAP LUW ends there.
 - Releasing the lock before the commit, which opens a window for a second writer.
 - Relying on `COMMIT WORK` to release a lock when no update function module was registered.
-- Reading the highest key and adding one instead of locking or using a number range.
+- Reading the highest key and adding one instead of locking or using a number range ([35-Number-Ranges-Change-Documents](../35-Number-Ranges-Change-Documents/README.md)).
 - Deleting entries in `SM12` to "fix" a collision while the owner is still working.
 - Unit tests that set real locks.
 

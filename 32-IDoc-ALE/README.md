@@ -713,4 +713,5 @@ Not covered in this chapter:
 - [22-ABAP-Unit](../22-ABAP-Unit/README.md) — test doubles for the sender and the poster
 - [29-Transport-Quality-Gates](../29-Transport-Quality-Gates/README.md) — transporting IDoc types and configuration
 - [31-Business-Workflow](../31-Business-Workflow/README.md) — the previous chapter; the error workflow of inbound IDocs
+- [35-Number-Ranges-Change-Documents](../35-Number-Ranges-Change-Documents/README.md) — change documents, on which change pointers are built
 - [21-Classic-vs-Modern-ABAP](../21-Classic-vs-Modern-ABAP/README.md) — lifecycle of IDoc and ALE and what replaces them

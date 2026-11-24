@@ -696,4 +696,5 @@ Not covered in this chapter:
 - [29-Transport-Quality-Gates](../29-Transport-Quality-Gates/README.md) — transporting Dictionary objects
 - [30-Tools-AI-Assistance](../30-Tools-AI-Assistance/README.md) — ADT and `SE11`
 - [32-IDoc-ALE](../32-IDoc-ALE/README.md) — the previous chapter
+- [35-Number-Ranges-Change-Documents](../35-Number-Ranges-Change-Documents/README.md) — the number-length domain and change-document-relevant data elements
 - [21-Classic-vs-Modern-ABAP](../21-Classic-vs-Modern-ABAP/README.md) — lifecycle of Dictionary views, appends and extension

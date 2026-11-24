@@ -14,7 +14,7 @@ That last part is the point. Real SAP systems run several generations of ABAP at
 
 ## ✨ Highlights
 
-- **34 structured chapters** plus a quick-reference Examples section
+- **35 structured chapters** plus a quick-reference Examples section
 - **200+ annotated ABAP code snippets** written for this guide
 - **Explicit classic-to-modern lifecycle guidance** on every major technology
 - **Internal tables and modern expressions** — `VALUE`, `FOR`, `REDUCE`, `FILTER`, `COND`, table expressions, secondary keys
@@ -58,6 +58,7 @@ The chapter that ties the rest together: why productive landscapes contain sever
 | Exchange documents with other systems (IDoc, ALE) | [32](32-IDoc-ALE/README.md) · [15](15-BAPIs/README.md) |
 | Define tables, data elements and domains (ABAP Dictionary) | [33](33-ABAP-Dictionary/README.md) · [26](26-Maintenance-Views/README.md) · [02](02-Data-Types/README.md) |
 | Check authorizations and find out why a check failed | [34](34-Authorization-Checks/README.md) · [26](26-Maintenance-Views/README.md) · [22](22-ABAP-Unit/README.md) |
+| Assign document numbers and log changes | [35](35-Number-Ranges-Change-Documents/README.md) · [08](08-Open-SQL/README.md) · [27](27-Lock-Objects/README.md) |
 | Decide between classic and modern | [21](21-Classic-vs-Modern-ABAP/README.md) |
 
 ## 🏷️ Lifecycle Legend
@@ -112,6 +113,7 @@ The Context column lists every lifecycle label a chapter uses, in the short form
 | [32-IDoc-ALE](32-IDoc-ALE/README.md) | IDoc and ALE | IDoc structure, message types, ports, partner profiles and the distribution model, outbound processing and change pointers, inbound function modules and status handling, posting through BAPIs, monitoring and reprocessing, the cloud hand-over, testing without an IDoc | Classic + Cloud |
 | [33-ABAP-Dictionary](33-ABAP-Dictionary/README.md) | ABAP Dictionary | Domains, data elements, structures and includes, table types, database tables in ADT with technical settings and indexes, foreign keys, check and text tables, search helps, reading a table definition, changing an active table, enhancement categories and appends, classic Dictionary views, the Dictionary in ABAP for Cloud Development | Current + Classic + Legacy + Cloud + Version-dependent |
 | [34-Authorization-Checks](34-Authorization-Checks/README.md) | Authorization Checks | The authorization concept, `AUTHORITY-CHECK` and its return codes, `DUMMY` and `FOR USER`, where the check belongs, the check behind an interface, testing with the ABAP Unit authorization test environment, tracing a failed check, `SU24` as context, authorization in ABAP for Cloud Development | Current + Cloud + Version-dependent |
+| [35-Number-Ranges-Change-Documents](35-Number-Ranges-Change-Documents/README.md) | Number Ranges and Change Documents | Number range objects, intervals and buffering, drawing a number with `CL_NUMBERRANGE_RUNTIME` and the SAP LUW, change document objects and the generated write class, reading change documents with `CL_CHDO_READ_TOOLS`, ABAP for Cloud Development and the RAP hand-over, testing with doubles | Current + Classic + Cloud + Version-dependent |
 | [Examples](Examples/README.md) | Examples | Strings and regular expressions, dates/times and `utclong`, conversions | Current + Legacy + Version-dependent |
 
 ## 🚀 How to Use

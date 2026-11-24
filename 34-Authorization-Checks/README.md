@@ -473,6 +473,7 @@ Not covered in this chapter:
 
 ## 🔗 Related Chapters
 
+- [35-Number-Ranges-Change-Documents](../35-Number-Ranges-Change-Documents/README.md) — the next chapter: document numbers and change documents
 - [08-Open-SQL](../08-Open-SQL/README.md#-dynamic-sql) — why dynamic SQL needs an explicit check
 - [11-Classical-Reports](../11-Classical-Reports/README.md) — the authorization check of a generic table viewer
 - [14-Function-Modules](../14-Function-Modules/README.md) — `CALL TRANSACTION ... WITH AUTHORITY-CHECK`

@@ -717,7 +717,7 @@ METHOD write_log.
 ENDMETHOD.
 ```
 
-Where the key must be a readable running number, draw it from a number range object instead of reading the table.
+Where the key must be a readable running number, draw it from a number range object instead of reading the table; see [35-Number-Ranges-Change-Documents](../35-Number-Ranges-Change-Documents/README.md).
 
 ## ✅ Best Practices
 

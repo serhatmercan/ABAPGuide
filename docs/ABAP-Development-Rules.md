@@ -1791,7 +1791,7 @@ A key computed from the table, such as the highest key plus one, collides as soo
 - Choose the buffering deliberately. SAP's ABAP file format for number range objects describes it: main memory buffering is the most efficient but assigns numbers out of order and can leave gaps; without buffering, the interval row stays locked until `COMMIT WORK` or `ROLLBACK WORK`. Use no buffering only where the business requires numbers without gaps, and accept the lock.
 - Keep the drawing behind an interface, so that tests use a double and never draw a real number (10.6).
 
-This is a team rule.
+This is a team rule. See [35-Number-Ranges-Change-Documents](../35-Number-Ranges-Change-Documents/README.md#-buffering-and-gaps).
 
 ```abap
 " ✅ the number comes from the number range object, last
@@ -1811,7 +1811,7 @@ A change document object generates the code that writes its change documents. SA
 - Never insert into or select from `CDHDR` and `CDPOS` in new code.
 - Keep the writing behind an interface, so that tests use a double and write no change document (10.6).
 
-This is a team rule.
+This is a team rule. See [35-Number-Ranges-Change-Documents](../35-Number-Ranges-Change-Documents/README.md#-writing-change-documents).
 
 ```abap
 " ✅ the generated class writes the change document

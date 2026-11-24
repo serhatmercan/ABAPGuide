@@ -172,3 +172,4 @@ ENDTRY.
 - [21-Classic-vs-Modern-ABAP](../21-Classic-vs-Modern-ABAP/README.md) — released APIs under ABAP Cloud
 - [27-Lock-Objects](../27-Lock-Objects/README.md) — the SAP lock concept behind the locks a BAPI sets
 - [32-IDoc-ALE](../32-IDoc-ALE/README.md) — inbound IDocs posted through BAPIs
+- [35-Number-Ranges-Change-Documents](../35-Number-Ranges-Change-Documents/README.md) — number ranges and change documents for your own objects
