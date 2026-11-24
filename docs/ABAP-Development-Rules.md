@@ -204,6 +204,8 @@ A fixed infix per object type tells the reader what kind of object a name refers
 | Append structure | `zsm_a_` | `zsm_a_ordhdr` |
 | Extension or customizing include | `zsm_x_` | `zsm_x_ordhdr` |
 | Text table | the table name with a `t` suffix | `zsm_t_ordstatt` |
+| Number range object | `ZSM_` + up to 6 characters | `ZSM_ORDNR` |
+| Change document object | `ZSM_` + up to 11 characters | `ZSM_ORDHDR` |
 | CDS view | `ZSM_I_` | `ZSM_I_Order` |
 | CDS projection view | `ZSM_C_` | `ZSM_C_Order` |
 | CDS table function | `ZSM_F_` | `ZSM_F_OrderAging` |
@@ -1780,6 +1782,53 @@ INSERT zsm_t_ordhdr FROM @order.
 INSERT zsm_t_ordhdr FROM @order.
 ```
 
+### 7.25 Draw document numbers from a number range object, as late as possible in the SAP LUW
+
+A key computed from the table, such as the highest key plus one, collides as soon as two users save at the same time, and a counter table of your own repeats what number ranges already do.
+
+- Draw the number from a number range object with the released `CL_NUMBERRANGE_RUNTIME`, after everything that can fail and just before the save.
+- A number that was drawn is used up, even if the save fails or is rolled back. Expect gaps.
+- Choose the buffering deliberately. SAP's ABAP file format for number range objects describes it: main memory buffering is the most efficient but assigns numbers out of order and can leave gaps; without buffering, the interval row stays locked until `COMMIT WORK` or `ROLLBACK WORK`. Use no buffering only where the business requires numbers without gaps, and accept the lock.
+- Keep the drawing behind an interface, so that tests use a double and never draw a real number (10.6).
+
+This is a team rule.
+
+```abap
+" ✅ the number comes from the number range object, last
+result = VALUE #( status = status_new note = note ).
+result-order_id = number_source->next_number( ).
+
+" ❌ highest key plus one: two users get the same number
+SELECT MAX( order_id ) FROM zsm_t_ordhdr INTO @DATA(last_id).
+```
+
+### 7.26 Write change documents through the generated write object; read them through the released API
+
+A change document object generates the code that writes its change documents. SAP's release information classifies the classic `CHANGEDOCUMENT_*` function modules and the tables `CDHDR` and `CDPOS` as not to be released, with `CL_CHDO_WRITE_TOOLS` and `CL_CHDO_READ_TOOLS` as successors.
+
+- Write through the class or function module generated for your change document object, in the same SAP LUW as the change of the data, and leave the commit to the transaction owner (7.10).
+- Read change documents with `CL_CHDO_READ_TOOLS`.
+- Never insert into or select from `CDHDR` and `CDPOS` in new code.
+- Keep the writing behind an interface, so that tests use a double and write no change document (10.6).
+
+This is a team rule.
+
+```abap
+" ✅ the generated class writes the change document
+zcl_zsm_ordhdr_chdo=>write( EXPORTING objectid         = CONV #( order_id )
+                                      utime            = time
+                                      udate            = date
+                                      username         = user
+                                      o_zsm_t_ordhdr   = old
+                                      n_zsm_t_ordhdr   = new
+                                      upd_zsm_t_ordhdr = 'U' ).
+
+" ❌ the change tables are not an API
+SELECT * FROM cdpos WHERE objectclas = 'ZSM_ORDHDR' INTO TABLE @DATA(items).
+```
+
+> 📝 **Contextual snippet** — `time`, `date`, `user`, `old` and `new` are assumed to be filled; the generated class of Standard ABAP needs `tcode` as well.
+
 ---
 
 ## 8 Security
@@ -2814,7 +2863,7 @@ These rules are decisions of the team: they have no basis in Clean ABAP or the A
 | Modern syntax | 3.8, 3.9, 3.18, 3.19 (no new macros at all) |
 | Classes and methods | 5.12, 5.13, 5.14 |
 | Error handling | 6.2 (one abstract root per category), 6.6, 6.7, 6.11, 6.12 (the split between `ASSERT`, `CX_NO_CHECK` and `RAISE SHORTDUMP`) |
-| Database access and SAP LUW | 7.13, 7.14, 7.15, 7.16, 7.17, 7.18, 7.19, 7.20, 7.21, 7.22, 7.23, 7.24 |
+| Database access and SAP LUW | 7.13, 7.14, 7.15, 7.16, 7.17, 7.18, 7.19, 7.20, 7.21, 7.22, 7.23, 7.24, 7.25, 7.26 |
 | Security | 8.2, 8.3, 8.5 (extension to every value that differs per system or user), 8.9, 8.10, 8.11, 8.12, 8.13, 8.14, 8.15, 8.16, 8.17, 8.18 |
 | Performance | 9.1 |
 | Testing | 10.1, 10.2 (default risk level and duration), 10.10 |
