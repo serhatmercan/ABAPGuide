@@ -166,5 +166,7 @@ Coding rules: docs/ABAP-Development-Rules.md. Cite rules by number (Rule 2.6).
   for `ai/` and `experiment/`, the official documentation of the AI
   assistants they describe:
   - Claude Code (https://code.claude.com/docs/)
-  - GitHub Copilot (https://docs.github.com/en/copilot/)
+  - GitHub Copilot (https://docs.github.com/en/copilot/), and its
+    documentation in VS Code (https://code.visualstudio.com/docs/), only
+    the pages on Copilot, chat context and agent customization
   - Cursor (https://cursor.com/docs/)
