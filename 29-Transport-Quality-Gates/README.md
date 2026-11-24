@@ -59,13 +59,13 @@ That gives a setup in four parts:
 3. **Wrappers for what SAP has not released.** When clean-core code needs an SAP object that is not released, wrap it in your own Standard ABAP class and release that class for ABAP for Cloud Development. According to the ABAP Keyword Documentation, a release needs the release contract C1 and visibility for the language version, and the classification belongs to the object's own software component or package. Keep each wrapper small and replace it when SAP releases a successor **[verify: SAP's guidance on custom wrappers in your release]**.
 4. **The test.** Run ABAP Unit and ATC in the package like anywhere else ([22-ABAP-Unit](../22-ABAP-Unit/README.md)).
 
-> 📝 **Test record.** In the on-premise system used for this chapter, a class was created in `$TMP` through the ADT tool used for this guide, with the aim of giving it ABAP for Cloud Development:
+> ⚠️ **VERSION-DEPENDENT: setting the language version of a class.** Observed in the on-premise system used for this chapter, with a class in `$TMP`:
 >
-> - The tool's create dialog offered no field for the language version.
-> - Setting the version in the class properties afterwards was reported as successful, but the read-back showed it was not stored.
-> - The class stayed Standard ABAP: a call to `cl_gui_frontend_services`, which SAP classifies as a classic API, passed the syntax check. The call was removed again, and the class was not activated.
+> - The tool used for this guide offered no field for the language version when it created a class. Setting the version in the class properties afterwards was reported as successful, but the read-back showed it was not stored.
+> - The *New ABAP Class* wizard of ADT offered no language-version field either. The class was created in Standard ABAP, and a call to `cl_gui_frontend_services=>get_computer_name`, which SAP classifies as a classic API, passed the syntax check.
+> - In the Class Builder of SAP GUI (`SE24`), the *Properties* tab showed an editable field for the ABAP language version. After it was set to ABAP for Cloud Development, the syntax check reported one error in `if_oo_adt_classrun~main`: the use of the class `CL_GUI_FRONTEND_SERVICES` is not allowed.
 >
-> The test therefore could not show how the syntax check treats an unreleased API in ABAP for Cloud Development on-premise **[verify: create a class with ABAP for Cloud Development in the ADT class wizard, call an unreleased API and record the messages of the syntax check and of ATC]**. In the SAP BTP ABAP environment, classes created in a package below `ZLOCAL` came out in ABAP for Cloud Development, as their read-back properties showed.
+> As observed, the syntax check itself, not only ATC, rejects an unreleased API in an object with ABAP for Cloud Development. Setting the version for a whole package or software component, and whether ADT offers the field after creation in your release, were not tested **[verify: setting the language version for a package or software component, and changing it for an existing object in ADT]**. In the SAP BTP ABAP environment, classes created in a package below `ZLOCAL` came out in ABAP for Cloud Development, as their read-back properties showed.
 
 ## 🚚 The Change and Transport System
 
