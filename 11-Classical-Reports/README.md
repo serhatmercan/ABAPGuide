@@ -8,7 +8,7 @@ A **classical report** (list processing) uses `WRITE` statements and system-defi
 
 The ABAP Keyword Documentation does not classify classic lists as obsolete, but it no longer intends them for direct use in production programs and points to ALV instead ([13-ALV](../13-ALV/README.md)).
 
-The chapter also covers the tasks that classical reports typically carry out around the list: starting a report as a background job, and reading or writing files on the user's PC and on the application server.
+The chapter also covers the tasks that classical reports typically carry out around the list: starting a report as a background job, its cloud counterpart the application job, and reading or writing files on the user's PC and on the application server.
 
 ## 🧾 Classical List Events
 
@@ -197,6 +197,215 @@ ENDIF.
 
 > 💡 Monitor the job in transaction `SM37`. The job number from `JOB_OPEN`, not the name, tells two runs of the same job apart.
 
+### Application Jobs
+
+> **Lifecycle:** `ABAP CLOUD / MODERN CONTEXT`. In ABAP for Cloud Development there is no report to submit, and SAP's release lists contain neither `JOB_OPEN` nor `JOB_CLOSE`. Background work runs as an **application job**: a class, described by a job catalog entry and a job template. SAP's lists for the SAP BTP ABAP environment, for SAP S/4HANA Cloud and for the private edition list the interfaces and the API below as released.
+
+> ⚠️ **VERSION-DEPENDENT: application jobs in Standard ABAP.** The on-premise system used for this chapter has the interfaces `IF_APJ_DT_EXEC_OBJECT` and `IF_APJ_RT_EXEC_OBJECT`, the class `CL_APJ_RT_API`, and catalog entries and templates as object types in ADT; `IF_APJ_RT_RUN` was not found there. Check your release before you rely on them.
+
+An application job has four parts:
+
+| Part | What it holds | Created with |
+|---|---|---|
+| **Job class** | The logic. It implements `IF_APJ_DT_EXEC_OBJECT` (the parameters) and `IF_APJ_RT_EXEC_OBJECT` (the run) | ADT, as a normal class |
+| **Job catalog entry** | Names the class and its parameters; the object type is `SAJC` | ADT **[verify: the ADT wizard for catalog entries]** |
+| **Job template** | Default parameter values for one catalog entry; the object type is `SAJT`, and it requires the name of a catalog entry | ADT **[verify: the ADT wizard for templates]** |
+| **The job itself** | One scheduled run or a series of runs, based on a template | The Fiori app for application jobs, or the class `CL_APJ_RT_API` **[verify: the name of the app in your system]** |
+
+The two interfaces of the job class, as read in both systems used for this chapter:
+
+| Interface | Method | Contract |
+|---|---|---|
+| `IF_APJ_DT_EXEC_OBJECT` | `GET_PARAMETERS` | Exports `ET_PARAMETER_DEF`, the parameter list (name of at most 8 characters, kind `P` for a single value or `S` for a range, data type, length, flags such as mandatory or changeable), and `ET_PARAMETER_VAL`, the default values as range lines. The interface's own documentation says that nothing checks the two tables for consistency. |
+| `IF_APJ_RT_EXEC_OBJECT` | `EXECUTE` | Imports `IT_PARAMETERS`, the values chosen when the job was scheduled, and may raise `CX_APJ_RT_CONTENT`. |
+
+In the SAP BTP ABAP environment, a third released interface, `IF_APJ_RT_RUN`, has an `EXECUTE` method without parameters; its short text says that it takes the job parameters from attributes of the class **[verify: how parameters are declared for `IF_APJ_RT_RUN`]**.
+
+**Example J1 — a job class.** Target: Standard ABAP and ABAP for Cloud Development.
+
+```abap
+"! Application job class: removes stale records older than a retention period.
+CLASS zcl_zsm_cleanup_job DEFINITION
+  PUBLIC
+  FINAL
+  CREATE PUBLIC.
+
+  PUBLIC SECTION.
+    INTERFACES if_apj_dt_exec_object.
+    INTERFACES if_apj_rt_exec_object.
+
+    CONSTANTS retention_parameter TYPE c LENGTH 8 VALUE 'P_DAYS'.
+    CONSTANTS default_retention_days TYPE i VALUE 30.
+
+    "! Last day that is still kept.
+    "! @parameter today          | Date of the run
+    "! @parameter retention_days | Number of days to keep
+    "! @parameter result         | Records older than this date are stale
+    METHODS cutoff_date
+      IMPORTING today          TYPE d
+                retention_days TYPE i
+      RETURNING VALUE(result)  TYPE d.
+
+    "! Retention in days from the job parameters, or the default.
+    "! @parameter parameters | Parameter values passed by the job
+    "! @parameter result     | Retention in days
+    "! @raising cx_sy_conversion_no_number | The value is not a number
+    METHODS retention_days
+      IMPORTING parameters    TYPE if_apj_rt_exec_object=>tt_templ_val
+      RETURNING VALUE(result) TYPE i
+      RAISING   cx_sy_conversion_no_number.
+
+  PRIVATE SECTION.
+    METHODS remove_stale_records
+      IMPORTING cutoff TYPE d.
+ENDCLASS.
+
+
+CLASS zcl_zsm_cleanup_job IMPLEMENTATION.
+  METHOD if_apj_dt_exec_object~get_parameters.
+    " The catalog entry and the template read the parameter list from here;
+    " a title in param_text would belong in a text symbol (Rule 4.2)
+    et_parameter_def = VALUE #( ( selname        = retention_parameter
+                                  kind           = 'P'
+                                  datatype       = 'I'
+                                  length         = 5
+                                  changeable_ind = abap_true
+                                  mandatory_ind  = abap_true ) ).
+
+    et_parameter_val = VALUE #( ( selname = retention_parameter
+                                  kind    = 'P'
+                                  sign    = 'I'
+                                  option  = 'EQ'
+                                  low     = |{ default_retention_days }| ) ).
+  ENDMETHOD.
+
+  METHOD if_apj_rt_exec_object~execute.
+    TRY.
+        DATA(days) = retention_days( it_parameters ).
+      CATCH cx_sy_conversion_no_number INTO DATA(conversion_error).
+        " Hand the error to the job framework; no work has been done yet
+        RAISE EXCEPTION NEW cx_apj_rt_content( previous = conversion_error ).
+    ENDTRY.
+
+    remove_stale_records( cutoff_date( today          = cl_abap_context_info=>get_system_date( )
+                                       retention_days = days ) ).
+  ENDMETHOD.
+
+  METHOD cutoff_date.
+    result = today - retention_days.
+  ENDMETHOD.
+
+  METHOD retention_days.
+    DATA(value) = VALUE #( parameters[ selname = retention_parameter ]-low OPTIONAL ).
+    result = COND #( WHEN value IS INITIAL THEN default_retention_days
+                     ELSE CONV i( condense( value ) ) ).
+  ENDMETHOD.
+
+  METHOD remove_stale_records.
+    " Placeholder: delete or archive the custom Z records older than cutoff here
+  ENDMETHOD.
+ENDCLASS.
+```
+
+The logic sits in public methods, so a test needs neither a job nor a template:
+
+```abap
+CLASS ltc_cleanup_job DEFINITION FINAL FOR TESTING
+  RISK LEVEL HARMLESS
+  DURATION SHORT.
+
+  PRIVATE SECTION.
+    DATA cut TYPE REF TO zcl_zsm_cleanup_job.
+
+    METHODS setup.
+    METHODS cutoff_is_today_minus_days FOR TESTING.
+    METHODS default_without_parameter FOR TESTING RAISING cx_static_check.
+    METHODS days_from_parameter FOR TESTING RAISING cx_static_check.
+    METHODS text_is_rejected FOR TESTING.
+ENDCLASS.
+
+
+CLASS ltc_cleanup_job IMPLEMENTATION.
+  METHOD setup.
+    cut = NEW #( ).
+  ENDMETHOD.
+
+  METHOD cutoff_is_today_minus_days.
+    cl_abap_unit_assert=>assert_equals( act = cut->cutoff_date( today          = '20260315'
+                                                                retention_days = 30 )
+                                        exp = CONV d( '20260213' ) ).
+  ENDMETHOD.
+
+  METHOD default_without_parameter.
+    cl_abap_unit_assert=>assert_equals( act = cut->retention_days( VALUE #( ) )
+                                        exp = zcl_zsm_cleanup_job=>default_retention_days ).
+  ENDMETHOD.
+
+  METHOD days_from_parameter.
+    DATA(parameters) = VALUE if_apj_rt_exec_object=>tt_templ_val(
+        ( selname = zcl_zsm_cleanup_job=>retention_parameter
+          kind    = 'P'
+          sign    = 'I'
+          option  = 'EQ'
+          low     = '90' ) ).
+
+    cl_abap_unit_assert=>assert_equals( act = cut->retention_days( parameters )
+                                        exp = 90 ).
+  ENDMETHOD.
+
+  METHOD text_is_rejected.
+    DATA(parameters) = VALUE if_apj_rt_exec_object=>tt_templ_val(
+        ( selname = zcl_zsm_cleanup_job=>retention_parameter
+          kind    = 'P'
+          sign    = 'I'
+          option  = 'EQ'
+          low     = 'many' ) ).
+
+    TRY.
+        cut->retention_days( parameters ).
+        cl_abap_unit_assert=>fail( msg = 'A text value must not pass' ).
+      CATCH cx_sy_conversion_no_number.
+        " expected
+    ENDTRY.
+  ENDMETHOD.
+ENDCLASS.
+```
+
+> 📝 **Activation record.** J1 (`zcl_zsm_cleanup_job` with its test include) was activated in both ABAP language versions: Standard ABAP and ABAP for Cloud Development. Its test run passed in both versions. The active versions were read back and matched the source. No catalog entry and no template was created: the tool used for this guide does not support creating catalog entries, and a template needs one. No job was scheduled or run.
+
+**Scheduling from code.** `CL_APJ_RT_API` schedules, reads and cancels application jobs. Its method `SCHEDULE_JOB` takes the template name, a job text, the start information and, optionally, periodicity, end condition and parameter values that override the template; it returns the job name and job count. `GET_JOB_STATUS` and `CANCEL_JOB` take those two values. Errors arrive as `CX_APJ_RT`.
+
+> 📝 **Contextual snippet** — assumes a job template `ZSM_CLEANUP_TEMPLATE` for a catalog entry of `zcl_zsm_cleanup_job`, the text symbol `001` with the job text ([Rule 4.2](../docs/ABAP-Development-Rules.md#42-keep-user-facing-text-out-of-literals)), and an exception class `zcx_zsm_job_not_scheduled`. The parameter names follow the class definition and its documentation, read in the SAP BTP ABAP environment. Not run.
+
+```abap
+DATA job_name  TYPE cl_apj_rt_api=>ty_jobname.
+DATA job_count TYPE cl_apj_rt_api=>ty_jobcount.
+
+TRY.
+    cl_apj_rt_api=>schedule_job(
+      EXPORTING iv_job_template_name = 'ZSM_CLEANUP_TEMPLATE'
+                iv_job_text          = TEXT-001
+                is_start_info        = VALUE #( start_immediately = abap_true )
+      IMPORTING ev_jobname           = job_name
+                ev_jobcount          = job_count ).
+  CATCH cx_apj_rt INTO DATA(scheduling_error).
+    " The caller decides how to report it, for example in the application log
+    RAISE EXCEPTION NEW zcx_zsm_job_not_scheduled( previous = scheduling_error ).
+ENDTRY.
+```
+
+> ⚠️ **The job does not run in the session that schedules it.** According to the interface's own documentation, `EXECUTE` is called in batch with the parameters given at scheduling. It cannot rely on anything the scheduling code holds in memory; everything it needs comes from its parameters or from the database.
+
+How the classic and the cloud way compare:
+
+| Topic | Classic background job | Application job |
+|---|---|---|
+| Unit of work | A report and its selection screen | A class with the two interfaces |
+| Parameters | Selection screen and variant | `GET_PARAMETERS`, catalog entry and template |
+| Scheduling | `SM36`, or `JOB_OPEN`, `SUBMIT … VIA JOB`, `JOB_CLOSE` | The Fiori app, or `CL_APJ_RT_API=>SCHEDULE_JOB` |
+| Monitoring | `SM37` | The Fiori app **[verify: whether `SM37` shows application jobs on-premise]** |
+| Language version | Standard ABAP only | Both |
+
 ## 📁 Files on the User's PC (Presentation Server)
 
 The methods of `cl_gui_frontend_services` show the file dialogs and transfer files between the user's PC and the program. They need SAP GUI, so they work only in dialog processing.
@@ -355,6 +564,7 @@ ENDIF.
 - When building dynamic tables, always check `sy-subrc` after `cl_alv_table_create=>create_dynamic_table` before using the resulting field symbol.
 - **Always authorization-check generic table access** with `VIEW_AUTHORITY_CHECK` before a dynamic `SELECT`, in addition to validating the name — [Rule 8.4](../docs/ABAP-Development-Rules.md#84-build-dynamic-sql-and-other-dynamic-tokens-only-from-validated-input).
 - Start background work with `JOB_OPEN`, `SUBMIT ... VIA JOB ... AND RETURN` and `JOB_CLOSE`, and check `sy-subrc` after each step.
+- In ABAP for Cloud Development, write background work as an application job class, and keep its logic in methods that a unit test can call without a job.
 - Take application server paths from logical file names, never from user input or a literal — [Rule 8.7](../docs/ABAP-Development-Rules.md#87-resolve-and-validate-file-paths-through-logical-file-names).
 - Use `cl_gui_frontend_services` for files on the user's PC, and only in dialog processing.
 - Read server files line by line until `READ DATASET` returns `sy-subrc` 4, and always close the file.
@@ -371,6 +581,7 @@ ENDIF.
 - Hard-coding a server path, or carrying on after `OPEN DATASET` returned a non-zero `sy-subrc`.
 - Reading Excel files with function modules that need SAP GUI in a report that also runs as a background job.
 - Using the ArchiveLink transfer modules for an interface's own files, whose paths belong to a logical file name of their own.
+- Letting the parameter definition and the default values of a job class drift apart; nothing checks them against each other.
 
 ## 🎤 Interview & Review Checkpoints
 
@@ -379,6 +590,7 @@ ENDIF.
 - Explain why a dynamic `SELECT` needs an explicit authorization check, and which check you would use.
 - Explain how a program starts another report as a background job, and why `VIA JOB` needs `AND RETURN`.
 - Explain the difference between presentation server and application server files, and which of them a background job can use.
+- Name the parts of an application job and the two interfaces a job class implements.
 
 ## 🖥️ Related Transaction Codes
 
@@ -399,7 +611,8 @@ ENDIF.
 - [12-Selection-Screens](../12-Selection-Screens/README.md) — parameters and value help
 - [13-ALV](../13-ALV/README.md) — the recommended list output
 - [14-Function-Modules](../14-Function-Modules/README.md) — batch input for uploaded data
-- [21-Classic-vs-Modern-ABAP](../21-Classic-vs-Modern-ABAP/README.md) — lifecycle of list processing, `END-OF-SELECTION` and the older frontend function modules
+- [21-Classic-vs-Modern-ABAP](../21-Classic-vs-Modern-ABAP/README.md) — lifecycle of list processing, `END-OF-SELECTION`, the older frontend function modules and application jobs
+- [22-ABAP-Unit](../22-ABAP-Unit/README.md) — testing a job class without a job
 - [24-Mail](../24-Mail/README.md) — sending the result of a background job by mail
 - [26-Maintenance-Views](../26-Maintenance-Views/README.md) — authorization groups and the table maintenance that `VIEW_AUTHORITY_CHECK` belongs to
 - [28-Adobe-Forms](../28-Adobe-Forms/README.md) — creating the PDF that a report stores as a file

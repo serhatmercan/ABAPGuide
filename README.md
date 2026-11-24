@@ -86,7 +86,7 @@ The Context column lists every lifecycle label a chapter uses, in the short form
 | [08-Open-SQL](08-Open-SQL/README.md) | ABAP SQL | `SELECT`, joins, SQL functions (`CAST`, `COALESCE`, string and date functions), aggregation, CRUD, **SAP LUW & transaction ownership** | Current + Version-dependent |
 | [09-Modularization](09-Modularization/README.md) | Modularization | Function modules, conversion exits, RFC, macros, `SUBMIT` | Current + Classic + Legacy |
 | [10-Objects](10-Objects/README.md) | Objects / OOP | Classes, visibility, inheritance, static vs. instance, interfaces, constructors, events | Current + Legacy |
-| [11-Classical-Reports](11-Classical-Reports/README.md) | Classical Reports | List events, `WRITE`, dynamic tables + authorization, background jobs, files | Classic + Legacy + Cloud + Version-dependent |
+| [11-Classical-Reports](11-Classical-Reports/README.md) | Classical Reports | List events, `WRITE`, dynamic tables + authorization, background jobs and application jobs, files | Classic + Legacy + Cloud + Version-dependent |
 | [12-Selection-Screens](12-Selection-Screens/README.md) | Selection Screens & Dynpro | Selection screens, PBO/PAI, screen modification, value help, table controls, popups | Classic |
 | [13-ALV](13-ALV/README.md) | ALV | `CL_SALV_TABLE`, `REUSE_ALV_*`, `CL_GUI_ALV_GRID`, field catalogs, events | Current + Classic + Legacy |
 | [14-Function-Modules](14-Function-Modules/README.md) | Batch Input (BDC) & Calling Transactions | `CALL TRANSACTION … USING`, BDC tables, modes, sessions, messages, SAP LUW, authorization | Classic |
