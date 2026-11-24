@@ -153,7 +153,7 @@ The statements themselves are explained in [18-Debugging](../18-Debugging/README
 - Write only to your own tables; change SAP standard data through BAPIs or released APIs — [Rule 7.9](../docs/ABAP-Development-Rules.md#79-write-only-to-your-own-tables-change-sap-standard-data-through-bapis-or-released-apis).
 - Let the top-level caller own the transaction; reusable units never `COMMIT WORK` — [Rule 7.10](../docs/ABAP-Development-Rules.md#710-let-the-top-level-caller-own-the-transaction-reusable-units-never-commit-work).
 - Close BAPI calls with `BAPI_TRANSACTION_COMMIT` or `BAPI_TRANSACTION_ROLLBACK` — [Rule 7.11](../docs/ABAP-Development-Rules.md#711-close-bapi-calls-with-bapi_transaction_commit-or-bapi_transaction_rollback).
-- Protect business transactions with enqueue locks, with the lock mode set and checked — [Rule 7.12](../docs/ABAP-Development-Rules.md#712-protect-business-transactions-with-enqueue-locks).
+- Protect business transactions with enqueue locks; after activating a lock object, check that the generated `ENQUEUE_` module has a `MODE_<table>` parameter — [Rule 7.12](../docs/ABAP-Development-Rules.md#712-protect-business-transactions-with-enqueue-locks).
 - Restrict the optional side of an outer join in `ON`, not in `WHERE` — [Rule 7.13](../docs/ABAP-Development-Rules.md#713-restrict-the-optional-side-of-an-outer-join-in-the-on-condition-not-in-where).
 - Use `COMMIT WORK AND WAIT` only when the next step depends on the update — [Rule 7.14](../docs/ABAP-Development-Rules.md#714-use-commit-work-and-wait-only-when-the-next-step-depends-on-the-update).
 - Qualify mass `UPDATE` and `DELETE` with `WHERE`, and check `sy-dbcnt` — [Rule 7.15](../docs/ABAP-Development-Rules.md#715-qualify-mass-update-and-delete-with-where-and-check-sy-dbcnt).
