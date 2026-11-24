@@ -778,3 +778,4 @@ ENDCLASS.
 - [25-HTTP-REST](../25-HTTP-REST/README.md) — destination names from configuration
 - [27-Lock-Objects](../27-Lock-Objects/README.md) — the next chapter: the SAP lock concept, and how the dialog locks
 - [33-ABAP-Dictionary](../33-ABAP-Dictionary/README.md) — tables, text tables, foreign keys and changing an active table
+- [34-Authorization-Checks](../34-Authorization-Checks/README.md) — `AUTHORITY-CHECK`, tracing and testing beyond table maintenance

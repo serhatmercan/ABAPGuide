@@ -1021,3 +1021,4 @@ excluded_functions = VALUE #( ( cl_gui_alv_grid=>mc_fc_refresh )
 - [12-Selection-Screens](../12-Selection-Screens/README.md) — dynpros, value help and table controls
 - [14-Function-Modules](../14-Function-Modules/README.md) — batch input, when a transaction has no API
 - [21-Classic-vs-Modern-ABAP](../21-Classic-vs-Modern-ABAP/README.md) — where the three ALV generations sit
+- [34-Authorization-Checks](../34-Authorization-Checks/README.md) — the checks that the markers in this chapter stand for

@@ -51,7 +51,7 @@ What a new on-premise development should look like today.
 | **Internal tables** | Typed table categories, `SORTED`/`HASHED` where appropriate, secondary keys for frequent reads that do not use the primary key. | 9.3, 9.4 | [07](../07-Internal-Tables/README.md), [19](../19-Performance/README.md) |
 | **Writing data** | The supported API for the object — a BAPI or a released interface. Never direct DML against SAP standard application tables. | 7.9, 7.15 | [15](../15-BAPIs/README.md) |
 | **Transactions** | Explicit ownership: the top-level caller commits; reusable units do not. | 7.10–7.12, 7.14 | [08](../08-Open-SQL/README.md#-sap-luw--transaction-ownership) |
-| **Authorization** | Explicit checks at entry points, including RFC; `WITH AUTHORITY-CHECK` on `CALL TRANSACTION`; authorization checks on generic table access. | 8.1, 8.9, 8.10 | [11](../11-Classical-Reports/README.md), [14](../14-Function-Modules/README.md) |
+| **Authorization** | Explicit checks at entry points, including RFC; `WITH AUTHORITY-CHECK` on `CALL TRANSACTION`; authorization checks on generic table access. The check behind an interface, tested with the released ABAP Unit authorization test environment `CL_AUNIT_AUTHORITY_CHECK`. | 8.1, 8.9, 8.10, 8.17, 8.18 | [34](../34-Authorization-Checks/README.md), [11](../11-Classical-Reports/README.md), [14](../14-Function-Modules/README.md) |
 | **Error handling** | Class-based exceptions, caught specifically, ordered most-specific first. Logs in the application log through `CL_BALI_LOG`, which SAP's release information lists as released and names as the successor of the classic `BAL_LOG_CREATE` *(VERSION-DEPENDENT in Standard ABAP)*. | 6.1–6.12 | [18](../18-Debugging/README.md#application-log-bal) |
 | **Extensibility** | BAdIs — preferably released ones — over enhancement points, over exits, over modifications. | 1.3 | [16](../16-BADIs/README.md), [17](../17-Enhancements/README.md) |
 | **Reporting UI** | `cl_salv_table` for display-oriented reports; `cl_gui_alv_grid` where you genuinely need editable cells and rich events. | — | [13](../13-ALV/README.md) |
@@ -303,4 +303,5 @@ Every chapter in this guide carries a lifecycle note that points back here:
 - [31-Business-Workflow](../31-Business-Workflow/README.md) — classic workflow, flexible workflow and what replaces them in ABAP Cloud
 - [32-IDoc-ALE](../32-IDoc-ALE/README.md) — IDoc and ALE, and what replaces them in ABAP Cloud
 - [33-ABAP-Dictionary](../33-ABAP-Dictionary/README.md) — Dictionary views, appends and extension in ABAP Cloud
+- [34-Authorization-Checks](../34-Authorization-Checks/README.md) — authorization checks in both language versions
 - [docs/ABAP-Development-Rules.md](../docs/ABAP-Development-Rules.md) — the rules every classification cites

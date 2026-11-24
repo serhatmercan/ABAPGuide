@@ -616,3 +616,4 @@ ENDIF.
 - [24-Mail](../24-Mail/README.md) — sending the result of a background job by mail
 - [26-Maintenance-Views](../26-Maintenance-Views/README.md) — authorization groups and the table maintenance that `VIEW_AUTHORITY_CHECK` belongs to
 - [28-Adobe-Forms](../28-Adobe-Forms/README.md) — creating the PDF that a report stores as a file
+- [34-Authorization-Checks](../34-Authorization-Checks/README.md) — `AUTHORITY-CHECK`, `S_TABU_NAM` and testing the check

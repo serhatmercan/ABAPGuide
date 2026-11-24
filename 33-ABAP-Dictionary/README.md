@@ -684,6 +684,7 @@ Not covered in this chapter:
 
 ## 🔗 Related Chapters
 
+- [34-Authorization-Checks](../34-Authorization-Checks/README.md) — the next chapter: authorization checks, with `S_TABU_NAM` for table access
 - [02-Data-Types](../02-Data-Types/README.md) — language types, local structures and RTTS
 - [07-Internal-Tables](../07-Internal-Tables/README.md) — local table types and keys
 - [08-Open-SQL](../08-Open-SQL/README.md) — reading and writing the tables defined here

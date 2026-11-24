@@ -1790,7 +1790,7 @@ INSERT zsm_t_ordhdr FROM @order.
 
 `AUTHORITY-CHECK` only sets `sy-subrc`. If the code does not evaluate it, the check has no effect.
 
-The check belongs before the read or the change, in the layer that owns the data access, so that every caller passes through it.
+The check belongs before the read or the change, in the layer that owns the data access, so that every caller passes through it. See [34-Authorization-Checks](../34-Authorization-Checks/README.md#-authority-check-and-sy-subrc).
 
 ```abap
 " ✅ generic table access: check the standard table authorization
@@ -1813,7 +1813,7 @@ SELECT * FROM (table_name) INTO TABLE @<rows>.
 
 Authorization objects are specific to each application and each project. An invented object looks authoritative and gets copied.
 
-Use a standard object only when the example is about exactly that object. Otherwise, put a marker comment in the place where the check belongs. CDSGuide uses the same marker. This is a team rule.
+Use a standard object only when the example is about exactly that object. Otherwise, put a marker comment in the place where the check belongs. CDSGuide uses the same marker. This is a team rule. See [34-Authorization-Checks](../34-Authorization-Checks/README.md#-where-the-check-belongs).
 
 ```abap
 " ✅
@@ -2031,7 +2031,7 @@ According to the ABAP Keyword Documentation, an automatic authorization check ru
 - The RFC function module, or the class it delegates to (5.1), checks the business authorizations itself, before it reads or changes data (8.1).
 - A failed check is reported through the function module's classic exceptions or its return table. RFC supports only classic exceptions (6.1).
 
-This is a team rule.
+This is a team rule. See [34-Authorization-Checks](../34-Authorization-Checks/README.md#-where-the-check-belongs).
 
 ```abap
 " ✅ the class behind the RFC function module checks before it reads
@@ -2097,7 +2097,7 @@ An HTTP handler is an entry point, like an RFC function module (8.10). The logon
 - Store no user and password in the logon data of a service. According to SAP's documentation, logon data stored in an `SICF` service node applies to that node and the nodes below it, and requests then run as that user without any logon. Every caller then acts with that user's authorizations.
 - Validate every input of the request before it is used (8.4).
 
-See [25-HTTP-REST](../25-HTTP-REST/README.md#-security-in-handlers).
+See [25-HTTP-REST](../25-HTTP-REST/README.md#-security-in-handlers) and [34-Authorization-Checks](../34-Authorization-Checks/README.md#-where-the-check-belongs).
 
 This is a team rule.
 
@@ -2173,7 +2173,7 @@ A business class that calls `AUTHORITY-CHECK` itself can only be tested with the
 - Its tests use a double of the interface for "allowed" and "refused" (10.6); no role is needed.
 - The class that implements the interface holds the `AUTHORITY-CHECK` and evaluates `sy-subrc`. Its own tests use the released ABAP Unit authorization test environment `CL_AUNIT_AUTHORITY_CHECK`. According to its documentation, the environment can only restrict the tester's real authorizations for the test, never add to them, so a test that needs an authorization is skipped where the tester lacks it.
 
-This is a team rule.
+This is a team rule. See [34-Authorization-Checks](../34-Authorization-Checks/README.md#-the-check-behind-an-interface).
 
 ```abap
 " ✅ the business class asks the interface; a double replaces it in tests
@@ -2195,7 +2195,7 @@ According to the ABAP Keyword Documentation, a field given with `DUMMY` is not c
 - Use `DUMMY` only where the decision really does not depend on the field, and state the reason in a comment at the statement.
 - Never use `DUMMY` because the value was not at hand; determine the value, or check later where it is known.
 
-The basis is the ABAP Keyword Documentation; the limits on using `DUMMY` are a team rule.
+The basis is the ABAP Keyword Documentation; the limits on using `DUMMY` are a team rule. See [34-Authorization-Checks](../34-Authorization-Checks/README.md#-authority-check-and-sy-subrc).
 
 ```abap
 " ✅ a where-used tool checks only the display activity; the object name is

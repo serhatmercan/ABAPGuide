@@ -171,3 +171,4 @@ According to the ABAP Keyword Documentation, `CALL TRANSACTION` opens a new SAP 
 - [09-Modularization](../09-Modularization/README.md) — calling function modules
 - [15-BAPIs](../15-BAPIs/README.md) — the preferred interface for standard data
 - [21-Classic-vs-Modern-ABAP](../21-Classic-vs-Modern-ABAP/README.md) — batch input outside ABAP Cloud
+- [34-Authorization-Checks](../34-Authorization-Checks/README.md) — `AUTHORITY-CHECK` and where checks belong besides `CALL TRANSACTION`

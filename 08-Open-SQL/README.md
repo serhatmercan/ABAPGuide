@@ -776,3 +776,4 @@ Where the key must be a readable running number, draw it from a number range obj
 - [26-Maintenance-Views](../26-Maintenance-Views/README.md) — Customizing tables: delivery class, client and maintenance
 - [27-Lock-Objects](../27-Lock-Objects/README.md) — lock objects, lock modes and optimistic locking
 - [33-ABAP-Dictionary](../33-ABAP-Dictionary/README.md) — defining the tables, keys and foreign keys that ABAP SQL reads and writes
+- [34-Authorization-Checks](../34-Authorization-Checks/README.md) — the authorization check that ABAP SQL does not perform

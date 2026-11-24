@@ -182,6 +182,8 @@ ENDMETHOD.
 
 > 💡 Start with hand-written doubles. They need no framework knowledge, and when a test fails the double is right there to read. Switch to the framework when many tests need differently configured answers from the same interface.
 
+> 📝 Code that checks authorizations is tested the same way: the business class receives an authority interface and its test passes a double. The class that holds the `AUTHORITY-CHECK` is tested with SAP's ABAP Unit authorization test environment; see [34-Authorization-Checks](../34-Authorization-Checks/README.md).
+
 ## 🗄️ Isolating Database Access
 
 A test that reads real table contents passes or fails with whatever the system contains, and a test that writes can damage it ([Rule 10.8](../docs/ABAP-Development-Rules.md#108-isolate-database-access-with-the-abap-sql-and-cds-test-double-frameworks-never-use-real-data)). The preferred design keeps ABAP SQL in a repository class behind an interface (see [08-Open-SQL](../08-Open-SQL/README.md) for the statements), so that the business logic is tested with a double as above.
@@ -559,3 +561,4 @@ ENDCLASS.
 - [30-Tools-AI-Assistance](../30-Tools-AI-Assistance/README.md) — the tools that run the tests
 - [31-Business-Workflow](../31-Business-Workflow/README.md) — testing workflow-related code without starting a workflow
 - [32-IDoc-ALE](../32-IDoc-ALE/README.md) — testing IDoc mapping and inbound decisions without an IDoc
+- [34-Authorization-Checks](../34-Authorization-Checks/README.md) — testing code that checks authorizations

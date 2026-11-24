@@ -720,3 +720,4 @@ Not covered in this chapter:
 - [30-Tools-AI-Assistance](../30-Tools-AI-Assistance/README.md) — the previous chapter; SAP GUI tools that remain
 - [32-IDoc-ALE](../32-IDoc-ALE/README.md) — the next chapter: IDoc and ALE, and the error workflow of inbound IDocs
 - [21-Classic-vs-Modern-ABAP](../21-Classic-vs-Modern-ABAP/README.md) — lifecycle of classic workflow and what replaces it
+- [34-Authorization-Checks](../34-Authorization-Checks/README.md) — authorizations, which are a different question from workflow agents
