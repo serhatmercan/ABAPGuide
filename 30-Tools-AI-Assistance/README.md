@@ -85,7 +85,7 @@ In a productive landscape, abapGit does not replace the Change and Transport Sys
 
 An AI coding assistant writes plausible ABAP quickly, including names and APIs that do not exist. What it produces depends on what it is told. It needs:
 
-- **The rule set, cited by number.** A context file in the repository points to the rules instead of paraphrasing them ([Rule 15.1](../docs/ABAP-Development-Rules.md#151-cite-these-rules-by-number-in-claudemd-and-similar-instruction-files)). Assistants read such files under different names, for example `CLAUDE.md` or `AGENTS.md`; the name depends on the assistant.
+- **The rule set, cited by number.** A context file in the repository points to the rules instead of paraphrasing them ([Rule 15.1](../docs/ABAP-Development-Rules.md#151-cite-these-rules-by-number-in-claudemd-and-similar-instruction-files)). Assistants read such files under different names, for example `CLAUDE.md` or `AGENTS.md`; the name depends on the assistant. A ready file with one line per rule is [ai/AGENTS.md](../ai/AGENTS.md); [ai/README.md](../ai/README.md) explains where Claude Code, GitHub Copilot and Cursor read it, and [experiment/README.md](../experiment/README.md) shows what the full and the compact rule file cost and changed in a small experiment.
 - **The target language version** in every prompt that asks for code ([Rule 15.3](../docs/ABAP-Development-Rules.md#153-state-the-target-language-version-in-every-prompt-that-asks-for-code)).
 - **A request to list what it did not verify** ([Rule 15.4](../docs/ABAP-Development-Rules.md#154-ask-the-assistant-to-list-what-it-did-not-verify)).
 - **No customer data** in any prompt ([Rule 15.5](../docs/ABAP-Development-Rules.md#155-never-paste-customer-data-into-a-prompt)).
