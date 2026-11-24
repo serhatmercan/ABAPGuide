@@ -56,6 +56,8 @@ A lock object names the tables and the key fields that one lock covers:
 
 The name of a lock object must begin with `E`; the naming table of the rules uses `EZSM_` ([Rule 2.6](../docs/ABAP-Development-Rules.md#26-name-development-objects-by-the-object-naming-table)). ADT allows at most 16 characters in both systems used for this chapter. Activation generates the function modules `ENQUEUE_<name>` and `DEQUEUE_<name>`.
 
+The generated modules belong to the lock object. In the SAP BTP ABAP environment, deleting a lock object in ADT for Eclipse also removed its generated `ENQUEUE_` and `DEQUEUE_` modules; delete the lock object, not the modules. Whether Standard ABAP does the same was not observed **[verify: deleting a lock object in Standard ABAP]**.
+
 **Example E1 — the table and its lock object.** A small order table; the lock object `EZSM_ORDER` locks one order by its key.
 
 ```abap
