@@ -396,7 +396,152 @@ ENDCLASS.
 
 > 📝 **Activation record.** E7 was activated in both ABAP language versions: Standard ABAP and ABAP for Cloud Development, and the active versions were read back. In the SAP BTP ABAP environment, all five test methods passed; they confirm the key order, the included fields, the field `note` and the appended field `zz_priority` from the active runtime definition.
 
-> ⚠️ **VERSION-DEPENDENT: `XCO_CP_ABAP_DICTIONARY` in Standard ABAP.** In the on-premise system used for this chapter, the same tests failed: the API reported that the table `ZSM_T_ORDHDR` does not exist, although it was active. Only `misses_an_unknown_table` passed. The class behind the API hides objects that its cloud filter does not list; the example table there was a Standard ABAP object in `$TMP`. Which objects the API shows in Standard ABAP is **[verify: the visibility rules of the XCO cloud APIs in Standard ABAP]**. In Standard ABAP, RTTS (`cl_abap_structdescr`) reads the components of a table instead ([02-Data-Types](../02-Data-Types/README.md#-reading-domain-fixed-values-at-runtime-rtts)).
+> ⚠️ **VERSION-DEPENDENT: `XCO_CP_ABAP_DICTIONARY` in Standard ABAP.** In the on-premise system used for this chapter, the same tests failed: the API reported that the table `ZSM_T_ORDHDR` does not exist, although it was active. Only `misses_an_unknown_table` passed. The class behind the API hides objects that its cloud filter does not list; the example table there was a Standard ABAP object in `$TMP`. Which objects the API shows in Standard ABAP is **[verify: the visibility rules of the XCO cloud APIs in Standard ABAP]**. In Standard ABAP, RTTS reads the same information; see E7b.
+
+**Example E7b — the same in Standard ABAP with RTTS.** Target: Standard ABAP. `cl_abap_typedescr=>describe_by_name` returns the type description of a Dictionary table, and `get_ddic_field_list` of `cl_abap_structdescr` returns its fields with the key flag and with includes resolved. RTTS is introduced in [02-Data-Types](../02-Data-Types/README.md#-reading-domain-fixed-values-at-runtime-rtts).
+
+```abap
+"! Reads the fields of a Dictionary table with RTTS (Standard ABAP).
+CLASS zcl_zsm_table_reader_rtts DEFINITION
+  PUBLIC
+  FINAL
+  CREATE PUBLIC.
+
+  PUBLIC SECTION.
+    "! Whether the name denotes an active Dictionary structure or table.
+    "! @parameter table_name | Name of the database table
+    "! @parameter result     | abap_true if the type exists in the Dictionary
+    METHODS exists
+      IMPORTING table_name    TYPE string
+      RETURNING VALUE(result) TYPE abap_bool.
+
+    "! Names of the key fields, in their order in the table.
+    "! @parameter table_name | Name of the database table
+    "! @parameter result     | Field names in upper case; empty if unknown
+    METHODS key_fields
+      IMPORTING table_name    TYPE string
+      RETURNING VALUE(result) TYPE string_table.
+
+    "! Names of all fields, with the fields of includes resolved.
+    "! @parameter table_name | Name of the database table
+    "! @parameter result     | Field names in upper case; empty if unknown
+    METHODS all_fields
+      IMPORTING table_name    TYPE string
+      RETURNING VALUE(result) TYPE string_table.
+
+  PRIVATE SECTION.
+    METHODS structure_of
+      IMPORTING table_name    TYPE string
+      RETURNING VALUE(result) TYPE REF TO cl_abap_structdescr.
+
+    METHODS ddic_fields
+      IMPORTING table_name    TYPE string
+      RETURNING VALUE(result) TYPE ddfields.
+ENDCLASS.
+
+
+CLASS zcl_zsm_table_reader_rtts IMPLEMENTATION.
+  METHOD exists.
+    result = xsdbool( structure_of( table_name ) IS BOUND ).
+  ENDMETHOD.
+
+  METHOD key_fields.
+    result = VALUE #( FOR field IN ddic_fields( table_name ) WHERE ( keyflag = abap_true )
+                      ( CONV string( field-fieldname ) ) ).
+  ENDMETHOD.
+
+  METHOD all_fields.
+    result = VALUE #( FOR field IN ddic_fields( table_name )
+                      ( CONV string( field-fieldname ) ) ).
+  ENDMETHOD.
+
+  METHOD structure_of.
+    DATA type TYPE REF TO cl_abap_typedescr.
+
+    " The classic exception tells an unknown name apart from a known one
+    cl_abap_typedescr=>describe_by_name( EXPORTING  p_name         = table_name
+                                         RECEIVING  p_descr_ref    = type
+                                         EXCEPTIONS type_not_found = 1
+                                                    OTHERS         = 2 ).
+    IF sy-subrc <> 0.
+      RETURN.
+    ENDIF.
+    IF type->kind <> cl_abap_typedescr=>kind_struct OR type->is_ddic_type( ) = abap_false.
+      RETURN.
+    ENDIF.
+
+    result = CAST #( type ).
+  ENDMETHOD.
+
+  METHOD ddic_fields.
+    DATA(structure) = structure_of( table_name ).
+    IF structure IS NOT BOUND.
+      RETURN.
+    ENDIF.
+
+    structure->get_ddic_field_list( RECEIVING  p_field_list = result
+                                    EXCEPTIONS not_found    = 1
+                                               no_ddic_type = 2
+                                               OTHERS       = 3 ).
+    IF sy-subrc <> 0.
+      CLEAR result.
+    ENDIF.
+  ENDMETHOD.
+ENDCLASS.
+```
+
+```abap
+"! Reads only the definition of the example table; no row is read or written.
+CLASS ltc_table_reader_rtts DEFINITION FINAL FOR TESTING
+  RISK LEVEL HARMLESS
+  DURATION SHORT.
+
+  PRIVATE SECTION.
+    CONSTANTS order_table TYPE string VALUE `ZSM_T_ORDHDR`.
+
+    DATA cut TYPE REF TO zcl_zsm_table_reader_rtts.
+
+    METHODS setup.
+    METHODS finds_the_example_table FOR TESTING.
+    METHODS misses_an_unknown_table FOR TESTING.
+    METHODS lists_the_key_in_order FOR TESTING.
+    METHODS resolves_the_include FOR TESTING.
+ENDCLASS.
+
+
+CLASS ltc_table_reader_rtts IMPLEMENTATION.
+  METHOD setup.
+    cut = NEW #( ).
+  ENDMETHOD.
+
+  METHOD finds_the_example_table.
+    cl_abap_unit_assert=>assert_true( cut->exists( order_table ) ).
+  ENDMETHOD.
+
+  METHOD misses_an_unknown_table.
+    cl_abap_unit_assert=>assert_false( cut->exists( `ZSM_T_NOTHERE` ) ).
+    cl_abap_unit_assert=>assert_initial( cut->key_fields( `ZSM_T_NOTHERE` ) ).
+  ENDMETHOD.
+
+  METHOD lists_the_key_in_order.
+    cl_abap_unit_assert=>assert_equals( act = cut->key_fields( order_table )
+                                        exp = VALUE string_table( ( `CLIENT` ) ( `ORDER_ID` ) ) ).
+  ENDMETHOD.
+
+  METHOD resolves_the_include.
+    DATA(fields) = cut->all_fields( order_table ).
+
+    cl_abap_unit_assert=>assert_table_contains( line  = `NOTE`
+                                                table = fields ).
+    cl_abap_unit_assert=>assert_table_contains( line  = `CREATED_BY`
+                                                table = fields ).
+  ENDMETHOD.
+ENDCLASS.
+```
+
+> 📝 **Activation record.** E7b was activated in Standard ABAP on-premise, with `zsm_t_ordhdr` and the objects it uses (E2, `zsm_s_audit`, `zsm_t_ordstat`) recreated for the test. All four test methods passed, and the active version was read back and matched the source.
+
+> ⚠️ **`get_ddic_field_list` is Standard ABAP only.** The RTTS classes are released, but the method's own documentation says that a call from ABAP for Cloud Development ends in a runtime error. In that language version, use E7.
 
 ## ♻️ Changing an Active Table
 
