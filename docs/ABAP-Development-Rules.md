@@ -199,6 +199,11 @@ A fixed infix per object type tells the reader what kind of object a name refers
 | Structure | `zsm_s_` | `zsm_s_order` |
 | Table type | `zsm_tt_` | `zsm_tt_order` |
 | Data element | `zsm_e_` | `zsm_e_order_id` |
+| Domain | `zsm_d_` | `zsm_d_order_status` |
+| Search help | `zsm_sh_` | `zsm_sh_order` |
+| Append structure | `zsm_a_` | `zsm_a_ordhdr` |
+| Extension or customizing include | `zsm_x_` | `zsm_x_ordhdr` |
+| Text table | the table name with a `t` suffix | `zsm_t_ordstatt` |
 | CDS view | `ZSM_I_` | `ZSM_I_Order` |
 | CDS projection view | `ZSM_C_` | `ZSM_C_Order` |
 | CDS table function | `ZSM_F_` | `ZSM_F_OrderAging` |
@@ -1592,7 +1597,7 @@ The delivery class decides how the entries of a table are treated by the transpo
 
 A Customizing table is where values that differ per system or organisational unit live; one case of [8.5](#85-never-hard-code-credentials-hosts-or-destinations).
 
-This is a team rule. See [26-Maintenance-Views](../26-Maintenance-Views/README.md#-customizing-tables-delivery-class-and-client).
+This is a team rule. See [26-Maintenance-Views](../26-Maintenance-Views/README.md#-customizing-tables-delivery-class-and-client) and [33-ABAP-Dictionary](../33-ABAP-Dictionary/README.md#-database-tables-in-adt).
 
 ```abap
 " ✅ settings per order type, maintained in development and transported
@@ -1717,6 +1722,63 @@ The IDoc status is what people monitor. A success status for a document that was
 - Decide the outcome in a tested class; the inbound function module only translates it into status records.
 
 This is a team rule. See [32-IDoc-ALE](../32-IDoc-ALE/README.md#-inbound-processing).
+
+### 7.22 Change a table that holds data only by adding fields; treat every other change as a data migration with a plan
+
+According to the ABAP Keyword Documentation, activating a changed table adjusts the database table, and some changes lose data: renaming a field drops its column, deleting key fields can lose rows, and adding a client field copies the data into every client. Adjusting a large table takes long.
+
+- Adding a non-key field is the normal change.
+- Renaming, shortening or deleting a field, and any change to the key or the client, is a migration: copy the data, convert it, verify it, and keep a tested way back.
+- Run a where-used list before changing a domain or data element that many tables use.
+- Transport the table change together with every object that depends on it (13.7).
+
+This is a team rule. See [33-ABAP-Dictionary](../33-ABAP-Dictionary/README.md#-changing-an-active-table).
+
+### 7.23 Give every custom table and structure a deliberate enhancement category
+
+The enhancement category says how a structure or table may be extended later, and the program check uses it to warn where an extension could break a program. According to the ABAP Keyword Documentation, the categories are `#NOT_EXTENSIBLE`, `#EXTENSIBLE_CHARACTER`, `#EXTENSIBLE_CHARACTER_NUMERIC` and `#EXTENSIBLE_ANY`; `#NOT_CLASSIFIED` is only for existing objects.
+
+- Keep `#NOT_EXTENSIBLE` unless others are meant to extend the object.
+- Choose the narrowest category that allows the intended extensions.
+- Decide it when the object is created; widening it later changes what the check reports for every program that uses the object.
+
+This is a team rule. See [33-ABAP-Dictionary](../33-ABAP-Dictionary/README.md#-enhancement-categories-appends-and-extension-includes).
+
+```abap
+" ✅ an order table that an append structure is meant to extend
+@AbapCatalog.enhancement.category : #EXTENSIBLE_CHARACTER_NUMERIC
+define table zsm_t_ordhdr { ... }
+
+" ✅ a structure that no one should extend
+@AbapCatalog.enhancement.category : #NOT_EXTENSIBLE
+define structure zsm_s_audit { ... }
+```
+
+### 7.24 Do not rely on foreign keys in ABAP SQL; check the referenced value in code before writing
+
+According to the ABAP Keyword Documentation, foreign keys are evaluated for input checks on screens, for input help, for views and for lock objects. Nothing checks them when ABAP SQL writes a row.
+
+- Check that a referenced value exists before an `INSERT`, `UPDATE` or `MODIFY` that sets it ([7.6](#76-check-existence-with-select-single-abap_true)).
+- Keep the check in the class that writes the table, so that every caller gets it.
+
+This is a team rule. See [33-ABAP-Dictionary](../33-ABAP-Dictionary/README.md#-foreign-keys-check-tables-value-tables-and-text-tables).
+
+> 📝 **Contextual snippet** — inside a method that inserts `order` (type `zsm_t_ordhdr`); `zcx_zsm_unknown_status` is a placeholder exception class.
+
+```abap
+" ✅ the status must exist in the check table before the order is written
+SELECT SINGLE @abap_true
+  FROM zsm_t_ordstat
+  WHERE status = @order-status
+  INTO @DATA(status_exists).
+IF status_exists = abap_false.
+  RAISE EXCEPTION NEW zcx_zsm_unknown_status( ).
+ENDIF.
+INSERT zsm_t_ordhdr FROM @order.
+
+" ❌ relies on the foreign key, which ABAP SQL does not check
+INSERT zsm_t_ordhdr FROM @order.
+```
 
 ---
 
@@ -2704,7 +2766,7 @@ These rules are decisions of the team: they have no basis in Clean ABAP or the A
 | Modern syntax | 3.8, 3.9, 3.18, 3.19 (no new macros at all) |
 | Classes and methods | 5.12, 5.13, 5.14 |
 | Error handling | 6.2 (one abstract root per category), 6.6, 6.7, 6.11, 6.12 (the split between `ASSERT`, `CX_NO_CHECK` and `RAISE SHORTDUMP`) |
-| Database access and SAP LUW | 7.13, 7.14, 7.15, 7.16, 7.17, 7.18, 7.19, 7.20, 7.21 |
+| Database access and SAP LUW | 7.13, 7.14, 7.15, 7.16, 7.17, 7.18, 7.19, 7.20, 7.21, 7.22, 7.23, 7.24 |
 | Security | 8.2, 8.3, 8.5 (extension to every value that differs per system or user), 8.9, 8.10, 8.11, 8.12, 8.13, 8.14, 8.15, 8.16 |
 | Performance | 9.1 |
 | Testing | 10.1, 10.2 (default risk level and duration), 10.10 |
