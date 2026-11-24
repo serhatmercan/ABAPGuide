@@ -58,6 +58,14 @@ Coding rules: docs/ABAP-Development-Rules.md. Cite rules by number (Rule 2.6).
   ABAP for Cloud Development. CDS views, simple and enumerated types
   belong to CDSGuide, database-specific features to HANAGuide; buffering
   rules stay in 19 and table change logs in 26.
+- Authorization checks are Chapter 34 (`34-Authorization-Checks`): the
+  authorization concept, `AUTHORITY-CHECK`, where the check belongs, the
+  check behind an interface, testing with the ABAP Unit authorization
+  test environment, tracing a failed check, and authorization in ABAP
+  for Cloud Development. Examples use the standard object `S_TABU_NAM`
+  (Rule 8.2). CDS access control belongs to CDSGuide, RAP authorization
+  to RAPGuide, business roles and catalogs to UIGuide; role and user
+  administration are Basis work.
 - Debugging is Chapter 23 (`23-Debugging-Troubleshooting`).
 - Keep the folder name `18-Debugging`; its title is "Messages, Exceptions &
   Logging".
