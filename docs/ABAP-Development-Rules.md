@@ -33,6 +33,8 @@ Rule numbers stay stable, so a citation stays valid after the document grows.
 
 - In reviews, CLAUDE.md files and commit bodies, write `ABAP Development Rules 3.12` or short `Rule 3.12`.
 - In Markdown, link to the heading anchor, for example `docs/ABAP-Development-Rules.md#312-check-existence-with-line_exists`.
+- A rule that is changed keeps its number. If its heading changes, the heading anchor changes with it; the number in a citation stays valid.
+- A new rule takes the next free number in its section. Existing rules are not renumbered, and no number is inserted between them.
 - A rule that is withdrawn keeps its number and is marked *Withdrawn*. Its number is never reused.
 
 ### 0.5 Read rule examples as contextual snippets
