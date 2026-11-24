@@ -163,6 +163,11 @@ The statements themselves are explained in [18-Debugging](../18-Debugging/README
 - Without a lock between reading and writing, check that the data is unchanged when you write — [Rule 7.19](../docs/ABAP-Development-Rules.md#719-when-no-lock-is-held-between-reading-and-writing-check-that-the-data-is-unchanged-when-you-write).
 - Raise a workflow event only for committed data — [Rule 7.20](../docs/ABAP-Development-Rules.md#720-raise-a-workflow-event-only-for-committed-data-in-the-update-task-or-after-the-callers-commit).
 - Set an IDoc's success status only for a posted document; report every failure as an error status — [Rule 7.21](../docs/ABAP-Development-Rules.md#721-set-an-idocs-success-status-only-for-a-posted-application-document-report-every-failure-as-an-error-status-with-the-applications-messages).
+- Change a table that holds data only by adding fields; any other change is a data migration with a plan — [Rule 7.22](../docs/ABAP-Development-Rules.md#722-change-a-table-that-holds-data-only-by-adding-fields-treat-every-other-change-as-a-data-migration-with-a-plan).
+- Give every custom table and structure a deliberate enhancement category — [Rule 7.23](../docs/ABAP-Development-Rules.md#723-give-every-custom-table-and-structure-a-deliberate-enhancement-category).
+- Do not rely on foreign keys in ABAP SQL; check the referenced value before writing — [Rule 7.24](../docs/ABAP-Development-Rules.md#724-do-not-rely-on-foreign-keys-in-abap-sql-check-the-referenced-value-in-code-before-writing).
+- Draw document numbers from a number range object, as late as possible in the SAP LUW — [Rule 7.25](../docs/ABAP-Development-Rules.md#725-draw-document-numbers-from-a-number-range-object-as-late-as-possible-in-the-sap-luw).
+- Write change documents through the generated write object; read them through the released API — [Rule 7.26](../docs/ABAP-Development-Rules.md#726-write-change-documents-through-the-generated-write-object-read-them-through-the-released-api).
 
 The statements are taught in [08-Open-SQL](../08-Open-SQL/README.md), locks in [27-Lock-Objects](../27-Lock-Objects/README.md).
 
@@ -184,6 +189,8 @@ The statements are taught in [08-Open-SQL](../08-Open-SQL/README.md), locks in [
 - Assign an authorization group to every table that users maintain; protect sensitive tables with `S_TABU_NAM` — [Rule 8.14](../docs/ABAP-Development-Rules.md#814-assign-an-authorization-group-to-every-table-that-users-maintain-protect-sensitive-tables-additionally-with-s_tabu_nam).
 - Take output devices and form names from configuration — [Rule 8.15](../docs/ABAP-Development-Rules.md#815-take-output-devices-and-form-names-from-configuration-never-hard-code-a-printer).
 - Determine workflow agents through rules and organizational assignments, never user IDs — [Rule 8.16](../docs/ABAP-Development-Rules.md#816-determine-workflow-agents-through-rules-and-organizational-assignments-never-hard-code-user-ids).
+- Put authorization checks behind an interface; test the logic with a double and the check with the authorization test environment — [Rule 8.17](../docs/ABAP-Development-Rules.md#817-put-authorization-checks-behind-an-interface-test-the-business-logic-with-a-double-and-the-check-with-the-abap-unit-authorization-test-environment).
+- Use `DUMMY` only for a field that does not matter for the decision, and say why — [Rule 8.18](../docs/ABAP-Development-Rules.md#818-use-dummy-only-for-a-field-that-does-not-matter-for-the-decision-and-say-why).
 
 ## ⚡ Performance in Short
 
