@@ -54,6 +54,7 @@ The chapter that ties the rest together: why productive landscapes contain sever
 | Print a form or get a PDF | [28](28-Adobe-Forms/README.md) · [24](24-Mail/README.md) |
 | Transport a change and pass the quality gates | [29](29-Transport-Quality-Gates/README.md) · [22](22-ABAP-Unit/README.md) |
 | Set up the tools or an AI assistant | [30](30-Tools-AI-Assistance/README.md) · [20](20-Best-Practices/README.md) |
+| Give an AI assistant the rules, and see what they changed | [ai/README.md](ai/README.md) · [experiment/README.md](experiment/README.md) |
 | Start an approval process or react to a business event | [31](31-Business-Workflow/README.md) · [10](10-Objects/README.md) |
 | Exchange documents with other systems (IDoc, ALE) | [32](32-IDoc-ALE/README.md) · [15](15-BAPIs/README.md) |
 | Define tables, data elements and domains (ABAP Dictionary) | [33](33-ABAP-Dictionary/README.md) · [26](26-Maintenance-Views/README.md) · [02](02-Data-Types/README.md) |
@@ -124,6 +125,7 @@ The Context column lists every lifecycle label a chapter uses, in the short form
    - **Complete examples** — self-contained programs or classes (for instance the ALV reports in [Chapter 13](13-ALV/README.md)). These show a full working structure.
    - **Contextual snippets** — the majority. They demonstrate one statement or pattern and assume surrounding declarations. Adapt the names and types to your own program.
 4. **Examples are illustrative, not production-ready as-is.** They are simplified to make the pattern visible: error handling, authorization checks and locking are shown where they are the point being made, and abbreviated where they are not. Review any snippet against your own standards before using it, and syntax-check it in your target system.
+5. **Working with an AI assistant?** Copy [ai/AGENTS.md](ai/AGENTS.md), the rules in one line each, into your repository; [ai/README.md](ai/README.md) explains where Claude Code, GitHub Copilot and Cursor read it, and [experiment/README.md](experiment/README.md) shows what the rule files changed in a small, documented experiment.
 
 ## ⚙️ Compatibility & Version Notes
 
@@ -150,6 +152,24 @@ Corrections and additions are welcome — particularly anything that fixes a tec
 2. Keep the existing chapter structure and lifecycle labelling.
 3. For anything version-sensitive, cite the ABAP Keyword Documentation rather than asserting a release number.
 4. Open a pull request describing the change.
+
+## 💬 Feedback
+
+Open an issue with one of the templates:
+
+- **Content error** — a statement, code example or link that is wrong or out of date.
+- **Missing topic** — something within the scope above that the guide does not cover.
+- **Rule discussion** — a question about, or a proposed change to, a rule in [docs/ABAP-Development-Rules.md](docs/ABAP-Development-Rules.md).
+- **Experiment result** — a run of the [experiment](experiment/README.md) on your own sandbox.
+
+Never post system IDs, client numbers, user names, host names, customer data or screenshots that show any of them.
+
+## 🛠️ Maintenance
+
+- [docs/ABAP-Development-Rules.md](docs/ABAP-Development-Rules.md) is the binding rule set; [Chapter 20](20-Best-Practices/README.md) gives one line per rule and links to it.
+- [ai/AGENTS.md](ai/AGENTS.md) is generated from Chapter 20 and the rules by `tools/build_compact_rules.py`. After a change to either, it is regenerated, and `python tools/build_compact_rules.py --check` must pass.
+- Experiment results are dated and frozen. A new run goes into a new `experiment/results/<YYYY-MM>/` folder; corrections to published material go into the errata list of [experiment/README.md](experiment/README.md).
+- Statements that depend on a release or a tool version are labelled `VERSION-DEPENDENT` and point to the official documentation; a check is claimed only after it ran ([Rule 13.5](docs/ABAP-Development-Rules.md#135-claim-a-check-in-the-guides-only-after-it-ran-and-record-it)).
 
 ## 🔗 Related Guides
 
