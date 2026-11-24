@@ -66,6 +66,14 @@ Coding rules: docs/ABAP-Development-Rules.md. Cite rules by number (Rule 2.6).
   (Rule 8.2). CDS access control belongs to CDSGuide, RAP authorization
   to RAPGuide, business roles and catalogs to UIGuide; role and user
   administration are Basis work.
+- Number ranges and change documents are Chapter 35
+  (`35-Number-Ranges-Change-Documents`): number range objects, intervals
+  and buffering, drawing a number with `CL_NUMBERRANGE_RUNTIME`, change
+  document objects and their generated write object, reading change
+  documents with `CL_CHDO_READ_TOOLS`, and testing with doubles. Examples
+  never draw a number or write a change document. RAP numbering and RAP
+  change documents belong to RAPGuide; interval transport and archiving
+  are named only.
 - Debugging is Chapter 23 (`23-Debugging-Troubleshooting`).
 - Keep the folder name `18-Debugging`; its title is "Messages, Exceptions &
   Logging".
