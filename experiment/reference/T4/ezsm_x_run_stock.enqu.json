@@ -1,0 +1,33 @@
+{
+  "formatVersion": "1",
+  "header": {
+    "description": "Lock for stock reservations",
+    "originalLanguage": "en",
+    "abapLanguageVersion": "cloudDevelopment"
+  },
+  "primaryTable": {
+    "name": "ZSM_<RUN>_STOCK",
+    "lockMode": "exclusive"
+  },
+  "lockParameters": [
+    {
+      "name": "CLIENT",
+      "table": "ZSM_<RUN>_STOCK",
+      "field": "CLIENT",
+      "active": true
+    },
+    {
+      "name": "MATERIAL",
+      "table": "ZSM_<RUN>_STOCK",
+      "field": "MATERIAL",
+      "active": true
+    },
+    {
+      "name": "PLANT",
+      "table": "ZSM_<RUN>_STOCK",
+      "field": "PLANT",
+      "active": true
+    }
+  ],
+  "lockModules": {}
+}

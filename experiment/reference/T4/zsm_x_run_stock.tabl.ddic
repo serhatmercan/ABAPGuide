@@ -1,0 +1,12 @@
+@EndUserText.label : 'Stock for reservations'
+@AbapCatalog.enhancement.category : #NOT_EXTENSIBLE
+@AbapCatalog.tableCategory : #TRANSPARENT
+@AbapCatalog.deliveryClass : #A
+@AbapCatalog.dataMaintenance : #RESTRICTED
+define table zsm_<run>_stock {
+  key client   : abap.clnt not null;
+  key material : abap.char(18) not null;
+  key plant    : abap.char(4) not null;
+  available    : abap.int4;
+  reserved     : abap.int4;
+}
