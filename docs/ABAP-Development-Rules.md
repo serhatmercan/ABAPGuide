@@ -2165,6 +2165,54 @@ Applies 8.5 to workflow agents: a user ID in code or in a workflow definition se
 
 This is a team rule. See [31-Business-Workflow](../31-Business-Workflow/README.md#-agent-determination).
 
+### 8.17 Put authorization checks behind an interface; test the business logic with a double and the check with the ABAP Unit authorization test environment
+
+A business class that calls `AUTHORITY-CHECK` itself can only be tested with the authorizations of whoever runs the test. Behind an interface, the decision becomes a dependency (5.4):
+
+- The business class receives the authority interface and asks it before it reads or changes data (8.1).
+- Its tests use a double of the interface for "allowed" and "refused" (10.6); no role is needed.
+- The class that implements the interface holds the `AUTHORITY-CHECK` and evaluates `sy-subrc`. Its own tests use the released ABAP Unit authorization test environment `CL_AUNIT_AUTHORITY_CHECK`. According to its documentation, the environment can only restrict the tester's real authorizations for the test, never add to them, so a test that needs an authorization is skipped where the tester lacks it.
+
+This is a team rule.
+
+```abap
+" ✅ the business class asks the interface; a double replaces it in tests
+IF authority->may_display( table ) = abap_false.
+  RAISE EXCEPTION NEW zcx_zsm_not_authorized( table = table ).
+ENDIF.
+
+" ❌ the business class checks itself; its tests depend on the tester's roles
+AUTHORITY-CHECK OBJECT 'S_TABU_NAM'
+  ID 'ACTVT' FIELD '03'
+  ID 'TABLE' FIELD table.
+```
+
+### 8.18 Use DUMMY only for a field that does not matter for the decision, and say why
+
+According to the ABAP Keyword Documentation, a field given with `DUMMY` is not checked, just like a field that the statement does not name: any value the user's authorization has for it is accepted. With `DUMMY` for every field, the check only asks whether the user has any authorization for the object at all.
+
+- Name every field that matters for the decision with `FIELD`.
+- Use `DUMMY` only where the decision really does not depend on the field, and state the reason in a comment at the statement.
+- Never use `DUMMY` because the value was not at hand; determine the value, or check later where it is known.
+
+The basis is the ABAP Keyword Documentation; the limits on using `DUMMY` are a team rule.
+
+```abap
+" ✅ a where-used tool checks only the display activity; the object name is
+"    not known at this point, and every object type may be shown
+AUTHORITY-CHECK OBJECT 'S_DEVELOP'
+  ID 'DEVCLASS' DUMMY
+  ID 'OBJTYPE'  DUMMY
+  ID 'OBJNAME'  DUMMY
+  ID 'P_GROUP'  DUMMY
+  ID 'ACTVT'    FIELD '03'.
+
+" ❌ the table name is known but not passed; any table authorization succeeds
+AUTHORITY-CHECK OBJECT 'S_TABU_NAM'
+  ID 'ACTVT' FIELD '02'
+  ID 'TABLE' DUMMY.
+```
+
 ---
 
 ## 9 Performance
@@ -2767,7 +2815,7 @@ These rules are decisions of the team: they have no basis in Clean ABAP or the A
 | Classes and methods | 5.12, 5.13, 5.14 |
 | Error handling | 6.2 (one abstract root per category), 6.6, 6.7, 6.11, 6.12 (the split between `ASSERT`, `CX_NO_CHECK` and `RAISE SHORTDUMP`) |
 | Database access and SAP LUW | 7.13, 7.14, 7.15, 7.16, 7.17, 7.18, 7.19, 7.20, 7.21, 7.22, 7.23, 7.24 |
-| Security | 8.2, 8.3, 8.5 (extension to every value that differs per system or user), 8.9, 8.10, 8.11, 8.12, 8.13, 8.14, 8.15, 8.16 |
+| Security | 8.2, 8.3, 8.5 (extension to every value that differs per system or user), 8.9, 8.10, 8.11, 8.12, 8.13, 8.14, 8.15, 8.16, 8.17, 8.18 |
 | Performance | 9.1 |
 | Testing | 10.1, 10.2 (default risk level and duration), 10.10 |
 | Comments | 11.5 (reason for each pragma), 11.6 |
