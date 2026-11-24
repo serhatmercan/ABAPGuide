@@ -1,0 +1,42 @@
+{
+  "permissions": {
+    "allow": [
+      "mcp__adt__abap_destination_list",
+      "mcp__adt__abap_repository_search_object",
+      "mcp__adt__abap_repository_list_creatable_types",
+      "mcp__adt__abap_object_get_creatable_type_detail",
+      "mcp__adt__abap_object_validate_creation",
+      "mcp__adt__abap_object_create",
+      "mcp__adt__abap_object_read_file",
+      "mcp__adt__abap_object_edit_file",
+      "mcp__adt__abap_object_check",
+      "mcp__adt__abap_object_activate",
+      "mcp__adt__abap_object_list_file_uris",
+      "mcp__adt__abap_object_get_file_uri",
+      "mcp__adt__abap_object_get_document_symbols",
+      "mcp__adt__abap_object_get_aff_specification",
+      "mcp__adt__abap_atc_run_start",
+      "mcp__adt__abap_atc_run_get_result"
+    ],
+    "deny": [
+      "Bash(rm -rf:*)",
+      "Bash(git push:*)",
+      "Bash(git reset --hard:*)",
+      "Read(./.env)",
+      "Read(./.env.*)",
+      "mcp__adt__abap_transport_create_request",
+      "mcp__adt__abap_transport_get_request",
+      "mcp__adt__abap_transport_get_unified_diff",
+      "mcp__adt__abap_objects_generator_run",
+      "mcp__adt__abap_objects_generator_get_schema",
+      "mcp__adt__abap_atc_quickfixes_apply",
+      "mcp__adt__abap_atc_ai_start_fix",
+      "mcp__adt__abap_atc_exemption_request",
+      "mcp__adt__abap_object_run_action",
+      "mcp__adt__abap_business_service_get_info",
+      "mcp__adt__abap_business_service_list",
+      "mcp__adt__abap_unit_run_tests"
+    ],
+    "defaultMode": "dontAsk"
+  }
+}
