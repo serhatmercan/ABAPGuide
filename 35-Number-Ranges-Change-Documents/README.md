@@ -316,6 +316,8 @@ The generated `WRITE` calls `CL_CHDO_WRITE_TOOLS` in three steps: `CHANGEDOCUMEN
 
 > 📝 **Activation record.** `ZSM_ORDHDR` was created and activated in both ABAP language versions; its definition and the generated class were read back. No change document was written.
 
+The generated class belongs to the change document object. In the on-premise system, deleting `ZSM_ORDHDR` by hand in ADT also deleted `ZCL_ZSM_ORDHDR_CHDO`; delete the object, not the class. Whether the SAP BTP ABAP environment does the same was not observed **[verify: deleting a change document object in the SAP BTP ABAP environment]**.
+
 ## ✍️ Writing Change Documents
 
 Write the change document through the generated object, in the same SAP LUW as the change of the table, and leave the commit to the transaction owner ([Rule 7.26](../docs/ABAP-Development-Rules.md#726-write-change-documents-through-the-generated-write-object-read-them-through-the-released-api), [Rule 7.10](../docs/ABAP-Development-Rules.md#710-let-the-top-level-caller-own-the-transaction-reusable-units-never-commit-work)). Whether the change document reaches the database at once or with the commit, and how it behaves in the update task, is **[verify: when change documents are written to the database, and their use in the update task]**.
