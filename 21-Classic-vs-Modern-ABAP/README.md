@@ -179,6 +179,45 @@ Superseded, but preserved in this guide because you will meet all of it. Knowing
 
 > 📝 **Verify before you commit to anything specific.** Which APIs are released, and what a given ABAP language version permits, both depend on your release and change over time. Check the ABAP Keyword Documentation and the released-API information for your target system. This chapter deliberately states no release numbers.
 
+## 🧼 Clean Core and Extensibility Options
+
+> **Lifecycle:** `ABAP CLOUD / MODERN CONTEXT`. Clean core is SAP's name for keeping custom code apart from SAP's code, so that SAP can update the system without breaking the extensions. The ABAP side of it is the language version and the released APIs described above.
+
+> ⚠️ **VERSION-DEPENDENT: SAP's extensibility model.** SAP describes three kinds of extensibility for SAP S/4HANA: key-user, developer and side-by-side extensibility. The names come from SAP's course on clean core extensibility; SAP's own definition of clean core, its rules for each kind and the products in which each kind is offered change over time and are on SAP's pages in the [SAP Help Portal](https://help.sap.com/) **[verify: SAP's current definition of clean core and of the three kinds of extensibility]**.
+
+**What "clean" means for code you write.** An extension stays clean when it reaches SAP's code only through two kinds of released objects: released APIs that it calls, and released extension points that it implements. Everything else counts as a dependency that an SAP update may break:
+
+- a modification of an SAP object;
+- a user exit, an implicit enhancement or an enhancement point in SAP code ([17-Enhancements](../17-Enhancements/README.md));
+- a call to an SAP object that is not released, or a direct read of an SAP table.
+
+Each of these still works in Standard ABAP. Clean core does not forbid them there; it counts them as debt that has to be checked at every upgrade.
+
+### Developer Extensibility
+
+Developer extensibility is extension with ABAP code in ADT, under the rules of ABAP Cloud. Three things make it work, and this guide describes each of them where it applies:
+
+| Element | What it means | Where in this guide |
+|---|---|---|
+| **The language version** | The extension is written in ABAP for Cloud Development. According to the ABAP Keyword Documentation, the version is set for each repository object, either explicitly or derived from its package or software component, and it limits the language to a subset. | [Rule 1.1](../docs/ABAP-Development-Rules.md#11-know-the-language-version-of-every-object-you-change), [29-Transport-Quality-Gates](../29-Transport-Quality-Gates/README.md#-packages-tmp-and-local-objects) |
+| **Released APIs** | The extension calls SAP objects only if they are released for that version. According to the ABAP Keyword Documentation, a released API needs the release contract C1 (use system-internally) and visibility for ABAP for Cloud Development; objects of the extension's own software component can always be used. | [What Changes Under ABAP Cloud](#-what-changes-under-abap-cloud), [Rule 1.2](../docs/ABAP-Development-Rules.md#12-when-targeting-abap-for-cloud-development-use-only-released-apis) |
+| **Released BAdIs** | Custom logic in an SAP process goes into the implementation of a released BAdI. According to the ABAP Keyword Documentation, the release contract C0 (extend) marks such extension points and can be made visible for ABAP for Cloud Development. BAdI enhancement implementations were listed as creatable objects in ADT on both systems used for this guide. | [16-BADIs](../16-BADIs/README.md), [17-Enhancements](../17-Enhancements/README.md#-under-abap-cloud) |
+
+Two further release contracts matter at the edges. C2 (use as remote API) marks APIs that another system calls, which is what side-by-side extensions rely on. C3 (manage configuration content) covers configuration content. The program `ABAP_DOCU_RELEASED_APIS` lists the classified objects of a system.
+
+According to the ABAP Keyword Documentation, ABAP Cloud is developed only in ADT, not in SAP GUI ([30-Tools-AI-Assistance](../30-Tools-AI-Assistance/README.md)). Whether an object keeps to the rules is shown by ATC with the check variants `ABAP_CLOUD_DEVELOPMENT_DEFAULT` and `ABAP_CLOUD_READINESS`, which are both released ([29-Transport-Quality-Gates](../29-Transport-Quality-Gates/README.md#-atc-checks-variants-and-exemptions)).
+
+### Key-User and Side-by-Side Extensibility
+
+These two belong to the planned SAP-Architecture-Guide; this guide names them so that the boundary is clear:
+
+- **Key-user extensibility** is meant for people who know the business process rather than ABAP: custom fields, custom logic in prepared places and similar adaptations, made in SAP Fiori apps instead of ADT **[verify: how key-user extensibility is done and which apps offer it]**. The ABAP Keyword Documentation lists ABAP for Key Users as a third language version for the code written there.
+- **Side-by-side extensibility** runs outside the SAP S/4HANA system, for example in the SAP BTP ABAP environment, and reaches SAP S/4HANA through its remote APIs, the objects with release contract C2 **[verify: SAP's description of side-by-side extensibility, including events]**. Code written in the SAP BTP ABAP environment follows the same rules as developer extensibility.
+
+> 📝 **Three tiers on-premise.** The on-premise system used for this guide delivers an ATC check variant `ABAP_CLOUD_DEVELOPMENT_3TIER`, whose description names a three-tier extensibility model. SAP's description of the tiers and of how classic code fits into them belongs to the planned SAP-Architecture-Guide **[verify: SAP's description of the three-tier extensibility model]**.
+
+Adapting existing custom code to these rules is a separate task with its own tools; see [29-Transport-Quality-Gates](../29-Transport-Quality-Gates/README.md#-atc-checks-variants-and-exemptions).
+
 ## 🔀 Decision Table
 
 | Scenario | What to preserve / understand | Preferred direction | Notes |
@@ -212,6 +251,7 @@ Stating this plainly is deliberate. A reference that is honest about its edges i
 - State the target language version wherever an example's validity depends on it — [Rule 1.4](../docs/ABAP-Development-Rules.md#14-state-the-target-language-version-when-it-matters).
 - Call code cloud-ready or checked only after the check ran, and record it — [Rules 1.5](../docs/ABAP-Development-Rules.md#15-never-call-code-cloud-ready-unless-it-was-checked) and [13.5](../docs/ABAP-Development-Rules.md#135-claim-a-check-in-the-guides-only-after-it-ran-and-record-it).
 - When a classification changes, update this chapter's tables together with the chapter that uses the label.
+- Extend through released APIs and released BAdIs, and count every other dependency on SAP code as upgrade debt — [Clean Core and Extensibility Options](#-clean-core-and-extensibility-options).
 
 ## ⚠️ Common Mistakes
 
@@ -220,6 +260,7 @@ Stating this plainly is deliberate. A reference that is honest about its edges i
 - Assuming an SAP object is usable in ABAP for Cloud Development because it exists in the system.
 - Treating "S/4HANA" and "ABAP Cloud" as the same thing; the restriction comes from the ABAP language version of the object.
 - Concluding from the language-element list alone that an API is available; statements and released APIs are checked separately.
+- Calling an extension clean because it is written in modern syntax, while it calls unreleased SAP objects or sits in an implicit enhancement.
 
 ## 🎤 Interview & Review Checkpoints
 
@@ -228,6 +269,7 @@ Stating this plainly is deliberate. A reference that is honest about its edges i
 - Explain what a release contract is, and what it means that an object is released or deprecated.
 - Describe when you would leave classic code alone, and what you would still improve while you are in it.
 - Name constructs the ABAP Keyword Documentation classifies as obsolete, and one that people often call obsolete but that is not.
+- Name the three kinds of extensibility, and explain what developer extensibility needs: language version, released APIs and released BAdIs.
 
 ## 🔗 Related Chapters
 
