@@ -216,7 +216,7 @@ These two belong to the planned SAP-Architecture-Guide; this guide names them so
 
 > 📝 **Three tiers on-premise.** The on-premise system used for this guide delivers an ATC check variant `ABAP_CLOUD_DEVELOPMENT_3TIER`, whose description names a three-tier extensibility model. SAP's description of the tiers and of how classic code fits into them belongs to the planned SAP-Architecture-Guide **[verify: SAP's description of the three-tier extensibility model]**.
 
-Adapting existing custom code to these rules is a separate task with its own tools; see [29-Transport-Quality-Gates](../29-Transport-Quality-Gates/README.md#-atc-checks-variants-and-exemptions).
+Adapting existing custom code to these rules is a separate task with its own tools; see [29-Transport-Quality-Gates](../29-Transport-Quality-Gates/README.md#adapting-custom-code-usage-data-and-readiness-checks).
 
 ## 🔀 Decision Table
 

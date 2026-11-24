@@ -14,6 +14,7 @@ This chapter covers:
 - request hygiene and the errors that block a release;
 - transport in the SAP BTP ABAP environment, as far as it was verified;
 - ATC: checks, check variants, exemptions and the check at release;
+- adapting custom code: usage data and readiness checks;
 - abaplint and continuous integration as optional additions.
 
 Transport administration (transport routes, import queues, file transfer) belongs to Basis and is outside this guide; see the [Scope Note](#-scope-note). The tools that developers use every day are the topic of [30-Tools-AI-Assistance](../30-Tools-AI-Assistance/README.md).
@@ -230,6 +231,32 @@ The **ABAP Test Cockpit** runs static checks, ABAP Unit tests and further checks
 
 Claim a check only after it ran ([Rule 13.5](../docs/ABAP-Development-Rules.md#135-claim-a-check-in-the-guides-only-after-it-ran-and-record-it)), and never call code cloud-ready without the check ([Rule 1.5](../docs/ABAP-Development-Rules.md#15-never-call-code-cloud-ready-unless-it-was-checked)).
 
+### Adapting Custom Code: Usage Data and Readiness Checks
+
+> ⚠️ **VERSION-DEPENDENT: custom code adaptation tools.** The tools below were found in the on-premise system used for this chapter, by a read-only search for transactions, check variants and check classes. Which of them your system has, and the steps of SAP's adaptation process, depend on the release; see SAP's documentation for your product in the [SAP Help Portal](https://help.sap.com/) **[verify: SAP's documented adaptation process and its tools in your release]**.
+
+Before a conversion to SAP S/4HANA, or before moving custom code towards [clean core](../21-Classic-vs-Modern-ABAP/README.md#-clean-core-and-extensibility-options), a team has to know two things: which custom code is still used, and which of it breaks under the new rules. The work therefore has three steps.
+
+**1. Find out what is used.** Code that nobody runs need not be adapted; it can be deleted. Usage data comes from the production system:
+
+| Transaction | Title in the system | Use |
+|---|---|---|
+| `SCMON` | ABAP Call Monitor: Administration | Switch the monitor on and off |
+| `SCMOND` | ABAP Call Monitor: Data Browser | Look at the collected calls |
+| `SCMONL` | ABAP Call Monitor: Log Browser | Look at the monitor's log |
+| `SUSG` | Usage Data | Collect usage data over a longer period |
+
+How long the monitor should run, what it costs at runtime and how its data reaches the system that runs the checks are described in SAP's documentation for your release **[verify: runtime cost, retention and export of SCMON and SUSG data]**.
+
+**2. Check the code.** The checks run in ATC, which can be a central check system as described above:
+
+- **SAP S/4HANA readiness:** the Code Inspector category `CL_CI_CATEGORY_S4H_READINESS` groups checks whose classes start with `CL_CI_TEST_S4H_`. Their descriptions name the topics: database operations on changed tables, field length extensions, Dictionary enhancements, base tables of Dictionary views, syntax errors in SAP S/4HANA, and where-used lists; a further class checks SAP Queries. Transaction `SYCM` (*Custom Code Management*) and setup transactions such as `SYCM_REL_STACK` and `SYCM_RFC` exist as well **[verify: the S/4HANA readiness check variants for your target release, the simplification content they use, and the role of SYCM]**.
+- **Cloud readiness:** the released check variant `ABAP_CLOUD_READINESS` shows what keeps code from ABAP for Cloud Development, as described in [21-Classic-vs-Modern-ABAP](../21-Classic-vs-Modern-ABAP/README.md#-what-changes-under-abap-cloud).
+
+**3. Adapt, in order of use.** Fix the used objects first, delete the unused ones, and exempt the rest only with a reason (above). Many findings come with quick fixes; review them like any other change.
+
+> 📝 **The Custom Code Migration app.** SAP's course on clean core extensibility names a Fiori app of this name for the same analysis. It was not found by name in either system used for this chapter, and SAP's page on it could not be read **[verify: where the Custom Code Migration app runs, what it checks and how it connects to the checked system]**.
+
 ## 🔁 abaplint and Continuous Integration
 
 [abaplint](https://github.com/abaplint/abaplint) is an open-source static analysis tool for ABAP that has been serialized with [abapGit](https://github.com/abapGit/abapGit). It runs outside the SAP system, for example on a pull request, and needs complete objects. Its configuration lives in `abaplint.json`; Rule 13.4 maps the guide's rules to abaplint rules ([Rule 13.4](../docs/ABAP-Development-Rules.md#134-use-abaplint-for-offline-checks-of-complete-abapgit-serialized-objects)).
@@ -278,6 +305,7 @@ Not covered in this chapter:
 - Put release rules into a tested class and keep the BAdI method thin.
 - Analyse a request's objects in `SE03` before release.
 - Use the released XCO classes for transport information in ABAP for Cloud Development.
+- Collect usage data before adapting custom code, and delete what is not used instead of fixing it.
 
 ## ⚠️ Common Mistakes
 
@@ -300,6 +328,7 @@ Not covered in this chapter:
 - How would you enforce a team rule at release, and where does the rule live?
 - How is transport organised in the SAP BTP ABAP environment?
 - What is an ATC check variant, and what does an exemption need?
+- How do you decide which custom code to adapt before a conversion, and which tools tell you?
 
 ## 🖥️ Related Transaction Codes
 
@@ -313,6 +342,9 @@ Not covered in this chapter:
 | `STMS` | Transport Management System |
 | `ATC` | ATC administration |
 | `SCI` | Code Inspector |
+| `SCMON` | ABAP Call Monitor |
+| `SUSG` | Usage data |
+| `SYCM` | Custom Code Management |
 | `SO10` | Standard texts |
 
 ## 🔗 Related Chapters
