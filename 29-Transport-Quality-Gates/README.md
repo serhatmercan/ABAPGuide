@@ -8,7 +8,7 @@ A change is written once, in a development system. It reaches the test and produ
 
 This chapter covers:
 
-- packages, `$TMP` and local objects;
+- packages, `$TMP` and local objects, and a package for clean-core development in Standard ABAP;
 - the Change and Transport System: requests, tasks, release and import;
 - object locks in requests, and the system change option;
 - request hygiene and the errors that block a release;
@@ -41,6 +41,31 @@ Every repository object belongs to a **package**. A package names its software c
 - **SAP BTP ABAP environment:** in the system used for this chapter, creating a class in `$TMP` was refused for lack of authorization; test objects were created in a package below `ZLOCAL`, whose software component is `ZLOCAL` and whose default ABAP language version is ABAP for Cloud Development.
 
 > ⚠️ **Do not change the object directory with your own code.** A report that updates `TADIR` to "fix" a package or an original system bypasses the Transport Organizer and its checks. SAP's release information classifies `TADIR` as not to be released and names `I_CUSTABAPOBJDIRECTORYENTRY` as its successor for reading. To change a package assignment, use `SE03`.
+
+### Clean-Core Development in Standard ABAP
+
+New code in an on-premise system can follow the rules of ABAP Cloud already, so that it does not add to the upgrade debt described in [21-Classic-vs-Modern-ABAP](../21-Classic-vs-Modern-ABAP/README.md#-clean-core-and-extensibility-options). The means is the ABAP language version, not a different system.
+
+According to the ABAP Keyword Documentation:
+
+- every repository object has a language version, set explicitly or derived from its package or software component;
+- an object in ABAP for Cloud Development can use released APIs and the objects of its own software component;
+- package checks run in ATC and find only what can be determined statically; nothing is checked at runtime.
+
+That gives a setup in four parts:
+
+1. **A package for the clean-core code.** Use a transportable package whose objects are created in ABAP for Cloud Development, not `$TMP` **[verify: where the default language version of a package or software component is set in your release]**.
+2. **The check variant.** Make `ABAP_CLOUD_DEVELOPMENT_DEFAULT` the variant for that package. SAP's release information for Standard ABAP lists it as released, and it exists in the on-premise system used for this chapter.
+3. **Wrappers for what SAP has not released.** When clean-core code needs an SAP object that is not released, wrap it in your own Standard ABAP class and release that class for ABAP for Cloud Development. According to the ABAP Keyword Documentation, a release needs the release contract C1 and visibility for the language version, and the classification belongs to the object's own software component or package. Keep each wrapper small and replace it when SAP releases a successor **[verify: SAP's guidance on custom wrappers in your release]**.
+4. **The test.** Run ABAP Unit and ATC in the package like anywhere else ([22-ABAP-Unit](../22-ABAP-Unit/README.md)).
+
+> 📝 **Test record.** In the on-premise system used for this chapter, a class was created in `$TMP` through the ADT tool used for this guide, with the aim of giving it ABAP for Cloud Development:
+>
+> - The tool's create dialog offered no field for the language version.
+> - Setting the version in the class properties afterwards was reported as successful, but the read-back showed it was not stored.
+> - The class stayed Standard ABAP: a call to `cl_gui_frontend_services`, which SAP classifies as a classic API, passed the syntax check. The call was removed again, and the class was not activated.
+>
+> The test therefore could not show how the syntax check treats an unreleased API in ABAP for Cloud Development on-premise **[verify: create a class with ABAP for Cloud Development in the ADT class wizard, call an unreleased API and record the messages of the syntax check and of ATC]**. In the SAP BTP ABAP environment, classes created in a package below `ZLOCAL` came out in ABAP for Cloud Development, as their read-back properties showed.
 
 ## 🚚 The Change and Transport System
 
@@ -300,6 +325,7 @@ Not covered in this chapter:
 ## ✅ Best Practices
 
 - Start transportable work in a transportable package; keep `$TMP` for experiments.
+- Put new clean-core code in its own package with ABAP for Cloud Development and the check variant `ABAP_CLOUD_DEVELOPMENT_DEFAULT`.
 - One logical change per request, released only after syntax check, ABAP Unit and ATC ([Rules 13.7](../docs/ABAP-Development-Rules.md#137-bundle-one-logical-change-per-transport-request-and-release-it-only-after-the-checks-of-131) and [13.1](../docs/ABAP-Development-Rules.md#131-release-nothing-that-fails-the-syntax-check-abap-unit-or-atc-with-the-team-check-variant)).
 - Use one shared ATC check variant; fix each finding or exempt it with a reason and an approver.
 - Put release rules into a tested class and keep the BAdI method thin.
@@ -321,6 +347,7 @@ Not covered in this chapter:
 ## 🎤 Interview & Review Checkpoints
 
 - What decides whether an object can be transported?
+- How do you set up clean-core development in an on-premise system, and what do you do when SAP has not released an API you need?
 - Workbench request vs Customizing request: what goes where?
 - What is a task, and what happens when a request is released?
 - Why are objects locked in requests, and when is `SE03`'s unlock tool acceptable?
